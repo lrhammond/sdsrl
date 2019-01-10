@@ -1,85 +1,80 @@
-import numpy as np
-import csv
+# INTA
+# Functions for interfacing between game playing environments and the data needed for learning
 
 
-def recordState(mode, fileName, state):
+import util
 
-    f = open(fileName+".csv", "a")
+
+# Encode sequence of states/rewards/actions into one-hot encoded list representations
+def encodeRecording(mode, fileName=None, rStates, rRewards, rActions)
 
     if mode == "vgdl":
-        # Record objects and their attributes
-        i = 1
-        for key in state[0].keys():
-            for pos in state[0][key]:
-                line = [i, pos[0], pos[1], key]
-                string = ",".join([str(x) for x in line])
-                f.write(string+"\n")
-                i = i + 1
-        # Record reward and action
-        f.write("r,"+str(state[1])+"\n")
-        f.write("a,"+str(state[2])+"\n")
-        f.write("-\n")
+        
+        # One-hot encode rewards and actions
+        bRewards = util.oneHot(rRewards)
+        bActions = util.oneHot(rActions)
+        # Create map of items based on location
+        objectMap = {}
+        # One-hot encode objects and their attributes, with absolute location
+        objectTypes = list(set([state.keys() for state in rStates]))
+        bTypes = util.oneHot(objectTypes)
+        typeDict = dict(zip(objectTypes, bTypes))
+        bStates = []
+        for state in rStates:
+            bState = []
+            i = 0
+            for objectType in state.keys():
+                for position in state(objectType):
+                    bState.append([position, typeDict(objectType)])
+                    objectMap(position) = i
+                    i = i + 1
+            bStates.append(bState)
+        # Optionally record information to file    
+        if fileName != None:
+            # TODO
+            # Save state information
+            f = open(fileName+"_states.csv", "w")
+            f.close()
+            # Save reward information
+            f = open(fileName+"_rewards.csv", "w")
+            f.close()
+            # Save action information
+            f = open(fileName+"_actions.csv", "w")
+            f.close()
 
     else:
         # TODO
         return
-
-    f.close()
+    
+    return bState, bRewards, bActions, objectMap
     
 
-def encodeState(mode, fileName, state)
-
-    f = open(fileName+".csv", "a")
-
-    if mode == "vgdl":
-        # Initialise set of actions and rewards
-        actions = []
-        rewards = []
-        # Record objects and their attributes
-        i = 1
-        types = list(state[0].keys())
-        for T in types:
-            tPos =  types.index(T)
-            tVector = [0 for t in types]
-            tVector[tPos] = 1
-            for pos in state[0][T]:
-                line = [i, pos[0], pos[1]] + tVector
-                string = ",".join([str(x) for x in line])
-                f.write(string+"\n")
-                i = i + 1
-        # Record reward
-        R = state[1]
-        if R is not in rewards:
-            rewards.append(R)
-        rPos = rewards.index[R]
-        rVector = [0 for reward in rewards]
-        rVector[rPos] = 1
-        f.write("r,"+str(rvector)+"\n")
-        # Record action
-        A = state[2]
-        if A is not in actions:
-            actions.append(A)
-        aPos = actions.index[A]
-        aVector = [0 for action in actions]
-        aVector[aPos] = 1
-        f.write("a,"+str(A)+"\n")
-        # Record end of state
-        f.write("-\n")
-
-    else:
-        # TODO
-        return
-
-    f.close()
-
-
-def parseState(mode, fileName, states):
-
-    f = open(fileName+".csv", "r")
+# Form matrices X and y for supervised learning of schemas using relaxed (binary) integer programming
+def formMatrices(bStates, bRewards, bActions, objectMap):
     
-    if mode == "vgdl":
-        reader = csv.reader(f)
-        for row in reader:
+    Xy = []
+    
+    for t in range(len(bStates) - 1):
+        state = bStates[t]
+        nextState = bStates[t + 1]
+        for obj in state.keys():
+            pos = obj[0]
+            objVector = obj[1] + [0,0,0,0] + [1]
+            row = objVector
+            neighbours = util.neighbourPositions(pos)
+            for nb in neighbours:
+                if nb[0] is in objectMap.keys():
+                    nbVector = state[objectMap(nb(0))][1] + nb[1] + [1]
+                    row = row + nbVector
+                else:
+                    row = row + [0 for item in objVector]
+            row = row + bActions[t]
+                    
+    
+    return X, y
+
+
+
             
         
         
