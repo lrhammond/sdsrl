@@ -3,7 +3,6 @@
 
 
 from numpy import array
-frfrom numpy import array
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 from operator import add
@@ -22,7 +21,7 @@ def oneHot(inputList):
     
     outputList = b.tolist()
     
-    return outputListom sklearn.preprocessing import LabelEncoder
+    return outputList
     
 
 # Given a position return a list of the eight surrounding neighbours and their relative position vectors
@@ -38,4 +37,14 @@ def neighbourPositions(pos):
     n8 = [tuple(map(add, pos, (-1, 0))), [0, 0, 0, 1]]
     
     return [n1, n2, n3, n4, n5, n6, n7, n8]
+    
+
+# Overlining operation corresponding to replacing all zero entries with one and all non-zero entries with zero
+def overline(array):
+    
+    mask = array > 0
+    reverse = numpy.ones(array.shape) - newArray
+    reverse.astype(np.int)
+    
+    return reverse
     

@@ -3,6 +3,7 @@
 
 
 import util
+import numpy as np
 
 
 # Encode sequence of states/rewards/actions into one-hot encoded list representations
@@ -46,20 +47,27 @@ def encodeRecording(mode, fileName=None, rStates, rRewards, rActions)
         # TODO
         return
     
-    return bState, bRewards, bActions, objectMap
+    return bStates, bRewards, bActions, objectMap
     
 
-# Form matrices X and y for supervised learning of schemas using relaxed (binary) integer programming
+# Form set of matrices X and Y for supervised learning of schemas using relaxed (binary) integer programming
 def formMatrices(bStates, bRewards, bActions, objectMap):
     
-    Xy = []
+    # Intialise matrix X
+    X = []
     
-    for t in range(len(bStates) - 1):
+    # Range across all recorded states
+    for t in range(len(bStates)):
         state = bStates[t]
         nextState = bStates[t + 1]
+        # Range across each object
+        numObjects = len(state.keys())
         for obj in state.keys():
+            # Form object vector
             pos = obj[0]
             objVector = obj[1] + [0,0,0,0] + [1]
+            numAttributes = len(objVector)
+            # Extend with information about neighbours
             row = objVector
             neighbours = util.neighbourPositions(pos)
             for nb in neighbours:
@@ -68,10 +76,18 @@ def formMatrices(bStates, bRewards, bActions, objectMap):
                     row = row + nbVector
                 else:
                     row = row + [0 for item in objVector]
+            # Add actions the append to matrix X
             row = row + bActions[t]
+            X.append(row)
+            
+    # Form list Y of vectors y for each attribute using matrix X without entries for first time step
+    Xnotfirst = X[numObjects:]
+    Y = [np.array([row[i] for row in X]) for i in range(numAttributes)]
                     
+    # Remove entries for the last timestep from X
+    del X[:numObjects]
     
-    return X, y
+    return np.array(X), Y
 
 
 
