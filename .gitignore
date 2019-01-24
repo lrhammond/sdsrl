@@ -1,5 +1,7 @@
 # My additions
 .DS_Store
+scipoptsuite-6.0.1/
+PySCIPOptmaster/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -82,19 +82,9 @@ def formMatrices(bStates, bRewards, bActions, objectMap):
             
     # Form list Y of vectors y for each attribute using matrix X without entries for first time step
     Xnotfirst = X[numObjects:]
-    Y = [np.array([row[i] for row in X]) for i in range(numAttributes)]
+    Y = [[row[i] for row in X] for i in range(numAttributes)]
                     
     # Remove entries for the last timestep from X
     del X[:numObjects]
     
-    return np.array(X), Y
-
-
-
-            
-        
-        
-        
-        
-        
-        
+    return X, Y

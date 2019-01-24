@@ -1,5 +1,5 @@
 # UTIL
-# Various utility and helper functions, as well as 
+# Various utility and helper functions
 
 
 from numpy import array
@@ -37,14 +37,3 @@ def neighbourPositions(pos):
     n8 = [tuple(map(add, pos, (-1, 0))), [0, 0, 0, 1]]
     
     return [n1, n2, n3, n4, n5, n6, n7, n8]
-    
-
-# Overlining operation corresponding to replacing all zero entries with one and all non-zero entries with zero
-def overline(array):
-    
-    mask = array > 0
-    reverse = numpy.ones(array.shape) - newArray
-    reverse.astype(np.int)
-    
-    return reverse
-    
