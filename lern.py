@@ -1,10 +1,29 @@
 # LERN
 # Functions for learning schemas from matrices, and also for learning policies from schemas
 
+
 import util
 from scipy import optimize
 import numpy as np
 
+
+# Checks whether existing schemas predict a datapoint correctly or not
+def check(schemas, evidence, [xRow, yRow[i]], index):
+    # If no schema is active we output "none"
+    output = "none"
+    # Check each schema that predicts this attribute of the object
+    for i in range(len(schemas[index])):
+        if schemas[index][i].isActive(xRow):
+            # If an active schema predicts the attribute value correctly and there are no wrong predictions, output "predicted"
+            if schemas[index][i].head == yRow[i] and output != "wrong":
+                output = "predicted"
+                continue
+            # If an incorrect prediction is made by a schema we remove it and add the relevant evidence back to the learning data
+            else:
+                
+                output == "wrong"
+    return output
+                
 
 # Learns schemas for a particular object attribute given data X and y
 def learnSchemas(X, y, regConst=10, L=10)
