@@ -25,17 +25,24 @@ class Model:
         # Initialise state descriptions of model
         self.prev = None
         self.curr = self.getModelState()
-        # Create lists for storing schemas and learning data
-        self.schemas = [[],[],[],[],[],[],[],[]]
-        self.evidence = [[],[],[],[],[],[],[],[]]
-        self.XY = [[],[],[],[],[],[],[],[]]
         # Create lists for storing observed attributes and one-hot encoded versions
-        self.obsActions = [[],[]]
-        self.obsRewards = [[],[]]
+        self.obsXpos = [["left", "centre", "right"], [[1,0],[0,0],[0,1]]]
+        self.obsYpos = [["below", "centre", "above"], [[1,0],[0,0],[0,1]]]
         self.obsXsizes = [[],[]]
         self.obsYsizes = [[],[]]
         self.obsColours = [[],[]]
         self.obsShapes = [[],[]]
+        self.obsVisble = [["yes", "no"], [[1],[0]]]
+        # Create lists for storing observed actions and rewards
+        self.obsActions = [["nothing"],[[0]]]
+        self.obsRewards = [[],[]]
+        # Create dictionaries for fast conversion between attribute values and binary versions
+        self.observations = [self.obsXpos, self.obsYpos, self.obsXsizes, self.obsYsizes, self.obsColours, self.obsShapes, self.obsVisible, self.obsRewards, None, self.obsActions]
+        self.dictionaries = self.updateDict()
+        # Create lists for storing schemas and learning data
+        self.schemas = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
+        self.evidence = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
+        self.XY = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
         return
                
     # Outputs dictionary representing the state of the model
@@ -82,42 +89,59 @@ class Model:
             
     # Update lists of observed values and propagate changes to schema learning matrices
     def updateObsLists(self, obj, action, reward):
-        # Intialise vector to record any changes
-        changed = [False, False, False, False, False, False]
         # Check for object attributes
         if obj != None:
             if obj.x_size is not in self.obsXsizes[0]:
                 self.obsXsizes[0].append(obj.x_size)
                 self.obsXsizes[1] = util.oneHot(self.obsXsizes[0])
-                changed[0] = True
+                self.updateDataKeys(X_SIZE, obj.x_size)
             if obj.y_size is not in self.obsYsizes[0]:
                 self.obsYsizes[0].append(obj.y_size)
                 self.obsYsizes[1] = util.oneHot(self.obsYsizes[0])
-                changed[1] = True
+                self.updateDataKeys(Y_SIZE, obj.y_size)
             if obj.colour is not in self.obsColours[0]:
                 self.obsColours[0].append(obj.colour)
                 self.obsColours[1] = util.oneHot(self.obsColours[0])
-                changed[2] = True
+                self.updateDataKeys(COLOUR, obj.colour)
             if obj.shape is not in self.obsShapes[0]:
                 self.obsShapes[0].append(obj.shape)
                 self.obsShapes[1] = util.oneHot(self.obsShapes[0])
-                changed[3] = True
+                self.updateDataKeys(SHAPE, obj.shape)
         # Check for new actions
         if action != None:
-            if action is not in self.obsActions[0]:
+            if action is not in self.obsActions[0] and action != "nothing":
+                # Remove 'nothing' action for one-hot encoding
+                self.obsActions[0].remove("nothing")
+                # Add new action and update one-hot encoded values
                 self.obsActions[0].append(action)
                 self.obsActions[1] = util.oneHot(self.obsActions[0])
-                changed[4] = True
-        # Check for new actions
+                # Add 'nothing' option back in again
+                actionLength = len(self.obsActions[1][0])
+                self.obsActions[0].append("nothing")
+                self.obsActions[1].append([0 for i in range(actionLength)]
+        # Check for new rewards
         if reward != None:
             if reward is not in self.obsRewards[0]:
                 self.obsRewards[0].append(reward)
                 self.obsRewards[1] = util.oneHot(self.obsRewards[0])
-                changed[5] = True
-        # TEMPORARILY REMOVED, MAY NOT BE EFFICIENT        
-        # Update data matrices according to changes
-        # self.updateMatrices(changes)
+                self.updateDataKeys(REWARD, attribute)
         return
+        
+    # Update keys for storing data and schemas
+    def updateDataKeys(self, index, attribute):
+        self.schemas[index][attribute] = []
+        self.evidence[index][attribute] = []
+        self.XY[index][attribute] = []
+        
+    # Update dictionaries for fast conversion between attribute values and binary versions
+    def updateDicts(self):
+        self.observations = [self.obsXpos, self.obsYpos, self.obsXsizes, self.obsYsizes, self.obsColours, self.obsShapes, self.obsVisible, self.obsRewards, None, self.obsActions]
+        self.dictionaries = []
+        for obs in self.observations:
+            if obs == None:
+                self.dictionaries.append(None)
+            else:
+                self.dictionaries.append(util.obsToDicts(obs))
             
     # Update model based on new observation        
     def updateModel(self, state):
@@ -217,7 +241,7 @@ class Model:
                     intersection = list(set(possibleNewPos) & set(neighbours))
                     # If there are no neighbours at all we assume the object has disappeared
                     if len(intersection) == 0:
-                        self.objects[objId].visible = False
+                        self.objects[objId].visible = "no"
                         del self.objMap[oldPos]
                         both.remove(objId)
                     # If there is a single neighbour (of different type) we assume it is the same object
@@ -272,11 +296,11 @@ class Model:
                 yRow = util.formYvector(objId, self.prev, self.curr) + [self.reward]
                 # Add new data points if they have not already been recorded
                 for i in range(len(yRow):
-                    checkData = self.checkData([xRow, yRow[i]], i)
-                    if checkData = "predicted":
+                    check = self.checkDatum([xRow, yRow[i]], i)
+                    if check = "predicted":
                         continue
-                    if [xRow, yRow[i]] is not in self.XY[i]:
-                        self.XY[i].append([xRow, yRow[i]])
+                    if xRow is not in self.XY[i][yRow[i]]:
+                        self.XY[i][yRow[i]].append(xRow)
             return
         # Otherwise we just update the data with those objects that have changed
         else:    
@@ -285,28 +309,28 @@ class Model:
                 yRow = util.formYvector(objId, self.prev, self.curr) + [self.reward]
                 # Add new data points if they have not already been recorded
                 for i in range(len(yRow):
-                    checkData = self.checkData([xRow, yRow[i]], i)
-                    if checkData = "predicted":
+                    check = self.checkDatum([xRow, yRow[i]], i)
+                    if check = "predicted":
                         continue
-                    if [xRow, yRow[i]] is not in self.XY[i]:
-                        self.XY[i].append([xRow, yRow[i]])      
+                    if xRow is not in self.XY[i][yRow[i]]:
+                        self.XY[i][yRow[i]].append(xRow)     
             return
             
     # Checks whether existing schemas predict a datapoint correctly or not
-    def check(self, [xRow, yRow[i]], index):
+    def checkDatum(self, datum, index):
         # If no schema is active we output "none"
         output = "none"
         # Check each schema that predicts this attribute of the object
         for i in range(len(self.schemas[index])):
-            if self.schemas[index][i].isActive(xRow):
+            if self.schemas[index][i].isActive(datum[0]):
                 # If an active schema predicts the attribute value correctly and there are no wrong predictions, output "predicted"
-                if self.schemas[index][i].head == yRow[i] and output != "wrong":
+                if self.schemas[index][i].head == datum[1] and output != "wrong":
                     output = "predicted"
                 # If an incorrect prediction is made by a schema we remove it and add the relevant evidence back to the learning data
                 else:
-                    self.XY =  self.XY + self.evidence[index][i]
+                    self.XY[index] =  self.XY[index] + self.evidence[index][i]
                     del self.evidence[index][i]
-                    del self.schemas[index]
+                    del self.schemas[index][i]
                     output == "wrong"
         return output
         
@@ -332,20 +356,27 @@ class Model:
     
     # Updates and learns new schemas       
     def learn(self):
+        self.updateDicts()
         # For each object attribute
         for i in range(len(self.XY))
-            [X, Y] = util.formBinaryMatrices(self.XY[i])
             # For each binary object attribute to be predicted
-            for j in range(len(Y[0])):
-                y = [row[j] for row in Y]
-                [binarySchemas, binaryEvidence] = learnSchemas(X, y)
-                # Convert learnt schemas and evidence from binary output and add
-                newSchemas = [util.fromBinary(self, schema) for schema in binarySchemas]
-                vector = [0 for element in Y[0]]
-                vector[j] = 1
-                newEvidence = [[util.fromBinary(self, evidence), util.fromBinary(self, vector, i)] for evidence in binaryEvidence]
-                self.schemas[i] = self.schemas[i] + newSchemas
-                self.evidence[i] = self.evidence[i] + newEvidence
+            for key in XY[i].keys():
+                # Form lists of positive and negative cases
+                xYes = self.XY[i][key]
+                xNo = [self.XY[i][other] for other in XY[i].keys() if other!= key]
+                xNo = util.flatten(xNo)
+                # Form vectors for learning
+                y = [1 for item in xYes]
+                X = [util.toBinary(self, item) for item in xYes]
+                y = y + [0 for item in xNo]
+                X = X + [util.toBinary(self, item) for item in xNo]
+                # Learn schemas and output new schemas, evidence, and remaining cases 
+                [binarySchemas, binaryEvidence, binaryRemaining] = learnSchemas(X, y, self.schemas)
+                # Convert learnt schemas and evidence from binary output and add to model
+                self.schemas[i] = self.schemas[i] + [util.fromBinarySchema(self, schema) for schema in binarySchemas]
+                self.evidence[i] = self.evidence[i] + [util.fromBinary(self, datum) for datum in binaryEvidence]
+                self.XY[i][key] = [util.fromBinary(self, datum) for datum in binaryRemaining]
+                
           
 # Define the object class
 class Object:
@@ -359,7 +390,7 @@ class Object:
         self.y_size = None
         self.colour = None
         self.shape = None
-        self.visible = True
+        self.visible = "yes"
         return
     
     # Outputs list representing the state of the object
@@ -372,8 +403,9 @@ class Object:
 class Schema:
     
     # Initilaise schema
-    def __init__(self, id):
-        self.id = id
+    def __init__(self):
+        # SCHEMA NAMING REMOVED FOR NOW
+        # self.id = id
         self.objectBody = {}
         self.actionBody = None
         self.head = None
@@ -391,8 +423,37 @@ class Schema:
         if self.actionBody != None and self.actionBody != x[9]:
             return False
         return True
-        
+     
+    # Prints out schema in human-readble format  
+    def display(self):
+        objects = ["obj"] + ["nb" + str(i+1) for in range(8)]
+        attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "visible"]
+        # SCHEMA NAMING REMOVED FOR NOW
+        # schemaName = "Schema " + str(self.id) + ": "
+        schemaName = ""
+        schemaBody = ""
+        for key in self.objectBody.keys():
+            i = list(key)
+            precondition = attributes[i[1]] + "(" objects[i[0]] + ")=" + str(self.objectBody(key))
+            schemaBody = schemaBody + preconditon + " AND "
+        schemaBody = schemaBody + "action=" + str(self.actionBody)
+        schemaHead = str(self.head)
+        output = schemaName + schemaBody + " ---> " + schemaHead
+        print(output)
+
 
 # Define the Q-function class
 class QFunction:
-    # TODO
+    
+    # Intialise Q-function
+    def __init__(self):
+        # TODO
+        
+    # Given a model, including current state choose an action to perform
+    def chooseAction(self, mode, model):
+        if mode == "vgdl":
+            # TODO
+        else if mode == "ale":
+            # TODO
+        else:
+            return

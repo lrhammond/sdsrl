@@ -9,7 +9,6 @@ from operator import add
 
 
 # Define constants for repeated use and indexing
-LIMIT = 10
 X_POS = 0
 Y_POS = 1
 X_SIZE = 2
@@ -17,6 +16,10 @@ Y_SIZE = 3
 COLOUR = 4
 SHAPE = 5
 VISIBLE = 6
+REWARD = 7
+NEIGHBOURS = 8
+ACTION = 9
+LIMIT = 10
 
 
 # One-hot encode a list of values or categories and return the new list
@@ -93,6 +96,105 @@ def changes(model):
     return changes
     
 
-def fromBinary(model, vector, i=None):
-    if i != None:
-        
+# Converts a binary vector x to a human-readable data point
+def fromBinary(model, x):
+    x = x.tolist() 
+    output = []
+    objLengths = [len(obs[1][0]) for obs in model.observations[:7]]
+    actionLength = len(model.obsActions[1][0])
+    length = sum(objLengths) + actionLength
+    # Check that x is the right length
+    if len(x) != length:
+        print("Error: Binary vector is not the right length")
+        return
+    # Iterate over object descriptions
+    for i in range(1+NEIGHBOURS):
+        objOutput = []
+        objVector = x[:length]
+        x[:length] = []
+        # Iterate over attribute vectors
+        for j in range(X_POS,VISIBLE):
+            attVector = tuple(objVector[:objLengths[j]])
+            objVector[:objLengths[j]] = []
+            objOutput.append(model.dictionaries[j][1][attVector])
+        output.append(objOutput)
+    # What remains of x is the action vector
+    actVector = tuple(x)
+    actOutput = model.dictionaries[ACTION][1][actVector]
+    output.append(actOutput)
+    return output
+    
+
+# Converts a human-readable data point x to a binary vector
+def toBinary(model, x):
+    output = []
+    # Iterate over object descriptions
+    for i in range(1+NEIGHBOURS):
+        # Add binary description of attributes based on one-hot encoding of observations
+        for j in range(X_POS,VISIBLE):
+            output = output + model.dictionaries[j][0][x[i][j]]
+    # Add binary description of action
+    output = output + model.dictionaries[ACTION][0][x[ACTION]]
+    return output
+
+
+# Converts a binary schema x to a human-readable schema  
+def fromBinarySchema(model, s):
+    s = s.tolist() 
+    output = Schema()
+    objLengths = [len(obs[1][0]) for obs in model.observations[:7]]
+    actionLength = len(model.obsActions[1][0])
+    length = sum(objLengths) + actionLength
+    # Check that s is the right length
+    if len(s) != length:
+        print("Error: Binary schema is not the right length")
+        return
+    # Iterate over object descriptions
+    for i in range(1+NEIGHBOURS):
+        objOutput = []
+        objVector = x[:length]
+        x[:length] = []
+        # Iterate over attribute vectors
+        for j in range(X_POS,VISIBLE):
+            attVector = tuple(objVector[:objLengths[j]])
+            objVector[:objLengths[j]] = []
+            if attVector != [0 for i in len(attVector)]:
+                attribute = model.dictionaries[j][1][attVector])
+                output.objectBody[(i,j)] = attribute
+    # What remains of x is the action vector
+    actVector = tuple(x)
+    action = model.dictionaries[ACTION][1][actVector]
+    schema.actionBody = action
+    return output
+
+
+# Converts a human-readable schema s to a binary schema
+def toBinarySchema(model, s):
+    # Create initial blank schema
+    lengths = [len(obs[1][0]) for obs in model.observations[:7]]
+    blank = [[0 for i in range(length)] for length in lengths]
+    blankObjects = [blank for i in range(1+NEIGHBOURS)]
+    # Instantiate according to preconditions
+    for key in s.objectBody.keys():
+        i = list(key)
+        attribute = s.objectBody(key)
+        vector = model.dictionaries[i[1]][0](attribute)
+        blankObjects[i[0]][i[1]] = vector
+    # Form and output final binary schema vector
+    objectVector = flatten(flatten(blankObjects))
+    action = s.actionBody
+    actionVector = model.dictionaries[ACTION][0](action)
+    vector = objectVector + actionVector
+    return vector
+
+
+# Flattens list by one level
+def flatten(fullList):
+    return [item for sublist in fullList for item in sublist]
+ 
+
+# Converts list of observations and their one-hot encoded versions to dictionaries
+def obsToDicts(obs):
+    attributeToBinary = dict(zip(obs[0], obs[1]))
+    binaryToAttribute = dict(zip([tuple(vector) for vector in obs[1]], obs[0]))
+    return [attributeToBinary, binaryToAttribute]

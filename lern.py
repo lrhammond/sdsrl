@@ -8,15 +8,16 @@ import numpy as np
 
 
 # Learns schemas for a particular object attribute given data X and y
-def learnSchemas(X, y, regConst=10, L=10)
+def learnSchemas(X, y, schemas, regConst=10, L=10)
     # Initialise variables
+    currSchemas = [util.toBinarySchema(schema) for schema in schemas]
     newSchemas = []
     newEvidence = []
     ones = np.ones(1, len(X[0]))
     zeros = np.zeros(1, len(X[0]))
     reg = regConst * ones
     # While there are still schema transitions to explain and the complexity limit L has not been reached
-    while (sum(y) > 0) and (len(schemas) < L):
+    while (sum(y) > 0) and (len(currSchemas) < L):
         # Intialise LP inputs
         f = np.zeros(1, len(X[0]))
         A = []
@@ -42,11 +43,12 @@ def learnSchemas(X, y, regConst=10, L=10)
         # Convert w to binary version and add to set of schemas
         w_binary = w > 0
         newSchemas.append(w_binary)
-        W = np.array(schemas)
+        currSchemas.append(w_binary)
+        W = np.array(currSchemas)
         # Remove solved entries from X and y
         for j in range(len(X)):
             if (y[j] == 1) and (sum(W * np.array(X[j])) >= 1):
                 newEvidence.append(X[j])
                 del X[j]
                 del y[j]
-    return [newSchemas, newEvidence]
+    return [newSchemas, newEvidence, X]
