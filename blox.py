@@ -50,8 +50,8 @@ class Model:
         state = {}
         for objId in Model.objects.keys():
             state[objId] = obj.getObjectState()
-        state{"action"} = self.action
-        state{"reward"} = self.reward
+        state["action"] = self.action
+        state["reward"] = self.reward
         return state
     
     # Set up objects and map based on vgdl state
@@ -68,7 +68,7 @@ class Model:
                     newObj.y_size = 1   
                     newObj.shape = "square"
                     self.objects[i] = newObj                   
-                    if objPos is in self.objMap.keys():
+                    if objPos in self.objMap.keys():
                         self.objMap[objPos].append(i)
                     else:
                         self.objMap[objPos] = [i]
@@ -82,7 +82,7 @@ class Model:
                         self.yMax = position[1]
             return
         # TODO
-        else if mode == "ale":
+        elif mode == "ale":
             return
         else:
             return
@@ -91,40 +91,38 @@ class Model:
     def updateObsLists(self, obj, action, reward):
         # Check for object attributes
         if obj != None:
-            if obj.x_size is not in self.obsXsizes[0]:
+            if obj.x_size not in self.obsXsizes[0]:
                 self.obsXsizes[0].append(obj.x_size)
                 self.obsXsizes[1] = util.oneHot(self.obsXsizes[0])
                 self.updateDataKeys(X_SIZE, obj.x_size)
-            if obj.y_size is not in self.obsYsizes[0]:
+            if obj.y_size not in self.obsYsizes[0]:
                 self.obsYsizes[0].append(obj.y_size)
                 self.obsYsizes[1] = util.oneHot(self.obsYsizes[0])
                 self.updateDataKeys(Y_SIZE, obj.y_size)
-            if obj.colour is not in self.obsColours[0]:
+            if obj.colour not in self.obsColours[0]:
                 self.obsColours[0].append(obj.colour)
                 self.obsColours[1] = util.oneHot(self.obsColours[0])
                 self.updateDataKeys(COLOUR, obj.colour)
-            if obj.shape is not in self.obsShapes[0]:
+            if obj.shape not in self.obsShapes[0]:
                 self.obsShapes[0].append(obj.shape)
                 self.obsShapes[1] = util.oneHot(self.obsShapes[0])
                 self.updateDataKeys(SHAPE, obj.shape)
         # Check for new actions
-        if action != None:
-            if action is not in self.obsActions[0] and action != "nothing":
-                # Remove 'nothing' action for one-hot encoding
-                self.obsActions[0].remove("nothing")
-                # Add new action and update one-hot encoded values
-                self.obsActions[0].append(action)
-                self.obsActions[1] = util.oneHot(self.obsActions[0])
-                # Add 'nothing' option back in again
-                actionLength = len(self.obsActions[1][0])
-                self.obsActions[0].append("nothing")
-                self.obsActions[1].append([0 for i in range(actionLength)]
+        if action != None and action not in self.obsActions[0] and action != "nothing":
+            # Remove 'nothing' action for one-hot encoding
+            self.obsActions[0].remove("nothing")
+            # Add new action and update one-hot encoded values
+            self.obsActions[0].append(action)
+            self.obsActions[1] = util.oneHot(self.obsActions[0])
+            # Add 'nothing' option back in again
+            actionLength = len(self.obsActions[1][0])
+            self.obsActions[0].append("nothing")
+            self.obsActions[1].append([0 for i in range(actionLength)])
         # Check for new rewards
-        if reward != None:
-            if reward is not in self.obsRewards[0]:
-                self.obsRewards[0].append(reward)
-                self.obsRewards[1] = util.oneHot(self.obsRewards[0])
-                self.updateDataKeys(REWARD, attribute)
+        if reward != None and reward not in self.obsRewards[0]:
+            self.obsRewards[0].append(reward)
+            self.obsRewards[1] = util.oneHot(self.obsRewards[0])
+            self.updateDataKeys(REWARD, attribute)
         return
         
     # Update keys for storing data and schemas
@@ -132,6 +130,7 @@ class Model:
         self.schemas[index][attribute] = []
         self.evidence[index][attribute] = []
         self.XY[index][attribute] = []
+        return
         
     # Update dictionaries for fast conversion between attribute values and binary versions
     def updateDicts(self):
@@ -142,6 +141,7 @@ class Model:
                 self.dictionaries.append(None)
             else:
                 self.dictionaries.append(util.obsToDicts(obs))
+        return
             
     # Update model based on new observation        
     def updateModel(self, state):
@@ -160,8 +160,8 @@ class Model:
             for objId in self.objects.keys():
                 objType = self.objects[objId].colour
                 objPos = (self.objects[objId].x_pos, self.objects[objId].x_pos)
-                if objType is in state.keys():
-                    if objPos is in state[objType]:
+                if objType in state.keys():
+                    if objPos in state[objType]:
                         state[objType].remove(objPos)
                     else:
                         moved.append(objId)
@@ -181,7 +181,7 @@ class Model:
                         changed.append(objId)
                         moved.remove(objId)
                     # If a single neighbour of the same type can be found, it is assumed to be the same object
-                    else if len(intersection) == 1:
+                    elif len(intersection) == 1:
                         newPos = intersection[O]
                         position = list(newPos)
                         self.objects[objId].x_pos = posiion[0]
@@ -210,14 +210,14 @@ class Model:
                     objPos = (self.objects[objId].x_pos, self.objects[objId].x_pos)
                     possibleNewType = []
                     for objType in state.keys():
-                        if objPos is in state[objType]:
+                        if objPos in state[objType]:
                             possibleNewType.append(objType)
                     # If no object is now found in this position the object may have both changed and moved
                     if len(possibleNewType) == 0:
                         both.append(objId)
                         changed.remove(objId)
                     # If an object of a single type is found to exist in this location then we assume it is the same object
-                    else if len(possibleNewType) == 1:
+                    elif len(possibleNewType) == 1:
                         newType = possibleNewType[O]
                         self.objects[objId].colour = newType
                         state[objType].remove(objPos)
@@ -251,7 +251,7 @@ class Model:
                         self.objects[objId].x_pos = position[0]
                         self.objects[objId].y_pos = position[1]
                         for objType in state.keys():
-                            if newPos is in state[objType]:
+                            if newPos in state[objType]:
                                 newType = objType
                                 break
                         self.objects[objId].colour = newType
@@ -277,11 +277,11 @@ class Model:
             if len(state.values()) != 0:
                 self.setObjects(state)
             return          
-         # TODO
-         else if mode == "ale":
-             return
-         else:
-             return
+        # TODO
+        elif mode == "ale":
+            return
+        else:
+            return
     
     # Updates matrices that store data for learning schemas         
     def updateData(self):
@@ -290,16 +290,16 @@ class Model:
         if len(changes) == 0:
             return
         # If there is a new reward or action then this is relevant to all objects
-        else if "action" is in changes or "reward" is in changes:
+        elif "action" in changes or "reward" in changes:
             for objId in model.objects.keys():
                 xRow = util.formXvector(objId, self.prev, self.oldMap) + [self.action]
                 yRow = util.formYvector(objId, self.prev, self.curr) + [self.reward]
                 # Add new data points if they have not already been recorded
-                for i in range(len(yRow):
+                for i in range(len(yRow)):
                     check = self.checkDatum([xRow, yRow[i]], i)
-                    if check = "predicted":
+                    if check == "predicted":
                         continue
-                    if xRow is not in self.XY[i][yRow[i]]:
+                    if xRow not in self.XY[i][yRow[i]]:
                         self.XY[i][yRow[i]].append(xRow)
             return
         # Otherwise we just update the data with those objects that have changed
@@ -308,11 +308,11 @@ class Model:
                 xRow = util.formXvector(objId, self.prev, self.oldMap) + [self.action]
                 yRow = util.formYvector(objId, self.prev, self.curr) + [self.reward]
                 # Add new data points if they have not already been recorded
-                for i in range(len(yRow):
+                for i in range(len(yRow)):
                     check = self.checkDatum([xRow, yRow[i]], i)
-                    if check = "predicted":
+                    if check == "predicted":
                         continue
-                    if xRow is not in self.XY[i][yRow[i]]:
+                    if xRow not in self.XY[i][yRow[i]]:
                         self.XY[i][yRow[i]].append(xRow)     
             return
             
@@ -328,7 +328,7 @@ class Model:
                     output = "predicted"
                 # If an incorrect prediction is made by a schema we remove it and add the relevant evidence back to the learning data
                 else:
-                    self.XY[index] =  self.XY[index] + self.evidence[index][i]
+                    self.XY[index] = self.XY[index] + self.evidence[index][i]
                     del self.evidence[index][i]
                     del self.schemas[index][i]
                     output == "wrong"
@@ -352,13 +352,13 @@ class Model:
             # Change the binary encoding of each reward
             if changes[5]:
                 oldBinaryReward = self.X[i][10]
-          return      
+        return      
     
     # Updates and learns new schemas       
     def learn(self):
         self.updateDicts()
         # For each object attribute
-        for i in range(len(self.XY))
+        for i in range(len(self.XY)):
             # For each binary object attribute to be predicted
             for key in XY[i].keys():
                 # Form lists of positive and negative cases
@@ -376,6 +376,7 @@ class Model:
                 self.schemas[i] = self.schemas[i] + [util.fromBinarySchema(self, schema) for schema in binarySchemas]
                 self.evidence[i] = self.evidence[i] + [util.fromBinary(self, datum) for datum in binaryEvidence]
                 self.XY[i][key] = [util.fromBinary(self, datum) for datum in binaryRemaining]
+        return
                 
           
 # Define the object class
@@ -409,6 +410,7 @@ class Schema:
         self.objectBody = {}
         self.actionBody = None
         self.head = None
+        return
     
     # Checks if the schema is active against a vector describing an object
     def isActive(self, x):
@@ -416,7 +418,7 @@ class Schema:
         # Check if object attribute preconditions are met
         if len(self.objectBody.keys()) != 0:
             for key in self.objectBody.keys():
-                i = list(key):
+                i = list(key)
                 if self.objectBody(key) != x[i[0]][i[1]]:
                     return False
         # Checks if action preconditions are met
@@ -426,7 +428,7 @@ class Schema:
      
     # Prints out schema in human-readble format  
     def display(self):
-        objects = ["obj"] + ["nb" + str(i+1) for in range(8)]
+        objects = ["obj"] + ["nb" + str(i+1) for i in range(8)]
         attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "visible"]
         # SCHEMA NAMING REMOVED FOR NOW
         # schemaName = "Schema " + str(self.id) + ": "
@@ -434,26 +436,34 @@ class Schema:
         schemaBody = ""
         for key in self.objectBody.keys():
             i = list(key)
-            precondition = attributes[i[1]] + "(" objects[i[0]] + ")=" + str(self.objectBody(key))
+            precondition = attributes[i[1]] + "(" + objects[i[0]] + ")=" + str(self.objectBody(key))
             schemaBody = schemaBody + preconditon + " AND "
         schemaBody = schemaBody + "action=" + str(self.actionBody)
         schemaHead = str(self.head)
         output = schemaName + schemaBody + " ---> " + schemaHead
         print(output)
+        return
 
 
 # Define the Q-function class
 class QFunction:
     
     # Intialise Q-function
-    def __init__(self):
+    def __init__(self, mode):
         # TODO
+        return
         
     # Given a model, including current state choose an action to perform
     def chooseAction(self, mode, model):
         if mode == "vgdl":
             # TODO
-        else if mode == "ale":
+            return
+        elif mode == "ale":
             # TODO
+            return
         else:
             return
+    
+    def update(self, model):
+        # TODO
+        return

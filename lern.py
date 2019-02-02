@@ -8,7 +8,7 @@ import numpy as np
 
 
 # Learns schemas for a particular object attribute given data X and y
-def learnSchemas(X, y, schemas, regConst=10, L=10)
+def learnSchemas(X, y, schemas, regConst=10, L=10):
     # Initialise variables
     currSchemas = [util.toBinarySchema(schema) for schema in schemas]
     newSchemas = []
@@ -27,7 +27,7 @@ def learnSchemas(X, y, schemas, regConst=10, L=10)
             if y[i] == 1:
                 f = f + (ones - np.array(X[i]))
             # Add constraints to prevent false negatives
-            else if y[i] == 0:
+            elif y[i] == 0:
                 row = [X[i] - 1 for i in range(len(X[i]))]
                 A.append(row)
             # Check for non-binary values                

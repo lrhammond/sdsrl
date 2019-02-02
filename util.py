@@ -3,8 +3,7 @@
 
 
 from numpy import array
-from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import OneHotEncoder
+from sklearn import preprocessing
 from operator import add
 
 
@@ -25,8 +24,8 @@ LIMIT = 10
 # One-hot encode a list of values or categories and return the new list
 def oneHot(inputList):
     # Create encoder
-    label_encoder = LabelEncoder()
-    onehot_encoder = OneHotEncoder(sparse=False)
+    label_encoder = preprocessing.LabelEncoder()
+    onehot_encoder = preprocessing.OneHotEncoder(sparse=False)
     # Form inputs and apply encoder
     a = array(inputList)
     i = label_encoder.fit_transform(a)
@@ -39,7 +38,7 @@ def oneHot(inputList):
 
 # Given a position return a list of the eight surrounding neighbours and their relative position vectors
 def neighbourPositions(pos):
-    n1 = [tuple(map(add, pos, (-1, 1))), ["left", "above"]
+    n1 = [tuple(map(add, pos, (-1, 1))), ["left", "above"]]
     n2 = [tuple(map(add, pos, (0, 1))), ["centre", "above"]]
     n3 = [tuple(map(add, pos, (1, 1))), ["right", "above"]]
     n4 = [tuple(map(add, pos, (1, 0))), ["right", "centre"]]
@@ -60,8 +59,8 @@ def formXvector(objId, state, oldMap):
     # Form vector entries for neighbours of object
     neighbours = neighbourPositions(objPos)
     for nb in neighbours:
-        if nb[0] is in oldMap.keys():
-            nbVector = state[oldMap[nb[0]]
+        if nb[0] in oldMap.keys():
+            nbVector = state[oldMap[nb[0]]]
             nbVector[0] = nb[1][0]
             nbVector[1] = nb[1][1]
             vector.append(nbVector)
@@ -159,7 +158,7 @@ def fromBinarySchema(model, s):
             attVector = tuple(objVector[:objLengths[j]])
             objVector[:objLengths[j]] = []
             if attVector != [0 for i in len(attVector)]:
-                attribute = model.dictionaries[j][1][attVector])
+                attribute = model.dictionaries[j][1][attVector]
                 output.objectBody[(i,j)] = attribute
     # What remains of x is the action vector
     actVector = tuple(x)

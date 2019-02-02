@@ -3,6 +3,7 @@
 
 
 import sys
+sys.path.insert(0, 'pyvgdlmaster/vgdl')
 from mdpmap import MDPconverter
 from core import VGDLParser
 from rlenvironment import RLEnvironment
@@ -22,7 +23,6 @@ def setup(mode):
         with open(gamePath, 'r') as gameFile:
             game = gameFile.read()
         # Start game
-        sys.path.insert(0, 'pyvgdlmaster/vgdl')
         g = VGDLParser().parseGame(game)
         g.buildLevel(level)
         rle = RLEnvironment(game, level, observationType='global', visualize=True)
@@ -32,7 +32,8 @@ def setup(mode):
         rle.reset()
         environment = rle
     # TODO
-    else if mode == "ale":
+    elif mode == "ale":
+        return
     else:
         return
     # Return environment
@@ -48,7 +49,8 @@ def observeState(mode, environment):
         agentState = environment.getState()
         state['agent'] = [(agentState[0], agentState[1])]
     # TODO
-    else if mode == "ale":
+    elif mode == "ale":
+        return
     else:
         return
     return state
@@ -72,7 +74,8 @@ def performAction(model, mode, environment, action):
         # Return reward and whether game has ended
         return [reward, ended]
     # TODO
-    else if mode == "ale":
+    elif mode == "ale":
+        return
     else:
         return
     return 

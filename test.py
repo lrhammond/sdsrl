@@ -1,9 +1,13 @@
-# MAIN
-# Primary script for running learning and verification procedures
+# TEST
+# Script for running tests of other functions
 
 from copy import deepcopy
+from random import choice
 import inta
-
+import blox
+import lern
+import util
+import main
 
 # Runs learning and verification procedures
 def run(mode, numEpisodes, numSteps):
@@ -14,7 +18,8 @@ def run(mode, numEpisodes, numSteps):
     
     # Intialise model and Q-function
     M = Model(mode, initState)
-    Q = QFunction(mode)
+    self.obsActions = [["nothing", "UP", "LEFT", "DOWN", "RIGHT"],[[0,0,0,0],[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]]
+    # Q = QFunction(mode)
     
     # Learn model and Q-function
     for i in range(numEpisodes):
@@ -25,7 +30,7 @@ def run(mode, numEpisodes, numSteps):
                 break
             else:
                 # Take action in the game
-                action = Q.chooseAction(mode, M)
+                action = choice(self.obsActions[0])
                 [reward, ended] = inta.performAction(M, mode, environment, action)
                 state = [inta.observeState(mode, environment), action, reward]
                 # Update model, data, and schemas
@@ -36,6 +41,8 @@ def run(mode, numEpisodes, numSteps):
                 M.updateData()
                 M.learn()
                 # Update Q-function using model
-                Q.update(M)
+                # Q.update(M)
     # Verify properties of model, Q-function, or resulting policies
     # TODO
+
+# run("vgdl",1,100)
