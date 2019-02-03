@@ -12,9 +12,11 @@ import main
 # Runs learning and verification procedures
 def run(mode, numEpisodes, numSteps):
     
-    # Set up game according to mode and return description of intial state
-    environment = setup(mode)
+    # Set up game according to mode and return description of initial state
+    environment = inta.setup(mode)
+    print("setup done")
     initState = [inta.observeState(mode, environment), None, None]
+    print("init state observed")
     
     # Intialise model and Q-function
     M = Model(mode, initState)
@@ -45,4 +47,4 @@ def run(mode, numEpisodes, numSteps):
     # Verify properties of model, Q-function, or resulting policies
     # TODO
 
-# run("vgdl",1,100)
+run("vgdl",1,100)
