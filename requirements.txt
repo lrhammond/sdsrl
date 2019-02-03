@@ -44,7 +44,7 @@ pipdate==0.3.1
 prometheus-client==0.5.0
 prompt-toolkit==1.0.15
 ptyprocess==0.6.0
-PyBrain==0.3.3
+PyBrain==0.3
 pycparser==2.19
 pygame==1.9.4
 Pygments==2.3.1

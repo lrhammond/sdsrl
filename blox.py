@@ -1,9 +1,22 @@
 # BLOX
 # Classes for data structures used during learning and verification
 
+X_POS = 0
+Y_POS = 1
+X_SIZE = 2
+Y_SIZE = 3
+COLOUR = 4
+SHAPE = 5
+VISIBLE = 6
+REWARD = 7
+NEIGHBOURS = 8
+ACTION = 9
+LIMIT = 10
+
 
 import util
 from lern import learnSchemas
+from copy import deepcopy
 
 
 # Define the model class
@@ -20,11 +33,6 @@ class Model:
         # Create variables for storing the current action and reward values
         self.action = None
         self.reward = None
-        # Create set of objects given vgdl state
-        newAttributeValues = self.setObjects(mode, initState)
-        # Initialise state descriptions of model
-        self.prev = None
-        self.curr = self.getModelState()
         # Create lists for storing observed attributes and one-hot encoded versions
         self.obsXpos = [["left", "centre", "right"], [[1,0],[0,0],[0,1]]]
         self.obsYpos = [["below", "centre", "above"], [[1,0],[0,0],[0,1]]]
@@ -32,34 +40,40 @@ class Model:
         self.obsYsizes = [[],[]]
         self.obsColours = [[],[]]
         self.obsShapes = [[],[]]
-        self.obsVisble = [["yes", "no"], [[1],[0]]]
+        self.obsVisible = [["yes", "no"], [[1],[0]]]
         # Create lists for storing observed actions and rewards
         self.obsActions = [["nothing"],[[0]]]
         self.obsRewards = [[],[]]
         # Create dictionaries for fast conversion between attribute values and binary versions
         self.observations = [self.obsXpos, self.obsYpos, self.obsXsizes, self.obsYsizes, self.obsColours, self.obsShapes, self.obsVisible, self.obsRewards, None, self.obsActions]
-        self.dictionaries = self.updateDict()
+        self.dictionaries = {}
         # Create lists for storing schemas and learning data
         self.schemas = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
         self.evidence = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
         self.XY = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
+        # Create set of objects given vgdl state
+        newAttributeValues = self.setObjects(mode, initState)
+        # Initialise state descriptions of model and update dictionaries
+        self.prev = None
+        self.curr = self.getModelState()
+        self.updateDicts()
         return
                
     # Outputs dictionary representing the state of the model
     def getModelState(self):
         state = {}
-        for objId in Model.objects.keys():
-            state[objId] = obj.getObjectState()
+        for objId in self.objects.keys():
+            state[objId] = self.objects[objId].getObjectState()
         state["action"] = self.action
         state["reward"] = self.reward
         return state
     
     # Set up objects and map based on vgdl state
-    def setObjects(self, state):
+    def setObjects(self, mode, state):
         if mode == "vgdl":
             i = max(list(self.objects.keys()) + [0])
             for objType in state.keys():
-                for objPos in state(objectType):
+                for objPos in state[objType]:
                     position = list(objPos)
                     # Create new object and add to the set of objects and the map
                     newObj = Object(i, position[0], position[1])
@@ -122,7 +136,7 @@ class Model:
         if reward != None and reward not in self.obsRewards[0]:
             self.obsRewards[0].append(reward)
             self.obsRewards[1] = util.oneHot(self.obsRewards[0])
-            self.updateDataKeys(REWARD, attribute)
+            self.updateDataKeys(REWARD, reward)
         return
         
     # Update keys for storing data and schemas
@@ -144,7 +158,7 @@ class Model:
         return
             
     # Update model based on new observation        
-    def updateModel(self, state):
+    def updateModel(self, mode, state):
         # Update action and reward as well as lists of observed values
         self.action = state[1]
         self.reward = state[2]
@@ -156,10 +170,17 @@ class Model:
             moved = []
             changed = []
             both = []
+            
+            
             # Check each object to see if it has changed or moved
             for objId in self.objects.keys():
                 objType = self.objects[objId].colour
-                objPos = (self.objects[objId].x_pos, self.objects[objId].x_pos)
+                objPos = (self.objects[objId].x_pos, self.objects[objId].y_pos)
+                
+                
+                
+                
+                
                 if objType in state.keys():
                     if objPos in state[objType]:
                         state[objType].remove(objPos)
@@ -172,20 +193,20 @@ class Model:
             while (len(moved) != 0) and (i < LIMIT):
                 for objId in moved:
                     objType = self.objects[objId].colour
-                    oldPos = (self.objects[objId].x_pos, self.objects[objId].x_pos)
+                    oldPos = (self.objects[objId].x_pos, self.objects[objId].y_pos)
                     possibleNewPos = state[objType]
-                    neighbours = [n[0] for n in neighbourPositions(oldPos)]
-                    intersection = list(set(possibleNewPos) & set(neighbours))
+                    neighbours = [n[0] for n in util.neighbourPositions(oldPos)]
+                    intersection = [item for item in possibleNewPos if item in neighbours]
                     # If no neighbour of the same type can be found, the object may have changed
                     if len(intersection) == 0:
                         changed.append(objId)
                         moved.remove(objId)
                     # If a single neighbour of the same type can be found, it is assumed to be the same object
                     elif len(intersection) == 1:
-                        newPos = intersection[O]
+                        newPos = intersection[0]
                         position = list(newPos)
-                        self.objects[objId].x_pos = posiion[0]
-                        self.objects[objId].y_pos = posiion[1]
+                        self.objects[objId].x_pos = position[0]
+                        self.objects[objId].y_pos = position[1]
                         del self.objMap[oldPos]
                         self.objMap[newPos] = objId
                         state[objType].remove(newPos)
@@ -201,13 +222,17 @@ class Model:
                 i = i + 1
             if i >= LIMIT:
                 print("Error: Ambiguity in attempting to identify moved objects")
+                
+         
+                
+                
                 return
             # Update objects that have changed unless there is some ambiguity after LIMIT attempts
             j = 0
             while (len(changed) != 0) and (j < LIMIT):
                 for objId in changed:
                     oldType = self.objects[objId].colour
-                    objPos = (self.objects[objId].x_pos, self.objects[objId].x_pos)
+                    objPos = (self.objects[objId].x_pos, self.objects[objId].y_pos)
                     possibleNewType = []
                     for objType in state.keys():
                         if objPos in state[objType]:
@@ -235,10 +260,10 @@ class Model:
             k = 0
             while (len(both) != 0) and (k < LIMIT):
                 for objId in both:
-                    oldPos = (self.objects[objId].x_pos, self.objects[objId].x_pos)
+                    oldPos = (self.objects[objId].x_pos, self.objects[objId].y_pos)
                     possibleNewPos = state.values()
-                    neighbours = [n[0] for n in neighbourPositions(oldPos)]
-                    intersection = list(set(possibleNewPos) & set(neighbours))
+                    neighbours = [n[0] for n in util.neighbourPositions(oldPos)]
+                    intersection = [item for item in possibleNewPos if item in neighbours]
                     # If there are no neighbours at all we assume the object has disappeared
                     if len(intersection) == 0:
                         self.objects[objId].visible = "no"
@@ -275,7 +300,7 @@ class Model:
                 return
             # Finally, add any new objects that might have appeared
             if len(state.values()) != 0:
-                self.setObjects(state)
+                self.setObjects(mode, state)
             return          
         # TODO
         elif mode == "ale":
@@ -286,31 +311,38 @@ class Model:
     # Updates matrices that store data for learning schemas         
     def updateData(self):
         changes = util.changes(self)
+        
+        
+        
         # If there are no changes to any object or the reward or action, then nothing needs updating
         if len(changes) == 0:
             return
         # If there is a new reward or action then this is relevant to all objects
         elif "action" in changes or "reward" in changes:
-            for objId in model.objects.keys():
+            for objId in self.objects.keys():
                 xRow = util.formXvector(objId, self.prev, self.oldMap) + [self.action]
                 yRow = util.formYvector(objId, self.prev, self.curr) + [self.reward]
                 # Add new data points if they have not already been recorded
+                
                 for i in range(len(yRow)):
-                    check = self.checkDatum([xRow, yRow[i]], i)
-                    if check == "predicted":
-                        continue
+                    if self.checkDatum([xRow, yRow[i]], i):
+                        continue    
                     if xRow not in self.XY[i][yRow[i]]:
                         self.XY[i][yRow[i]].append(xRow)
             return
+            
+            
         # Otherwise we just update the data with those objects that have changed
         else:    
             for objId in changes:
                 xRow = util.formXvector(objId, self.prev, self.oldMap) + [self.action]
                 yRow = util.formYvector(objId, self.prev, self.curr) + [self.reward]
                 # Add new data points if they have not already been recorded
+                
+              
                 for i in range(len(yRow)):
-                    check = self.checkDatum([xRow, yRow[i]], i)
-                    if check == "predicted":
+                
+                    if self.checkDatum([xRow, yRow[i]], i):
                         continue
                     if xRow not in self.XY[i][yRow[i]]:
                         self.XY[i][yRow[i]].append(xRow)     
@@ -319,20 +351,31 @@ class Model:
     # Checks whether existing schemas predict a datapoint correctly or not
     def checkDatum(self, datum, index):
         # If no schema is active we output "none"
-        output = "none"
+        predicted = False
+        errorMade = False
         # Check each schema that predicts this attribute of the object
-        for i in range(len(self.schemas[index])):
-            if self.schemas[index][i].isActive(datum[0]):
-                # If an active schema predicts the attribute value correctly and there are no wrong predictions, output "predicted"
-                if self.schemas[index][i].head == datum[1] and output != "wrong":
-                    output = "predicted"
-                # If an incorrect prediction is made by a schema we remove it and add the relevant evidence back to the learning data
-                else:
-                    self.XY[index] = self.XY[index] + self.evidence[index][i]
-                    del self.evidence[index][i]
-                    del self.schemas[index][i]
-                    output == "wrong"
-        return output
+        for key in self.schemas[index].keys():
+            for schema in self.schemas[index][key]:
+                if schema.isActive(datum[0]):
+                    # If an active schema predicts the attribute value correctly output "predicted"
+                    if key == datum[1]:
+                        predicted = True
+                    # If an incorrect prediction is made by a schema we remove it and add the relevant evidence back to the learning data
+                    else:
+                        self.schemas[index][key].remove(schema)
+                        self.XY[index][key] = self.XY[index][key] + self.evidence[index][key]
+                        errorMade = True
+            # If an incorrect prediction was made we remove all evidence for this particular attribute value
+            if errorMade:
+                self.evidence[index][key] = []
+        return predicted
+        
+        
+        
+        
+        
+        
+        
         
     # TEMPORARILY REMOVED, MAY NOT BE EFFICIENT  
     # Updates one-hot encoding of matrices used to store data for schema learning
@@ -359,23 +402,47 @@ class Model:
         self.updateDicts()
         # For each object attribute
         for i in range(len(self.XY)):
+    
+            remainingEvidence = {}
+            
             # For each binary object attribute to be predicted
-            for key in XY[i].keys():
+            for key in self.XY[i].keys():
                 # Form lists of positive and negative cases
+                
+                
                 xYes = self.XY[i][key]
-                xNo = [self.XY[i][other] for other in XY[i].keys() if other!= key]
+      
+                
+                others = deepcopy(self.XY[i].keys())
+                others.remove(key)
+                
+                print others
+                # print("right")
+#                 print self.XY[i]['right']
+#                 print("centre")
+#                 print self.XY[i]['centre']
+                xNo = [self.XY[i][other] for other in others]
+                print xNo
                 xNo = util.flatten(xNo)
+                print xNo
+           
+                
+                
                 # Form vectors for learning
                 y = [1 for item in xYes]
                 X = [util.toBinary(self, item) for item in xYes]
                 y = y + [0 for item in xNo]
                 X = X + [util.toBinary(self, item) for item in xNo]
                 # Learn schemas and output new schemas, evidence, and remaining cases 
-                [binarySchemas, binaryEvidence, binaryRemaining] = learnSchemas(X, y, self.schemas)
+                [binarySchemas, binaryEvidence, binaryRemaining] = learnSchemas(self, X, y, self.schemas[i][key])
                 # Convert learnt schemas and evidence from binary output and add to model
-                self.schemas[i] = self.schemas[i] + [util.fromBinarySchema(self, schema) for schema in binarySchemas]
-                self.evidence[i] = self.evidence[i] + [util.fromBinary(self, datum) for datum in binaryEvidence]
-                self.XY[i][key] = [util.fromBinary(self, datum) for datum in binaryRemaining]
+                self.schemas[i][key] = self.schemas[i][key] + [util.fromBinarySchema(self, schema) for schema in binarySchemas]
+                self.evidence[i][key] = self.evidence[i][key] + [util.fromBinary(self, datum) for datum in binaryEvidence]
+                remainingEvidence[key] = [util.fromBinary(self, datum) for datum in binaryRemaining]
+            
+            self.XY[i] = remainingEvidence
+            return
+            
         return
                 
           
@@ -414,12 +481,11 @@ class Schema:
     
     # Checks if the schema is active against a vector describing an object
     def isActive(self, x):
-        output = True
         # Check if object attribute preconditions are met
         if len(self.objectBody.keys()) != 0:
             for key in self.objectBody.keys():
                 i = list(key)
-                if self.objectBody(key) != x[i[0]][i[1]]:
+                if len(x[i[0]]) != 0 and self.objectBody[key] != x[i[0]][i[1]]:
                     return False
         # Checks if action preconditions are met
         if self.actionBody != None and self.actionBody != x[9]:

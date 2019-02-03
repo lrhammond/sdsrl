@@ -1,6 +1,19 @@
 # INTA
 # Functions for interfacing between game playing environments and the data needed for learning
 
+# Define constants for repeated use and indexing
+X_POS = 0
+Y_POS = 1
+X_SIZE = 2
+Y_SIZE = 3
+COLOUR = 4
+SHAPE = 5
+VISIBLE = 6
+REWARD = 7
+NEIGHBOURS = 8
+ACTION = 9
+LIMIT = 10
+
 
 import sys
 sys.path.insert(0, 'pyvgdlmaster/vgdl')
@@ -13,11 +26,15 @@ import numpy as np
 
 
 # Setup game according to mode chosen
-def setup(mode):
+def setup(mode, test=False):
     if mode == "vgdl":
-        # Read in level and game descriptions
-        levelPath = raw_input("Input path to level file: ")
-        gamePath = raw_input("Input path to game file: ")
+        if test == False:
+            # Read in level and game descriptions
+            levelPath = raw_input("Input path to level file: ")
+            gamePath = raw_input("Input path to game file: ")
+        else:
+            levelPath = "level2.txt"
+            gamePath = "game.txt"
         with open(levelPath, 'r') as levelFile:
             level = levelFile.read()
             print("\nLEVEL:\n\n" + level)
@@ -32,6 +49,7 @@ def setup(mode):
         rle.actionDelay = 200
         rle.recordingEnabled = True
         rle.reset()
+        rle._game._drawAll()
         environment = rle
     # TODO
     elif mode == "ale":
@@ -62,10 +80,11 @@ def observeState(mode, environment):
 def performAction(model, mode, environment, action):
     if mode == "vgdl":
         # Take action
-        actionVector = tuple(model.dictionaries[ACTION][0][action])
+        actionVector = np.array(model.dictionaries[ACTION][0][action])
         environment._performAction(actionVector)
+        environment._game._drawAll()
         # Get reward
-        (ended, won) = rle._isDone()
+        (ended, won) = environment._isDone()
         if ended:
             if won:
                 reward = 10
