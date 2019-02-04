@@ -2,8 +2,6 @@
 # Functions for learning schemas from matrices, and also for learning policies from schemas
 
 LIMIT = 10
-
-
 TOL = 0.001
 
 import util
@@ -43,6 +41,6 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.5, L=LIMIT):
                 evidence.append(x)
                 del x
         print("sum(y) = " + str(sum(y)))
-        print("num schemas atm = " + str(len(currSchemas)))
+        print("num schemas atm = " + str(len(schemas)))
                 
     return [schemas, evidence, xYes]
