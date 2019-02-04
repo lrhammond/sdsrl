@@ -363,10 +363,10 @@ class Model:
                     # If an incorrect prediction is made by a schema we remove it and add the relevant evidence back to the learning data
                     else:
                         self.schemas[index][key].remove(schema)
-                        self.XY[index][key] = self.XY[index][key] + self.evidence[index][key]
                         errorMade = True
             # If an incorrect prediction was made we remove all evidence for this particular attribute value
             if errorMade:
+                self.XY[index][key] = self.XY[index][key] + self.evidence[index][key]
                 self.evidence[index][key] = []
         return predicted
         
@@ -402,45 +402,25 @@ class Model:
         self.updateDicts()
         # For each object attribute
         for i in range(len(self.XY)):
-    
-            remainingEvidence = {}
-            
+            remaining = {}
             # For each binary object attribute to be predicted
             for key in self.XY[i].keys():
                 # Form lists of positive and negative cases
-                
-                
                 xYes = self.XY[i][key]
-      
-                
-                others = deepcopy(self.XY[i].keys())
-                others.remove(key)
-                
-                print others
-                # print("right")
-#                 print self.XY[i]['right']
-#                 print("centre")
-#                 print self.XY[i]['centre']
-                xNo = [self.XY[i][other] for other in others]
-                print xNo
+                xNo = [self.XY[i][other] for other in self.XY[i].keys() if other != key]
                 xNo = util.flatten(xNo)
-                print xNo
-           
-                
-                
                 # Form vectors for learning
-                y = [1 for item in xYes]
-                X = [util.toBinary(self, item) for item in xYes]
-                y = y + [0 for item in xNo]
-                X = X + [util.toBinary(self, item) for item in xNo]
-                # Learn schemas and output new schemas, evidence, and remaining cases 
-                [binarySchemas, binaryEvidence, binaryRemaining] = learnSchemas(self, X, y, self.schemas[i][key])
+                xYes = [util.toBinary(self, item) for item in xYes]
+                xNo = [util.toBinary(self, item) for item in xNo]
+                schemas = [util.toBinarySchema(self, schema) for schema in self.schemas[i][key]]
+                # Learn and output schemas, new evidence, and remaining positive cases
+                [binarySchemas, binaryEvidence, binaryRemaining] = learnSchemas(self, xYes, xNo, schemas)
                 # Convert learnt schemas and evidence from binary output and add to model
-                self.schemas[i][key] = self.schemas[i][key] + [util.fromBinarySchema(self, schema) for schema in binarySchemas]
+                self.schemas[i][key] = [util.fromBinarySchema(self, schema) for schema in binarySchemas]
                 self.evidence[i][key] = self.evidence[i][key] + [util.fromBinary(self, datum) for datum in binaryEvidence]
-                remainingEvidence[key] = [util.fromBinary(self, datum) for datum in binaryRemaining]
+                remaining[key] = [util.fromBinary(self, datum) for datum in binaryRemaining]
             
-            self.XY[i] = remainingEvidence
+            self.XY[i] = remaining
             return
             
         return
