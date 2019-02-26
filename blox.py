@@ -158,14 +158,18 @@ class Model:
         return
 
     # Update model based on new observation
-    def updateModel(self, mode, state):
+    def updateModel(self, mode, full_state):
+
+
+
+
         # Update action and reward as well as lists of observed values
-        self.action = state[1]
-        self.reward = state[2]
+        self.action = full_state[1]
+        self.reward = full_state[2]
         self.updateObsLists(None, self.action, self.reward)
         if mode == "vgdl":
             # Update objects forming state description
-            state = state[0]
+            state = deepcopy(full_state[0])
             # Intialise arrays for storing IDs of objects that have changed or moved or both
             moved = []
             changed = []
@@ -256,6 +260,12 @@ class Model:
                     # If there are no neighbours at all we assume the object has disappeared
                     if len(intersection) == 0:
                         self.objects[objId].visible = "no"
+
+
+                        print("oops")
+
+
+
                         del self.objMap[oldPos]
                         both.remove(objId)
                     # If there is a single neighbour (of different type) we assume it is the same object
@@ -325,16 +335,25 @@ class Model:
 
         # Otherwise we just update the data with those objects that have changed
         else:
+
+            print("changes")
+            print changes
+
             for objId in changes:
                 xRow = util.formXvector(objId, self.prev, self.oldMap) + [self.action]
                 yRow = util.formYvector(objId, self.prev, self.curr) + [self.reward]
                 # Add new data points if they have not already been recorded
 
 
+
+
                 for i in range(len(yRow)):
 
                     if self.checkDatum([xRow, yRow[i]], i):
                         continue
+
+
+
                     if xRow not in self.XY[i][yRow[i]]:
                         self.XY[i][yRow[i]].append(xRow)
             return
@@ -402,6 +421,7 @@ class Model:
                 xNo = util.flatten(xNo)
                 # If there are no changes in this attribute of the primary object then we skip this round of learning
                 if len(xYes) == 0:
+                    remaining[key] = self.XY[i][key]
                     continue
 
 

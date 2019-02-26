@@ -62,6 +62,11 @@ def formXvector(objId, state, oldMap):
     neighbours = neighbourPositions(objPos)
     for nb in neighbours:
         if nb[0] in oldMap.keys():
+
+            print nb[0]
+            print oldMap[nb[0]]
+            print oldMap[nb[0]][0]
+
             nbVector = deepcopy(state[oldMap[nb[0]][0]])
             nbVector[0] = nb[1][0]
             nbVector[1] = nb[1][1]
@@ -96,6 +101,9 @@ def changes(model):
     if model.prev != None:
         for objId in model.prev.keys():
             if model.prev[objId] != model.curr[objId]:
+
+
+
                 changes.append(objId)
     return changes
 
@@ -159,9 +167,6 @@ def fromBinarySchema(model, s_original, head):
     output.head = head
     objLengths = [len(obs[1][0]) for obs in model.observations[:VISIBLE+1]]
     actionLength = len(model.obsActions[1][0])
-
-    print actionLength
-
     length = (9*sum(objLengths)) + actionLength
     # Check that s is the right length
     if len(s) != length:

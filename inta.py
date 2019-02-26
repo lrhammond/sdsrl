@@ -99,6 +99,4 @@ def performAction(model, mode, environment, action):
         return
     else:
         return
-    return 
-        
-        
+    return

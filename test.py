@@ -24,29 +24,52 @@ def run(mode, numEpisodes, numSteps):
 
     # Learn model and Q-function
     for i in range(numEpisodes):
+
+        print("Episode " + str(i))
+
         ended = False
+
+
+
+
         for j in range(numSteps):
+
+            print("Step " + str(j))
+
             # Check if the game has ended
             if ended == True:
+
                 break
             else:
                 # Take action in the game
-                action = choice(M.obsActions[0])
-                action = "RIGHT"
-
+                action = choice(M.obsActions[0][:4])
                 print action
+
+
+                # action = "RIGHT"
+
                 [reward, ended] = inta.performAction(M, mode, environment, action)
+
                 state = [inta.observeState(mode, environment), action, reward]
                 # Update model, data, and schemas
                 M.prev = M.getModelState()
+
                 M.oldMap = deepcopy(M.objMap)
+
                 M.updateModel(mode, state)
+
+
                 M.curr = M.getModelState()
                 M.updateData()
+
+
+
                 M.learn()
+
+
                 # Update Q-function using model
                 # Q.update(M)
     # Verify properties of model, Q-function, or resulting policies
     # TODO
 
-run("vgdl",1,3)
+run("vgdl",1,100)
