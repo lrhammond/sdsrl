@@ -11,17 +11,17 @@ import main
 
 # Runs learning and verification procedures
 def run(mode, numEpisodes, numSteps):
-    
+
     # Set up game according to mode and return description of initial state
     environment = inta.setup(mode,test=True)
     initState = inta.observeState(mode, environment)
-    
+
     # Intialise model and Q-function
     M = blox.Model(mode, initState)
-    M.obsActions = [["UP", "LEFT", "DOWN", "RIGHT"],[[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]]
+    M.obsActions = [["UP", "LEFT", "DOWN", "RIGHT", "nothing"],[[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1],[0,0,0,0]]]
     M.updateDicts()
     # Q = QFunction(mode)
-    
+
     # Learn model and Q-function
     for i in range(numEpisodes):
         ended = False
@@ -33,7 +33,7 @@ def run(mode, numEpisodes, numSteps):
                 # Take action in the game
                 action = choice(M.obsActions[0])
                 action = "RIGHT"
-                
+
                 print action
                 [reward, ended] = inta.performAction(M, mode, environment, action)
                 state = [inta.observeState(mode, environment), action, reward]
@@ -49,4 +49,4 @@ def run(mode, numEpisodes, numSteps):
     # Verify properties of model, Q-function, or resulting policies
     # TODO
 
-run("vgdl",1,100)
+run("vgdl",1,3)

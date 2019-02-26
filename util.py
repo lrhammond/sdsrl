@@ -27,7 +27,7 @@ LIMIT = 10
 def oneHot(inputList):
     # Create encoder
     label_encoder = preprocessing.LabelEncoder()
-    onehot_encoder = preprocessing.OneHotEncoder(sparse=False,categories="auto")
+    onehot_encoder = preprocessing.OneHotEncoder(sparse=False)
     # Form inputs and apply encoder
     a = array(inputList)
     i = label_encoder.fit_transform(a)
@@ -36,7 +36,7 @@ def oneHot(inputList):
     # Output result as list
     outputList = b.tolist()
     return outputList
-    
+
 
 # Given a position return a list of the eight surrounding neighbours and their relative position vectors
 def neighbourPositions(pos):
@@ -49,7 +49,7 @@ def neighbourPositions(pos):
     n7 = [tuple(map(add, pos, (-1, 1))), ["left", "below"]]
     n8 = [tuple(map(add, pos, (-1, 0))), ["left", "centre"]]
     return [n1, n2, n3, n4, n5, n6, n7, n8]
-    
+
 
 # Form a vector describing an object and its neighbours for use in learning
 def formXvector(objId, state, oldMap):
@@ -61,19 +61,19 @@ def formXvector(objId, state, oldMap):
     # Form vector entries for neighbours of object
     neighbours = neighbourPositions(objPos)
     for nb in neighbours:
-        if nb[0] in oldMap.keys(): 
+        if nb[0] in oldMap.keys():
             nbVector = deepcopy(state[oldMap[nb[0]][0]])
             nbVector[0] = nb[1][0]
             nbVector[1] = nb[1][1]
             vector.append(nbVector)
         else:
-            vector.append([])  
+            vector.append([])
     return vector
 
 
 # Form a vector decribing the object relative to its previous state
 def formYvector(objId, oldState, newState):
-    # Form objkect vector
+    # Form object vector
     vector = deepcopy(newState[objId])
     # Update position entries to be categorical variables relative to previous position
     oldPos = (oldState[objId][0], oldState[objId][1])
@@ -88,22 +88,23 @@ def formYvector(objId, oldState, newState):
                 vector[0] = nb[1][0]
                 vector[1] = nb[1][1]
     return vector
-    
 
-# Check against previous state and output any object whose attributes have changed    
+
+# Check against previous state and output any object whose attributes have changed
 def changes(model):
     changes = []
-    if model.prev != None: 
+    if model.prev != None:
         for objId in model.prev.keys():
             if model.prev[objId] != model.curr[objId]:
                 changes.append(objId)
     return changes
-    
+
 
 # Converts a binary vector x to a human-readable data point
-def fromBinary(model, x):
+def fromBinary(model, x_original):
+    x = deepcopy(x_original)
     output = []
-    objLengths = [len(obs[1][0]) for obs in model.observations[:7]]
+    objLengths = [len(obs[1][0]) for obs in model.observations[:VISIBLE+1]]
     actionLength = len(model.obsActions[1][0])
     length = (9*sum(objLengths)) + actionLength
     # Check that x is the right length
@@ -114,21 +115,13 @@ def fromBinary(model, x):
     for i in range(1+NEIGHBOURS):
         objOutput = []
         objVector = x[:sum(objLengths)]
-
-
         x[:sum(objLengths)] = []
-        
-        
         if objVector == [0 for item in objVector]:
             output.append([])
         else:
-        
             # Iterate over attribute vectors
             for j in range(X_POS,VISIBLE+1):
                 attVector = tuple(objVector[:objLengths[j]])
-            
-     
-            
                 objVector[:objLengths[j]] = []
                 objOutput.append(model.dictionaries[j][1][attVector])
             output.append(objOutput)
@@ -136,14 +129,12 @@ def fromBinary(model, x):
     actVector = tuple(x)
     actOutput = model.dictionaries[ACTION][1][actVector]
     output.append(actOutput)
-    
-
-    
     return output
-    
+
 
 # Converts a human-readable data point x to a binary vector
-def toBinary(model, x):
+def toBinary(model, x_original):
+    x = deepcopy(x_original)
     output = []
     sumObjLengths = sum([len(obs[1][0]) for obs in model.observations[:7]])
     # Iterate over object descriptions
@@ -161,11 +152,16 @@ def toBinary(model, x):
     return output
 
 
-# Converts a binary schema x to a human-readable schema  
-def fromBinarySchema(model, s):
+# Converts a binary schema x to a human-readable schema
+def fromBinarySchema(model, s_original, head):
+    s = deepcopy(s_original)
     output = Schema()
-    objLengths = [len(obs[1][0]) for obs in model.observations[:7]]
+    output.head = head
+    objLengths = [len(obs[1][0]) for obs in model.observations[:VISIBLE+1]]
     actionLength = len(model.obsActions[1][0])
+
+    print actionLength
+
     length = (9*sum(objLengths)) + actionLength
     # Check that s is the right length
     if len(s) != length:
@@ -180,39 +176,34 @@ def fromBinarySchema(model, s):
         for j in range(X_POS,VISIBLE+1):
             attVector = tuple(objVector[:objLengths[j]])
             objVector[:objLengths[j]] = []
-            
-          
-            
-            if list(attVector) != [0 for i in range(len(attVector))]:
+            if list(attVector) != [0 for k in range(len(attVector))]:
                 attribute = model.dictionaries[j][1][attVector]
                 output.objectBody[(i,j)] = attribute
     # What remains of x is the action vector
     actVector = tuple(s)
-    if list(actVector) != [0 for i in range(len(actVector))]:
+    if list(actVector) != [0 for k in range(len(actVector))]:
         action = model.dictionaries[ACTION][1][actVector]
         output.actionBody = action
-    
-
-    
     return output
 
 
 # Converts a human-readable schema s to a binary schema
-def toBinarySchema(model, s):
+def toBinarySchema(model, s_original):
+    s = deepcopy(s_original)
     # Create initial blank schema
     lengths = [len(obs[1][0]) for obs in model.observations[:7]]
-    blank = [[0 for i in range(length)] for length in lengths]
-    blankObjects = [blank for i in range(1+NEIGHBOURS)]
+    blank = [[0 for j in range(length)] for length in lengths]
+    blankObjects = [[[0 for j in range(length)] for length in lengths] for k in range(1+NEIGHBOURS)]
     # Instantiate according to preconditions
     for key in s.objectBody.keys():
-        i = list(key)
-        attribute = s.objectBody(key)
-        vector = model.dictionaries[i[1]][0](attribute)
-        blankObjects[i[0]][i[1]] = vector
+        [i,j] = list(key)
+        attribute = s.objectBody[key]
+        vector = model.dictionaries[j][0][attribute]
+        blankObjects[i][j] = vector
     # Form and output final binary schema vector
     objectVector = flatten(flatten(blankObjects))
     action = s.actionBody
-    actionVector = model.dictionaries[ACTION][0](action)
+    actionVector = model.dictionaries[ACTION][0][action]
     vector = objectVector + actionVector
     return vector
 
@@ -220,7 +211,7 @@ def toBinarySchema(model, s):
 # Flattens list by one level
 def flatten(fullList):
     return [item for sublist in fullList for item in sublist]
- 
+
 
 # Converts list of observations and their one-hot encoded versions to dictionaries
 def obsToDicts(obs):

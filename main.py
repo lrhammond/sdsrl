@@ -7,15 +7,15 @@ import inta
 
 # Runs learning and verification procedures
 def run(mode, numEpisodes, numSteps):
-    
+
     # Set up game according to mode and return description of intial state
-    environment = setup(mode)
+    environment = inta.setup(mode)
     initState = [inta.observeState(mode, environment), None, None]
-    
+
     # Intialise model and Q-function
     M = Model(mode, initState)
     Q = QFunction(mode)
-    
+
     # Learn model and Q-function
     for i in range(numEpisodes):
         ended = False
