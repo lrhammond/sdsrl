@@ -15,6 +15,7 @@ def run(mode, numEpisodes, numSteps):
     # Set up game according to mode and return description of initial state
     environment = inta.setup(mode,test=True)
     initState = inta.observeState(mode, environment)
+    rewards = [0 for ep in range(numEpisodes)]
 
     # Intialise model and Q-function
     M = blox.Model(mode, initState)
@@ -24,33 +25,38 @@ def run(mode, numEpisodes, numSteps):
 
     # Learn model and Q-function
     for i in range(numEpisodes):
-
+        print("===========")
         print("Episode " + str(i))
-
+        # Set up model for new episode
+        environment = inta.setup(mode, test=True)
+        initState = inta.observeState(mode, environment)
+        M.initialise(mode, initState)
         ended = False
-
-
-
-
+        current_reward = 0
         for j in range(numSteps):
-
-            print("Step " + str(j))
-
             # Check if the game has ended
-            if ended == True:
-
+            if ended:
+                rewards[i] = current_reward
+                print("*********")
+                print("Game Over")
+                print("Score: " + str(current_reward))
+                print("*********")
                 break
             else:
+                print("-------")
+                print("Step " + str(j))
                 # Take action in the game
                 action = choice(M.obsActions[0][:4])
-                print action
-
-
-                # action = "RIGHT"
-
+                print("Action: " + action)
+                # action = "DOWN"
                 [reward, ended] = inta.performAction(M, mode, environment, action)
-
-                state = [inta.observeState(mode, environment), action, reward]
+                current_reward += reward
+                # If the game has ended we only update the action and reward, as the state doesn't matter
+                if not ended:
+                    state = [inta.observeState(mode, environment), action, reward]
+                else:
+                    state[1] = action
+                    state[2] = reward
                 # Update model, data, and schemas
                 M.prev = M.getModelState()
 
@@ -58,18 +64,19 @@ def run(mode, numEpisodes, numSteps):
 
                 M.updateModel(mode, state)
 
-
                 M.curr = M.getModelState()
+
                 M.updateData()
-
-
 
                 M.learn()
 
-
                 # Update Q-function using model
                 # Q.update(M)
+
+    print("Rewards:")
+    print rewards
+
     # Verify properties of model, Q-function, or resulting policies
     # TODO
 
-run("vgdl",1,100)
+run("vgdl",5,100)

@@ -37,10 +37,18 @@ def setup(mode, test=False):
             gamePath = "game.txt"
         with open(levelPath, 'r') as levelFile:
             level = levelFile.read()
-            print("\nLEVEL:\n\n" + level)
+
+
+            # print("\nLEVEL:\n\n" + level)
+
+
         with open(gamePath, 'r') as gameFile:
             game = gameFile.read()
-            print("\nGAME:\n\n" + game)
+
+
+            # print("\nGAME:\n\n" + game)
+
+
         # Start game
         g = VGDLParser().parseGame(game)
         g.buildLevel(level)

@@ -61,11 +61,11 @@ def formXvector(objId, state, oldMap):
     # Form vector entries for neighbours of object
     neighbours = neighbourPositions(objPos)
     for nb in neighbours:
-        if nb[0] in oldMap.keys():
+        if nb[0] in oldMap.keys() and len(oldMap[nb[0]]) != 0:
 
-            print nb[0]
-            print oldMap[nb[0]]
-            print oldMap[nb[0]][0]
+            # print nb[0]
+            # print oldMap[nb[0]]
+            # print oldMap[nb[0]][0]
 
             nbVector = deepcopy(state[oldMap[nb[0]][0]])
             nbVector[0] = nb[1][0]
@@ -197,7 +197,6 @@ def toBinarySchema(model, s_original):
     s = deepcopy(s_original)
     # Create initial blank schema
     lengths = [len(obs[1][0]) for obs in model.observations[:7]]
-    blank = [[0 for j in range(length)] for length in lengths]
     blankObjects = [[[0 for j in range(length)] for length in lengths] for k in range(1+NEIGHBOURS)]
     # Instantiate according to preconditions
     for key in s.objectBody.keys():
@@ -208,7 +207,10 @@ def toBinarySchema(model, s_original):
     # Form and output final binary schema vector
     objectVector = flatten(flatten(blankObjects))
     action = s.actionBody
-    actionVector = model.dictionaries[ACTION][0][action]
+    if action == None:
+        actionVector = [0 for i in model.obsActions[1][0]]
+    else:
+        actionVector = model.dictionaries[ACTION][0][action]
     vector = objectVector + actionVector
     return vector
 
