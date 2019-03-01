@@ -422,6 +422,10 @@ class Model:
             remaining = {}
             # For each binary object attribute to be predicted
             for key in self.XY[i].keys():
+                # If the maximum number of schemas has already been learn we skip this round of learning
+                if len(self.schemas[i][key]) >= LIMIT:
+                    remaining[key] = self.XY[i][key]
+                    continue
                 # Form lists of positive and negative cases
                 xYes = [case for case in self.XY[i][key] if i < REWARD and case[0][i] != key]
                 xNo = [self.XY[i][other] for other in self.XY[i].keys() if other != key]

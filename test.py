@@ -76,7 +76,25 @@ def run(mode, numEpisodes, numSteps):
     print("Rewards:")
     print rewards
 
+    print("Schemas:")
+    for i in M.schemas:
+        for j in i.keys():
+            for k in i[j]:
+                k.display()
+
+    print("Evidence:")
+    for i in M.evidence:
+        for j in i.keys():
+            for k in i[j]:
+                print k
+
+    print("Remaining:")
+    for i in M.XY:
+        for j in i.keys():
+            for k in i[j]:
+                print k
+
     # Verify properties of model, Q-function, or resulting policies
     # TODO
 
-run("vgdl",5,100)
+run("vgdl",5,50)
