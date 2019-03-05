@@ -7,6 +7,8 @@ from sklearn import preprocessing
 from operator import add
 from copy import deepcopy
 from blox import Schema
+from collections import OrderedDict
+from itertools import groupby
 
 
 # Define constants for repeated use and indexing
@@ -16,7 +18,7 @@ X_SIZE = 2
 Y_SIZE = 3
 COLOUR = 4
 SHAPE = 5
-VISIBLE = 6
+NOTHING = 6
 REWARD = 7
 NEIGHBOURS = 8
 ACTION = 9
@@ -71,8 +73,11 @@ def formXvector(objId, state, oldMap):
             nbVector[0] = nb[1][0]
             nbVector[1] = nb[1][1]
             vector.append(nbVector)
+        # If there is no neighbour, add a vector with all None entries apart from the 'nothing' attribute
         else:
-            vector.append([])
+            new = [None for attribute in range(NOTHING+1)]
+            new[NOTHING] = "yes"
+            vector.append(new)
     return vector
 
 
@@ -101,9 +106,6 @@ def changes(model):
     if model.prev != None:
         for objId in model.prev.keys():
             if model.prev[objId] != model.curr[objId]:
-
-
-
                 changes.append(objId)
     return changes
 
@@ -112,7 +114,7 @@ def changes(model):
 def fromBinary(model, x_original):
     x = deepcopy(x_original)
     output = []
-    objLengths = [len(obs[1][0]) for obs in model.observations[:VISIBLE+1]]
+    objLengths = [len(obs[1][0]) for obs in model.observations[:NOTHING+1]]
     actionLength = len(model.obsActions[1][0])
     length = (9*sum(objLengths)) + actionLength
     # Check that x is the right length
@@ -124,19 +126,23 @@ def fromBinary(model, x_original):
         objOutput = []
         objVector = x[:sum(objLengths)]
         x[:sum(objLengths)] = []
-        if objVector == [0 for item in objVector]:
-            output.append([])
-        else:
-            # Iterate over attribute vectors
-            for j in range(X_POS,VISIBLE+1):
-                attVector = tuple(objVector[:objLengths[j]])
-                objVector[:objLengths[j]] = []
+        # Iterate over attribute vectors
+        for j in range(NOTHING+1):
+            attVector = objVector[:objLengths[j]]
+            objVector[:objLengths[j]] = []
+            if attVector == [0 for item in attVector]:
+                objOutput.append(None)
+            else:
+                attVector = tuple(attVector)
                 objOutput.append(model.dictionaries[j][1][attVector])
-            output.append(objOutput)
+        output.append(objOutput)
     # What remains of x is the action vector
-    actVector = tuple(x)
-    actOutput = model.dictionaries[ACTION][1][actVector]
-    output.append(actOutput)
+    if x == [0 for item in x]:
+        output.append(None)
+    else:
+        actVector = tuple(x)
+        actOutput = model.dictionaries[ACTION][1][actVector]
+        output.append(actOutput)
     return output
 
 
@@ -144,16 +150,23 @@ def fromBinary(model, x_original):
 def toBinary(model, x_original):
     x = deepcopy(x_original)
     output = []
-    sumObjLengths = sum([len(obs[1][0]) for obs in model.observations[:7]])
+    sumObjLengths = sum([len(obs[1][0]) for obs in model.observations[:NOTHING+1]])
     # Iterate over object descriptions
     for i in range(1+NEIGHBOURS):
-        # If there is no object in the neighbour position we add a vector of zeros
-        if len(x[i]) == 0:
-            output = output + [0 for k in range(sumObjLengths)]
-            continue
+        # # If there is no object in the neighbour position we add a vector of zeros apart from the 'nothing' attribite
+        # blank = [None for item in x[i]]
+        # blank[NOTHING] = "yes"
+        # if x[i] == blank:
+        #     new = [0 for k in range(sumObjLengths)]
+        #     new[-1] = 1
+        #     output = output + new
+        #     continue
         # Add binary description of attributes based on one-hot encoding of observations
-        else:
-            for j in range(X_POS,VISIBLE+1):
+
+        for j in range(NOTHING+1):
+            if x[i][j] == None:
+                output = output + [0 for item in model.observations[j][1][0]]
+            else:
                 output = output + model.dictionaries[j][0][x[i][j]]
     # Add binary description of action
     output = output + model.dictionaries[ACTION][0][x[ACTION]]
@@ -165,7 +178,7 @@ def fromBinarySchema(model, s_original, head):
     s = deepcopy(s_original)
     output = Schema()
     output.head = head
-    objLengths = [len(obs[1][0]) for obs in model.observations[:VISIBLE+1]]
+    objLengths = [len(obs[1][0]) for obs in model.observations[:NOTHING+1]]
     actionLength = len(model.obsActions[1][0])
     length = (9*sum(objLengths)) + actionLength
     # Check that s is the right length
@@ -174,13 +187,13 @@ def fromBinarySchema(model, s_original, head):
         return
     # Iterate over object descriptions
     for i in range(1+NEIGHBOURS):
-        objOutput = []
         objVector = s[:sum(objLengths)]
         s[:sum(objLengths)] = []
         # Iterate over attribute vectors
-        for j in range(X_POS,VISIBLE+1):
+        for j in range(NOTHING+1):
             attVector = tuple(objVector[:objLengths[j]])
             objVector[:objLengths[j]] = []
+            # If this vector represents an object attribute in the body of the schema
             if list(attVector) != [0 for k in range(len(attVector))]:
                 attribute = model.dictionaries[j][1][attVector]
                 output.objectBody[(i,j)] = attribute
@@ -208,7 +221,7 @@ def toBinarySchema(model, s_original):
     objectVector = flatten(flatten(blankObjects))
     action = s.actionBody
     if action == None:
-        actionVector = [0 for i in model.obsActions[1][0]]
+        actionVector = [0 for item in model.obsActions[1][0]]
     else:
         actionVector = model.dictionaries[ACTION][0][action]
     vector = objectVector + actionVector
@@ -225,3 +238,12 @@ def obsToDicts(obs):
     attributeToBinary = dict(zip(obs[0], obs[1]))
     binaryToAttribute = dict(zip([tuple(vector) for vector in obs[1]], obs[0]))
     return [attributeToBinary, binaryToAttribute]
+
+
+# Takes a list and removes any duplicate entries, printing how many items were removed
+def deDupe(old):
+    new = [k for k,v in groupby(sorted(old))]
+    numRemoved = len(old) - len(new)
+    if numRemoved != 0:
+        print("Successfully removed " + str(numRemoved) + " duplicates")
+    return new

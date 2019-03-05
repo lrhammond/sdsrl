@@ -7,7 +7,7 @@ X_SIZE = 2
 Y_SIZE = 3
 COLOUR = 4
 SHAPE = 5
-VISIBLE = 6
+NOTHING = 6
 REWARD = 7
 NEIGHBOURS = 8
 ACTION = 9
@@ -15,7 +15,7 @@ LIMIT = 10
 
 
 import util
-from lern import learnSchemas
+import lern
 from copy import deepcopy
 
 
@@ -28,18 +28,18 @@ class Model:
         self.xMax = xMax
         self.yMax = yMax
         # Create lists for storing observed attributes and one-hot encoded versions
-        self.obsXpos = [["left", "centre", "right"], [[1,0],[0,0],[0,1]]]
-        self.obsYpos = [["below", "centre", "above"], [[1,0],[0,0],[0,1]]]
+        self.obsXpos = [["left", "centre", "right"], [[1,0,0],[0,1,0],[0,0,1]]]
+        self.obsYpos = [["below", "centre", "above"], [[1,0,0],[0,1,0],[0,0,1]]]
         self.obsXsizes = [[],[]]
         self.obsYsizes = [[],[]]
         self.obsColours = [[],[]]
         self.obsShapes = [[],[]]
-        self.obsVisible = [["yes", "no"], [[1],[0]]]
+        self.obsNothing = [["yes", "no"], [[1,0],[0,1]]]
         # Create lists for storing observed actions and rewards
         self.obsActions = [["nothing"],[[0]]]
         self.obsRewards = [[],[]]
         # Create dictionaries for fast conversion between attribute values and binary versions
-        self.observations = [self.obsXpos, self.obsYpos, self.obsXsizes, self.obsYsizes, self.obsColours, self.obsShapes, self.obsVisible, self.obsRewards, None, self.obsActions]
+        self.observations = [self.obsXpos, self.obsYpos, self.obsXsizes, self.obsYsizes, self.obsColours, self.obsShapes, self.obsNothing, self.obsRewards, None, self.obsActions]
         self.dictionaries = {}
         # Create lists for storing schemas and learning data
         self.schemas = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
@@ -74,6 +74,7 @@ class Model:
         state["action"] = self.action
         state["reward"] = self.reward
         return state
+
 
     # Set up objects and map based on vgdl state
     def setObjects(self, mode, state):
@@ -155,7 +156,7 @@ class Model:
 
     # Update dictionaries for fast conversion between attribute values and binary versions
     def updateDicts(self):
-        self.observations = [self.obsXpos, self.obsYpos, self.obsXsizes, self.obsYsizes, self.obsColours, self.obsShapes, self.obsVisible, self.obsRewards, None, self.obsActions]
+        self.observations = [self.obsXpos, self.obsYpos, self.obsXsizes, self.obsYsizes, self.obsColours, self.obsShapes, self.obsNothing, self.obsRewards, None, self.obsActions]
         self.dictionaries = []
         for obs in self.observations:
             if obs == None:
@@ -265,10 +266,10 @@ class Model:
                     intersection = [item for item in possibleNewPos if item in neighbours]
                     # If there are no neighbours at all we assume the object has disappeared
                     if len(intersection) == 0:
-                        self.objects[objId].visible = "no"
+                        self.objects[objId].nothing = "yes"
 
 
-                        print("oops")
+                        print("oops, object " + str(objId) + " disappeared")
 
 
 
@@ -388,9 +389,15 @@ class Model:
         return predicted
 
 
-
-
-
+    # Function for cleaning model of duplicate information
+    def clean(self):
+        # Remove duplicate data and schemas
+        for r in range(REWARD):
+            for key in self.observations[r][0]:
+                self.XY[r][key] = util.deDupe(self.XY[r][key])
+                self.evidence[r][key] = util.deDupe(self.evidence[r][key])
+                self.schemas[r][key] = util.deDupe(self.schemas[r][key])
+        return
 
 
 
@@ -416,7 +423,9 @@ class Model:
 
     # Updates and learns new schemas
     def learn(self):
+        # Prepare for learning
         self.updateDicts()
+        # self.clean()
         # For each object attribute
         for i in range(len(self.XY)):
             remaining = {}
@@ -427,7 +436,11 @@ class Model:
                     remaining[key] = self.XY[i][key]
                     continue
                 # Form lists of positive and negative cases
-                xYes = [case for case in self.XY[i][key] if i < REWARD and case[0][i] != key]
+                if i < REWARD:
+                    xYes = [case for case in self.XY[i][key] if case[0][i] != key]
+                else:
+
+                    xYes = [case for case in self.XY[i][key]]
                 xNo = [self.XY[i][other] for other in self.XY[i].keys() if other != key]
                 xNo = util.flatten(xNo)
                 # If there are no changes in this attribute of the primary object then we skip this round of learning
@@ -445,7 +458,7 @@ class Model:
 
                 schemas = [util.toBinarySchema(self, schema) for schema in self.schemas[i][key]]
                 # Learn and output schemas, new evidence, and remaining positive cases
-                [binarySchemas, binaryEvidence, binaryRemaining] = learnSchemas(self, xYes, xNo, schemas)
+                [binarySchemas, binaryEvidence, binaryRemaining] = lern.learnSchemas(self, xYes, xNo, schemas)
                 # Display new schemas to user
 
                 # print("111111111111111111")
@@ -467,8 +480,6 @@ class Model:
 
             self.XY[i] = remaining
 
-
-
         return
 
 
@@ -484,12 +495,12 @@ class Object:
         self.y_size = None
         self.colour = None
         self.shape = None
-        self.visible = "yes"
+        self.nothing = "no"
         return
 
     # Outputs list representing the state of the object
     def getObjectState(self):
-        state = [self.x_pos, self.y_pos, self.x_size, self.y_size, self.colour, self.shape, self.visible]
+        state = [self.x_pos, self.y_pos, self.x_size, self.y_size, self.colour, self.shape, self.nothing]
         return state
 
 
@@ -525,7 +536,7 @@ class Schema:
     # Prints out schema in human-readble format
     def display(self):
         objects = ["obj"] + ["nb" + str(i+1) for i in range(8)]
-        attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "visible"]
+        attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "nothing"]
         # SCHEMA NAMING REMOVED FOR NOW
         # schemaName = "Schema " + str(self.id) + ": "
         schemaName = ""

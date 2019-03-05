@@ -1,4 +1,4 @@
-+# TEST
+# TEST
 # Script for running tests of other functions
 
 import lern
@@ -16,4 +16,4 @@ def run(mode, numEpisodes, numSteps, numSamples, epsilon):
 
     return
 
-run("vgdl",5, 50, 10)
+run("vgdl",5, 50, 10, 0)

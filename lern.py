@@ -10,10 +10,11 @@ import numpy as np
 import blox
 from copy import deepcopy
 from random import choice
+import inta
 
 
 # Learning procedure
-def hyperMax(mode, numEpisodes, numSteps, numSamples, epsilon)
+def hyperMax(mode, numEpisodes, numSteps, numSamples, epsilon):
 
     # Set up game according to mode and return description of initial state
     environment = inta.setup(mode,test=True)
@@ -25,6 +26,7 @@ def hyperMax(mode, numEpisodes, numSteps, numSamples, epsilon)
     M.obsActions = [["UP", "LEFT", "DOWN", "RIGHT", "nothing"],[[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1],[0,0,0,0]]]
     M.updateDicts()
     # Q = QFunction(mode)
+    Q = 0
 
     # Learn model and Q-function
     for i in range(numEpisodes):
@@ -56,7 +58,9 @@ def hyperMax(mode, numEpisodes, numSteps, numSamples, epsilon)
                 # If the game has ended we only update the action and reward, as the state doesn't matter
                 if not ended:
                     state = [inta.observeState(mode, environment), action, reward]
+                    prevState = deepcopy(state[0])
                 else:
+                    state[0] = prevState
                     state[1] = action
                     state[2] = reward
                 # Update model, data, and schemas
@@ -67,9 +71,9 @@ def hyperMax(mode, numEpisodes, numSteps, numSamples, epsilon)
                 M.updateData()
                 M.learn()
                 # Update Q-function using HYPE
-                for i in range(numSamples):
+                for k in range(numSamples):
                     state = M.curr
-                    hype(M, numEpisodes, i, state, Q)
+                    hype(M, numEpisodes, k, state, Q)
 
     print("Rewards:")
     print rewards
@@ -99,6 +103,7 @@ def hyperMax(mode, numEpisodes, numSteps, numSamples, epsilon)
 def rmax(M, Q, epsilon):
 
     # TODO
+    # return "DOWN"
     return choice(M.obsActions[0][:4])
 
 
@@ -111,9 +116,16 @@ def hype(M, numEpisodes, i, state, Q):
 
 # Learns schemas for a particular object attribute given data X and y using linear programming
 def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
-    # # If all the cases are positive there are no constraints for learning schemas so we do not try
-    # if len(xNo) == 0:
-    #     return [[], [], xYes]
+    # If there are any contradictory data we remove them
+    yes = [tuple(item) for item in xYes]
+    no = [tuple(item) for item in xNo]
+    both = [list(item) for item in list(set(yes) & set(no))]
+    for datum in both:
+        xYes.remove(datum)
+        xNo.remove(datum)
+    # If all the cases are positive there are no constraints for learning schemas so we do not try
+    if len(xNo) == 0:
+        return [[[0 for item in xYes[0]]], xYes, []]
     # Initialise variables
     oneVector = np.ones((1, len(xYes[0])))
     evidence = []
@@ -129,13 +141,18 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
         C = np.array(util.flatten([oneVector - np.array(x) for x in xYes]))
         d = np.zeros((1, len(xYes)))
         # Solve LP
-        w = opt.linprog(f, A, b, options={'tol':1e-06,'maxiter':10000}).x
+        w = opt.linprog(f, A, b, options={'tol':1e-09,'maxiter':100000}).x
         # Minimise schema dimensions
 
 
         # Convert w to binary version and add to set of schemas
         w_binary = w > TOL
         w_binary = [int(entry) for entry in w_binary]
+
+        # print("-----------------")
+        # old_s = util.fromBinarySchema(model, w_binary, "HEAD")
+        # print("big schema:")
+        # old_s.display()
 
         # schemas.append(w_binary)
 
@@ -169,6 +186,12 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
         #
         # w_binary = w > TOL
         # w_binary = [int(entry) for entry in w_binary]
+        #
+        # old_s = util.fromBinarySchema(model, w_binary, "HEAD")
+        # print("small schema:")
+        # old_s.display()
+
+
 
         schemas.append(w_binary)
 
