@@ -11,6 +11,7 @@ import blox
 from copy import deepcopy
 from random import choice
 import inta
+import pyscipopt
 
 
 # Learning procedure
@@ -90,11 +91,11 @@ def hyperMax(mode, numEpisodes, numSteps, numSamples, epsilon):
             for k in i[j]:
                 print k
 
-    print("Remaining:")
-    for i in M.XY:
-        for j in i.keys():
-            for k in i[j]:
-                print k
+    # print("Remaining:")
+    # for i in M.XY:
+    #     for j in i.keys():
+    #         for k in i[j]:
+    #             print k
 
     return
 
@@ -115,7 +116,7 @@ def hype(M, numEpisodes, i, state, Q):
 
 
 # Learns schemas for a particular object attribute given data X and y using linear programming
-def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
+def learnSchemas(model, xYes, xNo, schemas, R=0.2, L=LIMIT):
     # If there are any contradictory data we remove them
     yes = [tuple(item) for item in xYes]
     no = [tuple(item) for item in xNo]
@@ -141,7 +142,7 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
         C = np.array(util.flatten([oneVector - np.array(x) for x in xYes]))
         d = np.zeros((1, len(xYes)))
         # Solve LP
-        w = opt.linprog(f, A, b, options={'tol':1e-09,'maxiter':100000}).x
+        w = opt.linprog(f, A, b, options={'tol':1e-06,'maxiter':100000}).x
         # Minimise schema dimensions
 
 
@@ -191,13 +192,61 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
         # print("small schema:")
         # old_s.display()
 
-
-
         schemas.append(w_binary)
-
 
         evidence = evidence + newEvidence
 
+    return [schemas, evidence, xYes]
 
 
+
+
+
+# Learns schemas for a particular object attribute given data X and y using linear programming
+def learnSchemas2(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
+    length = len(xYes[0])
+    evidence = []
+    # If there are any contradictory data we remove them
+    yes = [tuple(item) for item in xYes]
+    no = [tuple(item) for item in xNo]
+    both = [list(item) for item in list(set(yes) & set(no))]
+    for datum in both:
+        xYes.remove(datum)
+        xNo.remove(datum)
+    # If all the cases are positive there are no constraints for learning schemas so we do not try
+    if len(xNo) == 0:
+        return [[[0 for item in xYes[0]]], xYes, []]
+    # While there are still schema transitions to explain and the complexity limit L has not been reached
+    while (len(xYes) > 0) and (len(schemas) < L):
+
+
+
+        scip = pyscipopt.Model()
+        w = {}
+        for i in range(length):
+            w[i] = scip.addVar(name="w(%s)"%i)
+        for neg in xNo:
+            scip.addCons(pyscipopt.quicksum((1-neg[j])*w[j] for j in range(length)) >= 1)
+        f = {}
+        for k in range(length):
+            f[k] = sum([(1-pos[k]) for pos in xYes])
+            f[k] /= len(xYes)
+            f[k] += L
+        scip.setObjective(pyscipopt.quicksum(f[l]*w[l] for l in range(length)), "minimize")
+        scip.hideOutput()
+        scip.optimize()
+        w = np.array([scip.getVal(w[m]) for m in range(length)])
+        w_binary = w > TOL
+        w_binary = [int(entry) for entry in w_binary]
+
+
+
+        # Remove solved entries from xYes
+        newEvidence = []
+        for x in xYes:
+            if np.dot(w_binary, np.array(x)) == sum(w_binary):
+                newEvidence.append(x)
+                xYes.remove(x)
+        schemas.append(w_binary)
+        evidence = evidence + newEvidence
     return [schemas, evidence, xYes]

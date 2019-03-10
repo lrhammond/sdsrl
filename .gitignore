@@ -2,6 +2,7 @@
 .DS_Store
 scipoptsuite-6.0.1/
 PySCIPOptmaster/
+scipoptdir/
 .idea
 
 # Byte-compiled / optimized / DLL files

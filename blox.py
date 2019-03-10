@@ -370,7 +370,7 @@ class Model:
                         # print("Datum head: ")
                         # print datum[1]
                         # print("------------------------------------")
-                        
+
 
                         print("Removed schema:")
                         schema.display()
@@ -388,7 +388,6 @@ class Model:
                 self.evidence[index][key] = []
         return predicted
 
-
     # Function for cleaning model of duplicate information
     def clean(self):
         # Remove duplicate data and schemas
@@ -398,8 +397,6 @@ class Model:
                 self.evidence[r][key] = util.deDupe(self.evidence[r][key])
                 self.schemas[r][key] = util.deDupe(self.schemas[r][key])
         return
-
-
 
     # TEMPORARILY REMOVED, MAY NOT BE EFFICIENT
     # Updates one-hot encoding of matrices used to store data for schema learning
@@ -439,23 +436,17 @@ class Model:
                 if i < REWARD:
                     xYes = [case for case in self.XY[i][key] if case[0][i] != key]
                 else:
-
                     xYes = [case for case in self.XY[i][key]]
                 xNo = [self.XY[i][other] for other in self.XY[i].keys() if other != key]
                 xNo = util.flatten(xNo)
                 # If there are no changes in this attribute of the primary object then we skip this round of learning
                 if len(xYes) == 0:
                     remaining[key] = self.XY[i][key]
-
                     # print("no changes for " + str(key))
-
                     continue
-
                 # Form vectors for learning
                 xYes = [util.toBinary(self, item) for item in xYes]
                 xNo = [util.toBinary(self, item) for item in xNo]
-
-
                 schemas = [util.toBinarySchema(self, schema) for schema in self.schemas[i][key]]
                 # Learn and output schemas, new evidence, and remaining positive cases
                 [binarySchemas, binaryEvidence, binaryRemaining] = lern.learnSchemas(self, xYes, xNo, schemas)
@@ -468,7 +459,6 @@ class Model:
                 # print("333333333333333333")
 
                 newSchemas = [s for s in binarySchemas]
-
                 toPrint = [util.fromBinarySchema(self, s, key) for s in newSchemas]
                 print("New schemas: ")
                 for s in toPrint:
@@ -477,9 +467,7 @@ class Model:
                 self.schemas[i][key] = [util.fromBinarySchema(self, schema, key) for schema in binarySchemas]
                 self.evidence[i][key] = self.evidence[i][key] + [util.fromBinary(self, datum) for datum in binaryEvidence]
                 remaining[key] = [util.fromBinary(self, datum) for datum in binaryRemaining]
-
             self.XY[i] = remaining
-
         return
 
 
