@@ -390,12 +390,14 @@ class Model:
 
     # Function for cleaning model of duplicate information
     def clean(self):
-        # Remove duplicate data and schemas
         for r in range(REWARD):
             for key in self.observations[r][0]:
+                # Remove duplicate data and schemas
                 self.XY[r][key] = util.deDupe(self.XY[r][key])
                 self.evidence[r][key] = util.deDupe(self.evidence[r][key])
                 self.schemas[r][key] = util.deDupe(self.schemas[r][key])
+                # Simplify schemas
+                self.schemas[r][key] = util.simplify(self, self.schemas[r][key], key)
         return
 
     # TEMPORARILY REMOVED, MAY NOT BE EFFICIENT
@@ -422,7 +424,7 @@ class Model:
     def learn(self):
         # Prepare for learning
         self.updateDicts()
-        # self.clean()
+
         # For each object attribute
         for i in range(len(self.XY)):
             remaining = {}
@@ -448,6 +450,8 @@ class Model:
                 xYes = [util.toBinary(self, item) for item in xYes]
                 xNo = [util.toBinary(self, item) for item in xNo]
                 schemas = [util.toBinarySchema(self, schema) for schema in self.schemas[i][key]]
+                oldSchemas = deepcopy(schemas)
+
                 # Learn and output schemas, new evidence, and remaining positive cases
                 [binarySchemas, binaryEvidence, binaryRemaining] = lern.learnSchemas(self, xYes, xNo, schemas)
                 # Display new schemas to user
@@ -458,8 +462,7 @@ class Model:
                 # print binarySchemas
                 # print("333333333333333333")
 
-                newSchemas = [s for s in binarySchemas]
-                toPrint = [util.fromBinarySchema(self, s, key) for s in newSchemas]
+                toPrint = [util.fromBinarySchema(self, s, key) for s in binarySchemas if s not in oldSchemas]
                 print("New schemas: ")
                 for s in toPrint:
                     s.display()
@@ -523,7 +526,7 @@ class Schema:
 
     # Prints out schema in human-readble format
     def display(self):
-        objects = ["obj"] + ["nb" + str(i+1) for i in range(8)]
+        objects = ["obj"] + ["nb" + str(i+1) for i in range(NEIGHBOURS)]
         attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "nothing"]
         # SCHEMA NAMING REMOVED FOR NOW
         # schemaName = "Schema " + str(self.id) + ": "

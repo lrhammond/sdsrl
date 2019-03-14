@@ -75,6 +75,8 @@ def hyperMax(mode, numEpisodes, numSteps, numSamples, epsilon):
                 for k in range(numSamples):
                     state = M.curr
                     hype(M, numEpisodes, k, state, Q)
+        # Clean up data, evidence, and learnt schemas
+        M.clean()
 
     print("Rewards:")
     print rewards
@@ -130,6 +132,12 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
     # Initialise variables
     oneVector = np.ones((1, len(xYes[0])))
     evidence = []
+
+
+    badSchemas = []
+
+
+
     # While there are still schema transitions to explain and the complexity limit L has not been reached
     while (len(xYes) > 0) and (len(schemas) < L):
         # Create LP inputs
@@ -170,10 +178,12 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
 
         old = np.array(w_binary)
 
+
+
         # print("w:")
         # print w
-        print("w_binary:")
-        print w_binary
+        # print("w_binary:")
+        # print w_binary
 
 
 
@@ -200,8 +210,13 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
 
                 # print("Removed X!")
 
-        print("Schema solves " + str(len(newEvidence)) + " positive cases against " + str(len(xYes)) + " negative cases")
+        print("Schema solves " + str(len(newEvidence)) + " positive cases against " + str(len(xNo)) + " negative cases")
         print("Still have " + str(len(xYes)) + " positive cases remaining")
+
+        # If we have learned a bad schema we don't add it, and skip learning until we have more data
+        if len(newEvidence) == 0:
+            print("Bad schema outputted!")
+            return [schemas, evidence, xYes]
 
         print("Shrinking schema...")
 
@@ -239,14 +254,34 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
 
         # print("w:")
         # print w
-        print("w_binary:")
-        print w_binary
+        # print("w_binary:")
+        # print w_binary
 
         old_s = util.fromBinarySchema(model, w_binary, "HEAD")
         print("Shrunk new schema:")
         old_s.display()
 
         schemas.append(w_binary)
+
+
+        for x in xYes:
+
+            # print("X: ")
+            # print [i for i in range(len(x)) if x[i] > 0]
+            # print("W: ")
+            # print [i for i in range(len(w_binary)) if w_binary[i] > 0]
+
+            if np.dot(w_binary, np.array(x)) == sum(w_binary):
+                newEvidence.append(x)
+                xYes.remove(x)
+
+                # print("Removed X!")
+
+        print("Shrunken schema solves " + str(len(newEvidence)) + " positive cases against " + str(len(xNo)) + " negative cases")
+        print("Still have " + str(len(xYes)) + " positive cases remaining")
+
+
+
 
         evidence = evidence + newEvidence
 

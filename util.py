@@ -2,7 +2,7 @@
 # Various utility and helper functions, as well as standard constants and indexes
 
 
-from numpy import array
+import numpy as np
 from sklearn import preprocessing
 from operator import add
 from copy import deepcopy
@@ -31,7 +31,7 @@ def oneHot(inputList):
     label_encoder = preprocessing.LabelEncoder()
     onehot_encoder = preprocessing.OneHotEncoder(sparse=False)
     # Form inputs and apply encoder
-    a = array(inputList)
+    a = np.array(inputList)
     i = label_encoder.fit_transform(a)
     i = i.reshape(len(i), 1)
     b = onehot_encoder.fit_transform(i)
@@ -240,10 +240,59 @@ def obsToDicts(obs):
     return [attributeToBinary, binaryToAttribute]
 
 
+
+# Function for cleaning model of duplicate information
+def clean(model):
+    for r in range(REWARD):
+        for key in self.observations[r][0]:
+            # Remove duplicate data and schemas
+            model.XY[r][key] = deDupe(model.XY[r][key])
+            model.evidence[r][key] = deDupe(model.evidence[r][key])
+            model.schemas[r][key] = deDupe(model.schemas[r][key])
+            # Simplify schemas
+            model.schemas[r][key] = simplify(model.schemas[r][key])
+    return
+
+
 # Takes a list and removes any duplicate entries, printing how many items were removed
 def deDupe(old):
     new = [k for k,v in groupby(sorted(old))]
     numRemoved = len(old) - len(new)
     if numRemoved != 0:
         print("Successfully removed " + str(numRemoved) + " duplicates")
+    return new
+
+
+# Simplifies a set a of schemas
+def simplify(model, old, head):
+    new = []
+    # Remove pointless attributes
+    counter = 0
+    for schema in old:
+        toRemove = []
+        trimmed = False
+        for key in schema.objectBody:
+            obj = list(key)
+            if obj[0] in range(1, NEIGHBOURS + 1) and obj[1] in range(Y_POS+1):
+                toRemove.append(key)
+                trimmed = True
+        if trimmed:
+            counter += 1
+        for rKey in toRemove:
+            del schema.objectBody[rKey]
+    if counter != 0:
+        print("Successfully trimmed " + str(counter) + " schemas")
+    # Remove more complex schemas
+    oldBinary = [toBinarySchema(model, s) for s in old]
+    oldBinary.sort(key=sum)
+    for s1 in oldBinary:
+        for s2 in oldBinary:
+            if s1 != s2 and np.dot(np.array(s1), np.array(s2)) == sum(s1):
+                oldBinary.remove(s2)
+        new.append(fromBinarySchema(model, s1, head))
+        oldBinary.remove(s1)
+    # Display notification to user if any schemas were removed
+    numRemoved = len(old) - len(new)
+    if numRemoved != 0:
+        print("Successfully cut " + str(numRemoved) + " schemas")
     return new
