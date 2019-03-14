@@ -2,7 +2,7 @@
 # Functions for learning schemas from matrices, and also for learning policies from schemas
 
 LIMIT = 10
-TOL = 0
+TOL = 1e-6
 
 import util
 from scipy import optimize as opt
@@ -11,7 +11,7 @@ import blox
 from copy import deepcopy
 from random import choice
 import inta
-import pyscipopt
+# import pyscipopt
 
 
 # Learning procedure
@@ -116,7 +116,7 @@ def hype(M, numEpisodes, i, state, Q):
 
 
 # Learns schemas for a particular object attribute given data X and y using linear programming
-def learnSchemas(model, xYes, xNo, schemas, R=0.2, L=LIMIT):
+def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
     # If there are any contradictory data we remove them
     yes = [tuple(item) for item in xYes]
     no = [tuple(item) for item in xNo]
@@ -134,15 +134,33 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.2, L=LIMIT):
     while (len(xYes) > 0) and (len(schemas) < L):
         # Create LP inputs
         f = np.sum([oneVector - np.array(x) for x in xYes], axis=0)
-        f = np.divide(f, len(xYes))
-        f = f + (R * oneVector)
-        f = f * len(xYes)
+
+
+        # f = np.divide(f, len(xYes))
+        # f = f + (R * oneVector)
+        # f = f * len(xYes)
+
+
         A = np.negative(np.array(util.flatten([oneVector - np.array(x) for x in xNo])))
         b = np.negative(np.ones((1, len(xNo))))
-        C = np.array(util.flatten([oneVector - np.array(x) for x in xYes]))
-        d = np.zeros((1, len(xYes)))
+
+
+        # C = np.array(util.flatten([oneVector - np.array(x) for x in xYes]))
+        # d = np.zeros((1, len(xYes)))
+
+        print("-----------------")
+
+        print("Learning schema...")
+
         # Solve LP
-        w = opt.linprog(f, A, b, options={'tol':1e-06,'maxiter':100000}).x
+        result = opt.linprog(f, A, b, bounds=(0,1), options={'tol':1e-06,'maxiter':100000})
+        w = result.x
+
+
+
+        print("Status: " + result.message)
+
+
         # Minimise schema dimensions
 
 
@@ -150,10 +168,18 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.2, L=LIMIT):
         w_binary = w > TOL
         w_binary = [int(entry) for entry in w_binary]
 
-        # print("-----------------")
-        # old_s = util.fromBinarySchema(model, w_binary, "HEAD")
-        # print("big schema:")
-        # old_s.display()
+        old = np.array(w_binary)
+
+        # print("w:")
+        # print w
+        print("w_binary:")
+        print w_binary
+
+
+
+        old_s = util.fromBinarySchema(model, w_binary, "HEAD")
+        print("Learnt new schema:")
+        old_s.display()
 
         # schemas.append(w_binary)
 
@@ -174,23 +200,51 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.2, L=LIMIT):
 
                 # print("Removed X!")
 
-        # # Shrink schema
-        # f = np.ones((1, len(w_binary)))
-        # # f = np.divide(f, len(xYes))
-        # # f = f + (R * oneVector)
-        # A = np.negative(np.array(util.flatten([oneVector - np.array(x) for x in xNo])))
-        # b = np.negative(np.ones((1, len(xNo))))
-        # C = np.array(util.flatten([oneVector - np.array(x) for x in newEvidence]))
-        # d = np.zeros((1, len(newEvidence)))
-        # # Solve LP
-        # w = opt.linprog(f, A, b, C, d, options={'tol': 1e-06, 'maxiter': 10000}).x
-        #
-        # w_binary = w > TOL
-        # w_binary = [int(entry) for entry in w_binary]
-        #
-        # old_s = util.fromBinarySchema(model, w_binary, "HEAD")
-        # print("small schema:")
-        # old_s.display()
+        print("Schema solves " + str(len(newEvidence)) + " positive cases against " + str(len(xYes)) + " negative cases")
+        print("Still have " + str(len(xYes)) + " positive cases remaining")
+
+        print("Shrinking schema...")
+
+        # Shrink schema
+        f = np.ones((1, len(w_binary)))
+
+        # f = np.divide(f, len(xYes))
+        # f = f + (R * oneVector)
+
+
+        A = np.negative(np.array(util.flatten([oneVector - np.array(x) for x in xNo])))
+        b = np.negative(np.ones((1, len(xNo))))
+        C = np.array(util.flatten([oneVector - np.array(x) for x in (newEvidence + [w_binary])]))
+        d = np.zeros((1, len(newEvidence) + 1))
+
+
+        # Solve LP
+        result = opt.linprog(f, A, b, C, d, bounds=(0,1), options={'tol': 1e-6, 'maxiter': 100000})
+
+        w = result.x
+
+        print("Status: " + result.message)
+
+        old_w_binary = w_binary
+
+        w_binary = w > TOL
+        w_binary = [int(entry) for entry in w_binary]
+
+        if w_binary == old_w_binary:
+            print("balls")
+
+        # final = [w_binary[i] * old_w_binary[i] for i in range(len(w_binary))]
+        # w_binary = final
+
+
+        # print("w:")
+        # print w
+        print("w_binary:")
+        print w_binary
+
+        old_s = util.fromBinarySchema(model, w_binary, "HEAD")
+        print("Shrunk new schema:")
+        old_s.display()
 
         schemas.append(w_binary)
 
