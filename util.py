@@ -240,26 +240,12 @@ def obsToDicts(obs):
     return [attributeToBinary, binaryToAttribute]
 
 
-
-# Function for cleaning model of duplicate information
-def clean(model):
-    for r in range(REWARD):
-        for key in self.observations[r][0]:
-            # Remove duplicate data and schemas
-            model.XY[r][key] = deDupe(model.XY[r][key])
-            model.evidence[r][key] = deDupe(model.evidence[r][key])
-            model.schemas[r][key] = deDupe(model.schemas[r][key])
-            # Simplify schemas
-            model.schemas[r][key] = simplify(model.schemas[r][key])
-    return
-
-
 # Takes a list and removes any duplicate entries, printing how many items were removed
 def deDupe(old):
     new = [k for k,v in groupby(sorted(old))]
     numRemoved = len(old) - len(new)
     if numRemoved != 0:
-        print("Successfully removed " + str(numRemoved) + " duplicates")
+        print("Successfully removed " + str(numRemoved) + " duplicate data")
     return new
 
 
@@ -273,26 +259,53 @@ def simplify(model, old, head):
         trimmed = False
         for key in schema.objectBody:
             obj = list(key)
-            if obj[0] in range(1, NEIGHBOURS + 1) and obj[1] in range(Y_POS+1):
+            if obj[0] in range(NEIGHBOURS + 1) and obj[1] in range(Y_POS+1):
                 toRemove.append(key)
                 trimmed = True
         if trimmed:
             counter += 1
         for rKey in toRemove:
+
+
+
+            # print("REMOVING:")
+            # print rKey
+            # print schema.objectBody[rKey]
+            #
+            #
+
+
             del schema.objectBody[rKey]
+
+
+
     if counter != 0:
-        print("Successfully trimmed " + str(counter) + " schemas")
+        print("Successfully reduced " + str(counter) + " schemas")
     # Remove more complex schemas
-    oldBinary = [toBinarySchema(model, s) for s in old]
-    oldBinary.sort(key=sum)
-    for s1 in oldBinary:
-        for s2 in oldBinary:
+    oldBinary = [tuple(toBinarySchema(model, s)) for s in old]
+    newBinary = list(set(oldBinary))
+    newBinary = [list(item) for item in newBinary]
+    newBinary.sort(key=sum)
+    for s1 in newBinary:
+        for s2 in newBinary:
             if s1 != s2 and np.dot(np.array(s1), np.array(s2)) == sum(s1):
-                oldBinary.remove(s2)
+                newBinary.remove(s2)
+
+
+                print("Removed:")
+                ds2 = fromBinarySchema(model, s2, head)
+                ds2.display()
+                print("Because of:")
+                ds1 = fromBinarySchema(model, s1, head)
+                ds1.display()
+
+
         new.append(fromBinarySchema(model, s1, head))
-        oldBinary.remove(s1)
+        newBinary.remove(s1)
     # Display notification to user if any schemas were removed
     numRemoved = len(old) - len(new)
     if numRemoved != 0:
         print("Successfully cut " + str(numRemoved) + " schemas")
     return new
+
+

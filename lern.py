@@ -2,7 +2,7 @@
 # Functions for learning schemas from matrices, and also for learning policies from schemas
 
 LIMIT = 10
-TOL = 1e-6
+TOL = 1e-3
 
 import util
 from scipy import optimize as opt
@@ -76,7 +76,17 @@ def hyperMax(mode, numEpisodes, numSteps, numSamples, epsilon):
                     state = M.curr
                     hype(M, numEpisodes, k, state, Q)
         # Clean up data, evidence, and learnt schemas
+        # print("Pre-clean:")
+        # for i in M.schemas:
+        #     for j in i.keys():
+        #         for k in i[j]:
+        #             k.display()
         M.clean()
+        # print("Post-clean:")
+        # for i in M.schemas:
+        #     for j in i.keys():
+        #         for k in i[j]:
+        #             k.display()
 
     print("Rewards:")
     print rewards
@@ -90,14 +100,23 @@ def hyperMax(mode, numEpisodes, numSteps, numSamples, epsilon):
     print("Evidence:")
     for i in M.evidence:
         for j in i.keys():
+            print("Attribute: " + str(j))
             for k in i[j]:
                 print k
 
-    # print("Remaining:")
-    # for i in M.XY:
-    #     for j in i.keys():
-    #         for k in i[j]:
-    #             print k
+    print("Remaining:")
+    for i in range(len(M.XY)):
+        for j in M.XY[i].keys():
+            if j == -1:
+                continue
+            print("Attribute: " + str(j))
+            for k in M.XY[i][j]:
+                predicted = False
+                for schema in M.schemas[i][j]:
+                    if schema.isActive(k):
+                        predicted = True
+                if not predicted:
+                    print k
 
     return
 
@@ -117,7 +136,7 @@ def hype(M, numEpisodes, i, state, Q):
     return
 
 
-# Learns schemas for a particular object attribute given data X and y using linear programming
+# Learns schemas for a particular object attribute given data X and y using linprog
 def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
     # If there are any contradictory data we remove them
     yes = [tuple(item) for item in xYes]
@@ -126,9 +145,12 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
     for datum in both:
         xYes.remove(datum)
         xNo.remove(datum)
+    # If there are no more positive cases we do not try learning here
+    if len(xYes) == 0:
+        return [schemas, xYes, []]
     # If all the cases are positive there are no constraints for learning schemas so we do not try
     if len(xNo) == 0:
-        return [[[0 for item in xYes[0]]], xYes, []]
+        return [schemas + [[0 for item in xYes[0]]], xYes, []]
     # Initialise variables
     oneVector = np.ones((1, len(xYes[0])))
     evidence = []
@@ -136,16 +158,28 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
 
     badSchemas = []
 
+    REMxYes = []
+
 
 
     # While there are still schema transitions to explain and the complexity limit L has not been reached
-    while (len(xYes) > 0) and (len(schemas) < L):
+    while (len(xYes) + len(REMxYes) > 0) and (len(schemas) < L):
         # Create LP inputs
+
+
         f = np.sum([oneVector - np.array(x) for x in xYes], axis=0)
+        f = np.divide(f, len(xYes))
+        f = f + (R * oneVector)
 
 
-        # f = np.divide(f, len(xYes))
-        # f = f + (R * oneVector)
+
+        # if len(badSchemas) != 0:
+        #     b = np.sum(badSchemas, axis=0)
+        #     b = np.divide(b, len(badSchemas))
+        #     f = f + (R * b)
+
+
+
         # f = f * len(xYes)
 
 
@@ -156,9 +190,9 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
         # C = np.array(util.flatten([oneVector - np.array(x) for x in xYes]))
         # d = np.zeros((1, len(xYes)))
 
-        print("-----------------")
+        print("---")
 
-        print("Learning schema...")
+        # print("Learning schema...")
 
         # Solve LP
         result = opt.linprog(f, A, b, bounds=(0,1), options={'tol':1e-06,'maxiter':100000})
@@ -166,7 +200,7 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
 
 
 
-        print("Status: " + result.message)
+        # print("Status: " + result.message)
 
 
         # Minimise schema dimensions
@@ -187,9 +221,9 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
 
 
 
-        old_s = util.fromBinarySchema(model, w_binary, "HEAD")
-        print("Learnt new schema:")
-        old_s.display()
+        # old_s = util.fromBinarySchema(model, w_binary, "HEAD")
+        # print("Learnt new schema:")
+        # old_s.display()
 
         # schemas.append(w_binary)
 
@@ -210,15 +244,40 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
 
                 # print("Removed X!")
 
-        print("Schema solves " + str(len(newEvidence)) + " positive cases against " + str(len(xNo)) + " negative cases")
-        print("Still have " + str(len(xYes)) + " positive cases remaining")
+        # print("Schema solves " + str(len(newEvidence)) + " positive cases against " + str(len(xNo)) + " negative cases")
+        # print("Still have " + str(len(xYes) + len(REMxYes)) + " positive cases remaining")
 
         # If we have learned a bad schema we don't add it, and skip learning until we have more data
         if len(newEvidence) == 0:
-            print("Bad schema outputted!")
-            return [schemas, evidence, xYes]
+            print("Schema failed to be learnt on this iteration")
 
-        print("Shrinking schema...")
+
+            # print("w_binary:")
+            # print w_binary
+            # print("positive cases:")
+            # for x in xYes:
+            #     print [int(y) for y in x]
+
+            # if w_binary not in badSchemas:
+            #     badSchemas.append(w_binary)
+            # else:
+            #     print("Same bad schema learnt again!")
+
+            xYes.sort(key= lambda x: np.dot(np.array(x),np.array(w_binary)))
+
+            REMxYes += xYes[:len(xYes) // 2]
+            xYes = xYes[len(xYes) // 2:]
+
+
+            continue
+
+            # return [schemas, evidence, xYes]
+        else:
+            xYes = xYes + REMxYes
+            REMxYes = []
+
+
+        # print("Shrinking schema...")
 
         # Shrink schema
         f = np.ones((1, len(w_binary)))
@@ -238,15 +297,15 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
 
         w = result.x
 
-        print("Status: " + result.message)
+        # print("Status: " + result.message)
 
         old_w_binary = w_binary
 
         w_binary = w > TOL
         w_binary = [int(entry) for entry in w_binary]
 
-        if w_binary == old_w_binary:
-            print("balls")
+        # if w_binary == old_w_binary:
+        #     print("Schema not shrunk")
 
         # final = [w_binary[i] * old_w_binary[i] for i in range(len(w_binary))]
         # w_binary = final
@@ -257,9 +316,9 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
         # print("w_binary:")
         # print w_binary
 
-        old_s = util.fromBinarySchema(model, w_binary, "HEAD")
-        print("Shrunk new schema:")
-        old_s.display()
+        # old_s = util.fromBinarySchema(model, w_binary, "HEAD")
+        # print("Shrunk new schema:")
+        # old_s.display()
 
         schemas.append(w_binary)
 
@@ -277,8 +336,8 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
 
                 # print("Removed X!")
 
-        print("Shrunken schema solves " + str(len(newEvidence)) + " positive cases against " + str(len(xNo)) + " negative cases")
-        print("Still have " + str(len(xYes)) + " positive cases remaining")
+        print("Schema solves " + str(len(newEvidence)) + " positive cases against " + str(len(xNo)) + " negative cases")
+        print("Still have " + str(len(xYes) + len(REMxYes)) + " positive cases remaining")
 
 
 
@@ -291,7 +350,7 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
 
 
 
-# Learns schemas for a particular object attribute given data X and y using linear programming
+# Learns schemas for a particular object attribute given data X and y using SCIP
 def learnSchemas2(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
     length = len(xYes[0])
     evidence = []

@@ -322,30 +322,55 @@ class Model:
         # If there are no changes to any object or the reward or action, then nothing needs updating
         if len(changes) == 0:
             return
-        # If there is a new reward or action then this is relevant to all objects
-        elif "action" in changes or "reward" in changes:
+
+
+        # If there is a new action then this is relevant to all objects
+        elif "action" in changes:
+
+            newReward = 1
+            if "reward" in changes:
+                newReward = 1
+                changes.remove("reward")
+
+
             for objId in self.objects.keys():
                 xRow = util.formXvector(objId, self.prev, self.oldMap) + [self.action]
                 yRow = util.formYvector(objId, self.prev, self.curr) + [self.reward]
                 # Add new data points if they have not already been recorded
-                for i in range(len(yRow)):
+
+
+                for i in range(len(yRow) - 1 + newReward):
+
+
                     if self.checkDatum([xRow, yRow[i]], i):
-                        continue
+                        self.evidence[i][yRow[i]].append(xRow)
                     if xRow not in self.XY[i][yRow[i]]:
                         self.XY[i][yRow[i]].append(xRow)
             return
 
+
+
         # Otherwise we just update the data with those objects that have changed
         else:
+
+            newReward = 1
+            if "reward" in changes:
+                newReward = 1
+                changes.remove("reward")
+
             for objId in changes:
                 xRow = util.formXvector(objId, self.prev, self.oldMap) + [self.action]
                 yRow = util.formYvector(objId, self.prev, self.curr) + [self.reward]
                 # Add new data points if they have not already been recorded
-                for i in range(len(yRow)):
+
+
+                for i in range(len(yRow) - 1 + newReward):
                     if self.checkDatum([xRow, yRow[i]], i):
-                        continue
+                        self.evidence[i][yRow[i]].append(xRow)
                     if xRow not in self.XY[i][yRow[i]]:
                         self.XY[i][yRow[i]].append(xRow)
+
+
             return
 
     # Checks whether existing schemas predict a datapoint correctly or not
@@ -390,12 +415,11 @@ class Model:
 
     # Function for cleaning model of duplicate information
     def clean(self):
-        for r in range(REWARD):
+        for r in range(REWARD+1):
             for key in self.observations[r][0]:
                 # Remove duplicate data and schemas
                 self.XY[r][key] = util.deDupe(self.XY[r][key])
                 self.evidence[r][key] = util.deDupe(self.evidence[r][key])
-                self.schemas[r][key] = util.deDupe(self.schemas[r][key])
                 # Simplify schemas
                 self.schemas[r][key] = util.simplify(self, self.schemas[r][key], key)
         return
@@ -435,10 +459,17 @@ class Model:
                     remaining[key] = self.XY[i][key]
                     continue
                 # Form lists of positive and negative cases
+
+
                 if i < REWARD:
                     xYes = [case for case in self.XY[i][key] if case[0][i] != key]
                 else:
-                    xYes = [case for case in self.XY[i][key]]
+                    xYes = [case for case in self.XY[i][key] if key != -1]
+
+
+
+                # xYes = [case for case in self.XY[i][key] if case[0][i] != key]
+
                 xNo = [self.XY[i][other] for other in self.XY[i].keys() if other != key]
                 xNo = util.flatten(xNo)
                 # If there are no changes in this attribute of the primary object then we skip this round of learning
@@ -452,6 +483,9 @@ class Model:
                 schemas = [util.toBinarySchema(self, schema) for schema in self.schemas[i][key]]
                 oldSchemas = deepcopy(schemas)
 
+                # print("Learning for " + str(key))
+
+
                 # Learn and output schemas, new evidence, and remaining positive cases
                 [binarySchemas, binaryEvidence, binaryRemaining] = lern.learnSchemas(self, xYes, xNo, schemas)
                 # Display new schemas to user
@@ -463,9 +497,11 @@ class Model:
                 # print("333333333333333333")
 
                 toPrint = [util.fromBinarySchema(self, s, key) for s in binarySchemas if s not in oldSchemas]
-                print("New schemas: ")
-                for s in toPrint:
-                    s.display()
+
+                if len(toPrint) != 0:
+                    print("New schemas: ")
+                    for s in toPrint:
+                        s.display()
                 # Convert learnt schemas and evidence from binary output and add to model
                 self.schemas[i][key] = [util.fromBinarySchema(self, schema, key) for schema in binarySchemas]
                 self.evidence[i][key] = self.evidence[i][key] + [util.fromBinary(self, datum) for datum in binaryEvidence]
