@@ -4,6 +4,8 @@ scipoptsuite-6.0.1/
 PySCIPOptmaster/
 scipoptdir/
 .idea
+saved_output/
+dc_problog/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
