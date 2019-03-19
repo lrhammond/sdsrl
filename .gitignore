@@ -3,7 +3,6 @@
 scipoptsuite-6.0.1/
 PySCIPOptmaster/
 scipoptdir/
-dc_problog/
 .idea
 
 # Byte-compiled / optimized / DLL files
