@@ -15,7 +15,7 @@ import inta
 
 
 # Learning procedure
-def hyperMax(mode, numEpisodes, numSteps, numSamples, epsilon):
+def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
 
     # Set up game according to mode and return description of initial state
     environment = inta.setup(mode,test=True)
@@ -23,7 +23,7 @@ def hyperMax(mode, numEpisodes, numSteps, numSamples, epsilon):
     rewards = [0 for ep in range(numEpisodes)]
 
     # Intialise model and Q-function
-    M = blox.Model(mode, initState)
+    M = blox.Model(name, mode, initState)
     M.obsActions = [["UP", "LEFT", "DOWN", "RIGHT", "nothing"],[[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1],[0,0,0,0]]]
     M.updateDicts()
     # Q = QFunction(mode)
@@ -95,7 +95,7 @@ def hyperMax(mode, numEpisodes, numSteps, numSamples, epsilon):
     for i in M.schemas:
         for j in i.keys():
             for k in i[j]:
-                k.display()
+                print k.display()
 
     print("Evidence:")
     for i in M.evidence:
@@ -132,7 +132,9 @@ def rmax(M, Q, epsilon):
 # Updates Q function using abstracted trajectory samples from M
 def hype(M, numEpisodes, i, state, Q):
 
-    # TODO
+    inta.createPrologFile(M)
+    print("Prolog model created!")
+
     return
 
 

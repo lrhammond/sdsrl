@@ -6,14 +6,14 @@ import veri
 import main
 
 # Runs learning and verification procedures
-def run(mode, numEpisodes, numSteps, numSamples, epsilon):
+def run(name, mode, numEpisodes, numSteps, numSamples, epsilon):
 
     # Learn model, Q-function, and policies
-    lern.hyperMax(mode, numEpisodes, numSteps, numSamples, epsilon)
+    lern.hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon)
 
     # Verify properties of model, Q-function, or resulting policies
     # TODO
 
     return
 
-run("vgdl",5, 50, 10, 0)
+run("test","vgdl",5, 50, 10, 0)

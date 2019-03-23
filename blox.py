@@ -23,7 +23,8 @@ from copy import deepcopy
 class Model:
 
     # Initialise model according to mode
-    def __init__(self, mode, initState, xMax=0, yMax=0):
+    def __init__(self, name, mode, initState, xMax=0, yMax=0):
+        self.name = name
         # Intialise dimensions of map and object/map attributes
         self.xMax = xMax
         self.yMax = yMax
@@ -65,7 +66,6 @@ class Model:
         self.updateDicts()
         return
 
-
     # Outputs dictionary representing the state of the model
     def getModelState(self):
         state = {}
@@ -74,7 +74,6 @@ class Model:
         state["action"] = self.action
         state["reward"] = self.reward
         return state
-
 
     # Set up objects and map based on vgdl state
     def setObjects(self, mode, state):
@@ -530,6 +529,18 @@ class Object:
         state = [self.x_pos, self.y_pos, self.x_size, self.y_size, self.colour, self.shape, self.nothing]
         return state
 
+    # Displays object for use in forming Prolog file
+    def display(self):
+        name = "Obj" + str(self.id)
+        output = ""
+        output = output + "x_pos(" + name + "):0 = " + str(self.x_pos) + "\n"
+        output = output + "y_pos(" + name + "):0 = " + str(self.y_pos) + "\n"
+        output = output + "x_size(" + name + "):0 = " + str(self.x_size) + "\n"
+        output = output + "y_size(" + name + "):0 = " + str(self.y_size) + "\n"
+        output = output + "colour(" + name + "):0 = " + self.colour + "\n"
+        output = output + "shape(" + name + "):0 = " + self.shape + "\n"
+        output = output + "nothing(" + name + "):0 = " + self.nothing
+        return output
 
 # Define the schema class
 class Schema:
@@ -563,6 +574,9 @@ class Schema:
     # Prints out schema in human-readble format
     def display(self):
         objects = ["obj"] + ["nb" + str(i+1) for i in range(NEIGHBOURS)]
+        objNames = ["X"] + ["NB" + str(i+1) for i in range(NEIGHBOURS)]
+        added = [False for item in objects]
+        added[0] = True
         attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "nothing"]
         # SCHEMA NAMING REMOVED FOR NOW
         # schemaName = "Schema " + str(self.id) + ": "
@@ -570,16 +584,21 @@ class Schema:
         schemaBody = ""
         for key in self.objectBody.keys():
             i = list(key)
-            precondition = attributes[i[1]] + "(" + objects[i[0]] + ")=" + str(self.objectBody[key])
-            schemaBody = schemaBody + precondition + " AND "
+            # Assert neighbour relation if needed
+            if not added[i[0]]:
+                addNeighbour = objects[i[0]] + "(X," + objNames[i[0]] + "):t"
+                schemaBody = schemaBody + addNeighbour + ", "
+                added[i[0]] = True
+            # Add schema preconditions
+            precondition = attributes[i[1]] + "(" + objNames[i[0]] + "):t = " + str(self.objectBody[key])
+            schemaBody = schemaBody + precondition + ", "
         if self.actionBody == None:
-            schemaBody = schemaBody[:-5]
+            schemaBody = schemaBody[:-3]
         else:
-            schemaBody = schemaBody + "action=" + str(self.actionBody)
+            schemaBody = schemaBody + "action(" + str(self.actionBody) + ")"
         schemaHead = str(self.head)
-        output = schemaName + schemaBody + " ---> " + schemaHead
-        print(output)
-        return
+        output = schemaHead + " <- " + schemaBody
+        return output
 
 
 # Define the Q-function class

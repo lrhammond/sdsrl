@@ -58,11 +58,9 @@ color(5,grey).
 rgbcolor(5,(0.3,0.3,0.3)).
 type(5,cylinder).
 
-
 color(6,white).
 rgbcolor(6,(1.0,1.0,1.0)).
 type(6,cube).
-
 
 color(7,white).
 rgbcolor(7,(1.0,1.0,1.0)).
@@ -143,7 +141,7 @@ m(X,Y):t ~ contUniform(A,B,C,D) <-
 
 
 teest :-
-	fullplan('resultspush.csv',[observation(object(1)) ~= (0.3,0.4,0)],AVG,test1,30,50,' ')
+	fullplan('resultspush.csv',[observation(object(1)) ~= (0.3,0.4,0)],AVG,test1,5,10,' ').
 
 
 
@@ -169,13 +167,13 @@ testp :-
 	writeln((BA,T,BA2,T2)).
 
 plotepisode(E,N) :-!. % if commented print info about the episode in a file for visualization
-%plotV(MinE,E,DD) :-!. % if commented print info about the V function in a file for visualization
+plotV(MinE,E,DD) :-!. % if commented print info about the V function in a file for visualization
 
 % parameters used by fullplan
 % namedomain,number samples, planner horizon, End (leave 1)
 par(test1,N,UsedD,End) :-
 	End=1,
-	N=2000, % max number of samples (for the entire plan)
+	N=500, % max number of samples (for the entire plan)
 	UsedD=12, % planner horizon
 	getparam(test1).
 
@@ -184,7 +182,7 @@ par(test1,N,UsedD,End) :-
 % additional parameters for first step
 getparam(test1) :-
 	bb_put(user:spant,0),
-	setparam(false,10,true,max,best,propfalse,1,0,0.4,100,0,1,1,false,0.015,egreedy,110,-0.1,-0.1),!.
+	setparam(false,10,true,max,best,propfalse,1,0,0.4,50,0,1,1,false,0.015,egreedy,110,-0.1,-0.1),!.
 
 % additional parameters for remaining steps (using the same)
 getparam2(test1,N) :-
@@ -199,7 +197,7 @@ getparam(pick1) :-
       % the first action will get 3 samples more than the remaining actions).
       % the first action should get more samples because it search the entire
       % policy, the remaining steps are just and improving the found policy.
-      50,
+      25,
       % use correct formula for the proposal (leave true)
       true,
       % strategy used to store the V function. Use 'max' that generally works
@@ -217,7 +215,7 @@ getparam(pick1) :-
       0.4,
       % how many previous samples you want to use to estimate the Q, bigger
       % gives better performance but it is slower, around 100 is generally ok
-      100,
+      50,
       % Max horizon span
       0,
       % Lambda Init
