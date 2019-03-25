@@ -113,45 +113,41 @@ def performAction(model, mode, environment, action):
 
 def createPrologFile(model):
     f = open("models/" + model.name + ".pl", "w+")
-
     # f = open(os.path.join("models/", model.name + ".pl"), "w")
-
     # Write title, setup information, and options to file
     f.write("% Prolog model of MDP for " + model.name + "\n\n")
-    f.write(
-    """% Libraries
-    :- use_module(library(planning)).
-    :- use_module(library(lists)).
+    f.write("""% Libraries
+:- use_module(library(planning)).
+:- use_module(library(lists)).
 
-    % Options
-    :- set_options(default).
-    :- set_query_propagation(true).
-    :- set_inference(backward(lazy)).
-    :- set_current2nextcopy(false).
-    
-    % Functions
-    builtin(x_pos(_)).
-    builtin(y_pos(_)).
-    builtin(x_size(_)).
-    builtin(y_size(_)).
-    builtin(colour(_)).
-    builtin(shape(_)).
-    builtin(nothing(_)).\n\n""")
+% Options
+:- set_options(default).
+:- set_query_propagation(true).
+:- set_inference(backward(lazy)).
+:- set_current2nextcopy(false).
+
+% Functions
+builtin(x_pos(_)).
+builtin(y_pos(_)).
+builtin(x_size(_)).
+builtin(y_size(_)).
+builtin(colour(_)).
+builtin(shape(_)).
+builtin(nothing(_)).\n\n""")
     # Write actions to file
     f.write("% Actions\n")
     actions = ",".join(model.obsActions[0])
     f.write("adm(action(A):t <- member(A, ["+actions+"]).\n\n")
     # Write neighbour relations to file
-    f.write(
-    """% Neighbours
-    nb1(X,Y):t <- x_pos(Y):t - x_pos(X):t = -1, y_pos(Y):t - y_pos(X):t = 1.
-    nb2(X,Y):t <- x_pos(Y):t - x_pos(X):t = 0, y_pos(Y):t - y_pos(X):t =s 1.
-    nb3(X,Y):t <- x_pos(Y):t - x_pos(X):t = 1, y_pos(Y):t - y_pos(X):t = 1.
-    nb4(X,Y):t <- x_pos(Y):t - x_pos(X):t = 1, y_pos(Y):t - y_pos(X):t = 0.
-    nb5(X,Y):t <- x_pos(Y):t - x_pos(X):t = 1, y_pos(Y):t - y_pos(X):t = -1.
-    nb6(X,Y):t <- x_pos(Y):t - x_pos(X):t = 0, y_pos(Y):t - y_pos(X):t = -1.
-    nb7(X,Y):t <- x_pos(Y):t - x_pos(X):t = -1, y_pos(Y):t - y_pos(X):t = -1.
-    nb8(X,Y):t <- x_pos(Y):t - x_pos(X):t = -1, y_pos(Y):t - y_pos(X):t = 0.\n\n""")
+    f.write("""% Neighbours
+nb1(X,Y):t <- x_pos(Y):t - x_pos(X):t = -1, y_pos(Y):t - y_pos(X):t = 1.
+nb2(X,Y):t <- x_pos(Y):t - x_pos(X):t = 0, y_pos(Y):t - y_pos(X):t =s 1.
+nb3(X,Y):t <- x_pos(Y):t - x_pos(X):t = 1, y_pos(Y):t - y_pos(X):t = 1.
+nb4(X,Y):t <- x_pos(Y):t - x_pos(X):t = 1, y_pos(Y):t - y_pos(X):t = 0.
+nb5(X,Y):t <- x_pos(Y):t - x_pos(X):t = 1, y_pos(Y):t - y_pos(X):t = -1.
+nb6(X,Y):t <- x_pos(Y):t - x_pos(X):t = 0, y_pos(Y):t - y_pos(X):t = -1.
+nb7(X,Y):t <- x_pos(Y):t - x_pos(X):t = -1, y_pos(Y):t - y_pos(X):t = -1.
+nb8(X,Y):t <- x_pos(Y):t - x_pos(X):t = -1, y_pos(Y):t - y_pos(X):t = 0.\n\n""")
     # Write attribute schemas to file
     attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "nothing"]
     change = {"centre":"", "left":" - 1", "right":" + 1", "below":" - 1", "above":" + 1"}

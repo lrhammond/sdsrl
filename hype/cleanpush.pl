@@ -66,7 +66,6 @@ color(7,white).
 rgbcolor(7,(1.0,1.0,1.0)).
 type(7,table).
 
-+
 reward:t ~ val(100) <-
 	stop:t.
 

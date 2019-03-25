@@ -71,17 +71,20 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
                 M.curr = M.getModelState()
                 M.updateData()
                 M.learn()
-                # Update Q-function using HYPE
-                for k in range(numSamples):
-                    state = M.curr
-                    hype(M, numEpisodes, k, state, Q)
         # Clean up data, evidence, and learnt schemas
+        M.clean()
+        # Update Q-function using HYPE
+        for k in range(numSamples):
+            state = M.curr
+            hype(M, numEpisodes, k, state, Q)
+
+
+
         # print("Pre-clean:")
         # for i in M.schemas:
         #     for j in i.keys():
         #         for k in i[j]:
         #             k.display()
-        M.clean()
         # print("Post-clean:")
         # for i in M.schemas:
         #     for j in i.keys():
@@ -133,7 +136,6 @@ def rmax(M, Q, epsilon):
 def hype(M, numEpisodes, i, state, Q):
 
     inta.createPrologFile(M)
-    print("Prolog model created!")
 
     return
 
