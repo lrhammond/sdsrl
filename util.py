@@ -294,10 +294,10 @@ def simplify(model, old, head):
 
                 print("Removed:")
                 ds2 = fromBinarySchema(model, s2, head)
-                ds2.display()
+                print ds2.display()
                 print("Because of:")
                 ds1 = fromBinarySchema(model, s1, head)
-                ds1.display()
+                print ds1.display()
 
 
         new.append(fromBinarySchema(model, s1, head))

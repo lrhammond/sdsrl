@@ -37,7 +37,7 @@ class Model:
         self.obsShapes = [[],[]]
         self.obsNothing = [["yes", "no"], [[1,0],[0,1]]]
         # Create lists for storing observed actions and rewards
-        self.obsActions = [["nothing"],[[0]]]
+        self.obsActions = [["none"],[[0]]]
         self.obsRewards = [[],[]]
         # Create dictionaries for fast conversion between attribute values and binary versions
         self.observations = [self.obsXpos, self.obsYpos, self.obsXsizes, self.obsYsizes, self.obsColours, self.obsShapes, self.obsNothing, self.obsRewards, None, self.obsActions]
@@ -129,15 +129,15 @@ class Model:
                 self.obsShapes[1] = util.oneHot(self.obsShapes[0])
                 self.updateDataKeys(SHAPE, obj.shape)
         # Check for new actions
-        if action != None and action not in self.obsActions[0] and action != "nothing":
+        if action != None and action not in self.obsActions[0] and action != "NONE":
             # Remove 'nothing' action for one-hot encoding
-            self.obsActions[0].remove("nothing")
+            self.obsActions[0].remove("NONE")
             # Add new action and update one-hot encoded values
             self.obsActions[0].append(action)
             self.obsActions[1] = util.oneHot(self.obsActions[0])
             # Add 'nothing' option back in again
             actionLength = len(self.obsActions[1][0])
-            self.obsActions[0].append("nothing")
+            self.obsActions[0].append("NONE")
             self.obsActions[1].append([0 for i in range(actionLength)])
         # Check for new rewards
         if reward != None and reward not in self.obsRewards[0]:
@@ -397,7 +397,7 @@ class Model:
 
 
                         print("Removed schema:")
-                        schema.display()
+                        print schema.display()
 
 
                         # print schema.objectBody
@@ -500,7 +500,7 @@ class Model:
                 if len(toPrint) != 0:
                     print("New schemas: ")
                     for s in toPrint:
-                        s.display()
+                        print s.display()
                 # Convert learnt schemas and evidence from binary output and add to model
                 self.schemas[i][key] = [util.fromBinarySchema(self, schema, key) for schema in binarySchemas]
                 self.evidence[i][key] = self.evidence[i][key] + [util.fromBinary(self, datum) for datum in binaryEvidence]
@@ -530,16 +530,15 @@ class Object:
         return state
 
     # Displays object for use in forming Prolog file
-    def display(self):
-        name = "Obj" + str(self.id)
-        output = ""
-        output = output + "x_pos(" + name + "):0 = " + str(self.x_pos) + "\n"
-        output = output + "y_pos(" + name + "):0 = " + str(self.y_pos) + "\n"
-        output = output + "x_size(" + name + "):0 = " + str(self.x_size) + "\n"
-        output = output + "y_size(" + name + "):0 = " + str(self.y_size) + "\n"
-        output = output + "colour(" + name + "):0 = " + self.colour + "\n"
-        output = output + "shape(" + name + "):0 = " + self.shape + "\n"
-        output = output + "nothing(" + name + "):0 = " + self.nothing
+    def observe(self):
+        name = "obj" + str(self.id)
+        output = "x_pos(" + name + "):0 ~= val(" + str(self.x_pos) + ","
+        output = output + "observation(y_pos(" + name + ")) ~= " + str(self.y_pos) + ","
+        output = output + "observation(x_size(" + name + ")) ~= " + str(self.x_size) + ","
+        output = output + "observation(y_size(" + name + ")) ~= " + str(self.y_size) + ","
+        output = output + "observation(colour(" + name + ")) ~= " + self.colour + ","
+        output = output + "observation(shape(" + name + ")) ~= " + self.shape + ","
+        output = output + "observation(nothing(" + name + ")) ~= " + self.nothing + ","
         return output
 
 # Define the schema class
@@ -571,7 +570,7 @@ class Schema:
             return False
         return True
 
-    # Prints out schema in human-readble format
+    # Prints out schema in human-readable format
     def display(self):
         objects = ["obj"] + ["nb" + str(i+1) for i in range(NEIGHBOURS)]
         objNames = ["X"] + ["NB" + str(i+1) for i in range(NEIGHBOURS)]
@@ -590,14 +589,14 @@ class Schema:
                 schemaBody = schemaBody + addNeighbour + ", "
                 added[i[0]] = True
             # Add schema preconditions
-            precondition = attributes[i[1]] + "(" + objNames[i[0]] + "):t = " + str(self.objectBody[key])
+            precondition = attributes[i[1]] + "(" + objNames[i[0]] + "):t ~= " + str(self.objectBody[key])
             schemaBody = schemaBody + precondition + ", "
         if self.actionBody == None:
-            schemaBody = schemaBody[:-3]
+            schemaBody = schemaBody[:-2]
         else:
             schemaBody = schemaBody + "action(" + str(self.actionBody) + ")"
         schemaHead = str(self.head)
-        output = schemaHead + " <- " + schemaBody
+        output = schemaBody + " -> " + schemaHead
         return output
 
 

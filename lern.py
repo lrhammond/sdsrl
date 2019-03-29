@@ -11,6 +11,7 @@ import blox
 from copy import deepcopy
 from random import choice
 import inta
+from pydc import HYPE
 # import pyscipopt
 
 
@@ -24,7 +25,7 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
 
     # Intialise model and Q-function
     M = blox.Model(name, mode, initState)
-    M.obsActions = [["UP", "LEFT", "DOWN", "RIGHT", "nothing"],[[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1],[0,0,0,0]]]
+    M.obsActions = [["u", "l", "d", "r", "none"],[[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1],[0,0,0,0]]]
     M.updateDicts()
     # Q = QFunction(mode)
     Q = 0
@@ -74,9 +75,8 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
         # Clean up data, evidence, and learnt schemas
         M.clean()
         # Update Q-function using HYPE
-        for k in range(numSamples):
-            state = M.curr
-            hype(M, numEpisodes, k, state, Q)
+        state = M.curr
+        hype(M, numSamples, state, Q)
 
 
 
@@ -107,19 +107,19 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
             for k in i[j]:
                 print k
 
-    print("Remaining:")
-    for i in range(len(M.XY)):
-        for j in M.XY[i].keys():
-            if j == -1:
-                continue
-            print("Attribute: " + str(j))
-            for k in M.XY[i][j]:
-                predicted = False
-                for schema in M.schemas[i][j]:
-                    if schema.isActive(k):
-                        predicted = True
-                if not predicted:
-                    print k
+    # print("Remaining:")
+    # for i in range(len(M.XY)):
+    #     for j in M.XY[i].keys():
+    #         if j == -1:
+    #             continue
+    #         print("Attribute: " + str(j))
+    #         for k in M.XY[i][j]:
+    #             predicted = False
+    #             for schema in M.schemas[i][j]:
+    #                 if schema.isActive(k):
+    #                     predicted = True
+    #             if not predicted:
+    #                 print k
 
     return
 
@@ -133,10 +133,20 @@ def rmax(M, Q, epsilon):
 
 
 # Updates Q function using abstracted trajectory samples from M
-def hype(M, numEpisodes, i, state, Q):
-
-    inta.createPrologFile(M)
-
+def hype(model, num_samples, state, Q):
+    # Create Prolog file and initialise model
+    inta.createPrologFile(model)
+    hype = HYPE("models/" + model.name + ".pl", num_samples)
+    # Form list of observations describing the current/initial state
+    observations = ""
+    for key in model.objects.keys():
+        object = model.objects[key]
+        observations += object.observe()
+    observations = "[" + observations[:-2] + "]"
+    # Run HYPE and print the best action
+    result = hype.plan_step(observations, num_samples, max_horizon=10, used_horizon=5, use_abstraction=False)
+    best_action = result["best_action"]
+    print(best_action)
     return
 
 
