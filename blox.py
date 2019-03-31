@@ -596,7 +596,7 @@ class Schema:
         else:
             schemaBody = schemaBody + "action(" + str(self.actionBody) + ")"
         schemaHead = str(self.head)
-        output = schemaBody + " -> " + schemaHead
+        output = schemaBody + " , " + schemaHead
         return output
 
 

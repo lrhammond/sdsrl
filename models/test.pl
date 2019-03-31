@@ -11,13 +11,11 @@
 :- set_current2nextcopy(false).
 
 % Parameters
-Y:t+1 ~ val(X) <- observation(Y) ~= X.
-observation(Y):t+1 ~ val(X) <- Y:t+1 ~= X.
 getparam(params) :-
 	bb_put(user:spant,0),
 	setparam(
         % Enable abstraction
-        false,
+        true,
         % Ratio of the samples reserved for the first action
         1.0,
         % Use correct formula (leave true)
@@ -67,6 +65,8 @@ builtin(y_size(_)).
 builtin(colour(_)).
 builtin(shape(_)).
 builtin(nothing(_)).
+Y:t+1 ~ val(X) <- observation(Y) ~= X.
+observation(Y):t+1 ~ val(X) <- Y:t+1 ~= X.
 
 % Actions
 adm(action(A)):t <- member(A, [up,left,down,right,none]).
