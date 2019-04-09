@@ -43,11 +43,17 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
         for j in range(numSteps):
             # Check if the game has ended
             if ended:
+                # Display endgame information
                 rewards[i] = current_reward
                 print("*********")
                 print("Game Over")
                 print("Score: " + str(current_reward))
                 print("*********")
+                # Clean up data, evidence, and learnt schemas
+                M.clean()
+                # Update Q-function using HYPE
+                state = M.curr
+                hype(M, numSamples, state, Q)
                 break
             else:
                 print("-------")
@@ -72,11 +78,7 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
                 M.curr = M.getModelState()
                 M.updateData()
                 M.learn()
-        # Clean up data, evidence, and learnt schemas
-        M.clean()
-        # Update Q-function using HYPE
-        state = M.curr
-        hype(M, numSamples, state, Q)
+
 
 
 
@@ -143,10 +145,15 @@ def hype(model, num_samples, state, Q):
         object = model.objects[key]
         observations += object.observe()
     observations = "[" + observations[:-2] + "]"
+
+
+    print observations
+
+
     # Run HYPE and print the best action
-    result = hype.plan_step(observations, num_samples, max_horizon=10, used_horizon=5, use_abstraction=False)
+    result = hype.plan_step(observations, num_samples, max_horizon=10, used_horizon=5, use_abstraction=True)
     best_action = result["best_action"]
-    print(best_action)
+    print best_action
     return
 
 
@@ -351,7 +358,10 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
                 # print("Removed X!")
 
         print("Schema solves " + str(len(newEvidence)) + " positive cases against " + str(len(xNo)) + " negative cases")
-        print("Still have " + str(len(xYes) + len(REMxYes)) + " positive cases remaining")
+        if (len(xYes) + len(REMxYes)) == 0:
+            print("0 positive cases remaining")
+        else:
+            print("Still have " + str(len(xYes) + len(REMxYes)) + " positive cases remaining")
 
 
 

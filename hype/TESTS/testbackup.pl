@@ -9,9 +9,13 @@
 :- use_module(library(sst)).
 
 % Options
-:- set_options(default).
-:- set_query_propagation(true).
-:- set_inference(backward(lazy)).
+% :- set_options(default).
+% :- set_query_propagation(true).
+% :- set_inference(backward(lazy)).
+% :- set_current2nextcopy(false).
+:- set_options(default),
+   set_query_propagation(true),
+   set_inference(backward(lazy)).
 :- set_current2nextcopy(false).
 
 % Parameters
@@ -62,19 +66,19 @@ getparam(params) :- bb_put(user:spant,0),
                     !.
 
 % Functions
-builtin(x_pos(_)).
-builtin(y_pos(_)).
-builtin(x_size(_)).
-builtin(y_size(_)).
-builtin(colour(_)).
-builtin(shape(_)).
-builtin(nothing(_)).
+% builtin(x_pos(_)).
+% builtin(y_pos(_)).
+% builtin(x_size(_)).
+% builtin(y_size(_)).
+% builtin(colour(_)).
+% builtin(shape(_)).
+% builtin(nothing(_)).
 Var:t+1 ~ val(Val) <- observation(Var) ~= Val.
 observation(Var):t+1 ~ val(Val) <- Var:t+1 ~= Val.
-attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos(Obj):t ~= X_pos, 
-                                                                           y_pos(Obj):t ~= Y_pos, 
-                                                                           x_size(Obj):t ~= X_size, 
-                                                                           y_size(Obj):t ~= Y_size, 
+attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos(Obj):t ~= X_pos,
+                                                                           y_pos(Obj):t ~= Y_pos,
+                                                                           x_size(Obj):t ~= X_size,
+                                                                           y_size(Obj):t ~= Y_size,
                                                                            colour(Obj):t ~= Colour,
                                                                            shape(Obj):t ~= Shape,
                                                                            nothing(Obj):t ~= Nothing.
@@ -127,4 +131,3 @@ reward:t+1 ~ val(Reward) <- (nb7(X,NB7):t, nothing(NB7):t ~= Yes, nb2(X,NB2):t, 
 reward(Obj):t ~ val(R) <- attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t, schema_reward(R, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t.
 reward(Obj):t ~ val(-1) <- attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t, \+schema_reward(R, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t.
 reward:t ~ val(R) <- reward(Obj):t ~= R.
-

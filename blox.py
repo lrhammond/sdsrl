@@ -35,7 +35,7 @@ class Model:
         self.obsYsizes = [[],[]]
         self.obsColours = [[],[]]
         self.obsShapes = [[],[]]
-        self.obsNothing = [["yes", "no"], [[1,0],[0,1]]]
+        self.obsNothing = [["Yes", "No"], [[1,0],[0,1]]]
         # Create lists for storing observed actions and rewards
         self.obsActions = [["none"],[[0]]]
         self.obsRewards = [[],[]]
@@ -43,9 +43,9 @@ class Model:
         self.observations = [self.obsXpos, self.obsYpos, self.obsXsizes, self.obsYsizes, self.obsColours, self.obsShapes, self.obsNothing, self.obsRewards, None, self.obsActions]
         self.dictionaries = {}
         # Create lists for storing schemas and learning data
-        self.schemas = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
-        self.evidence = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
-        self.XY = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
+        self.schemas = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"Yes":[],"No":[]},{}]
+        self.evidence = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"Yes":[],"No":[]},{}]
+        self.XY = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"Yes":[],"No":[]},{}]
         # Initialise state descriptions of model and update dictionaries
         self.initialise(mode, initState)
         return
@@ -77,6 +77,8 @@ class Model:
 
     # Set up objects and map based on vgdl state
     def setObjects(self, mode, state):
+        for key in state.keys():
+            state[key.capitalize()] = state.pop(key)
         if mode == "vgdl":
             i = max(list(self.objects.keys()) + [0])
             for objType in state.keys():
@@ -85,9 +87,9 @@ class Model:
                     # Create new object and add to the set of objects and the map
                     newObj = Object(i, position[0], position[1])
                     newObj.colour = objType
-                    newObj.x_size = 1
-                    newObj.y_size = 1
-                    newObj.shape = "square"
+                    newObj.x_size = "Small"
+                    newObj.y_size = "Small"
+                    newObj.shape = "Square"
                     self.objects[i] = newObj
                     if objPos in self.objMap.keys():
                         self.objMap[objPos].append(i)
@@ -129,15 +131,15 @@ class Model:
                 self.obsShapes[1] = util.oneHot(self.obsShapes[0])
                 self.updateDataKeys(SHAPE, obj.shape)
         # Check for new actions
-        if action != None and action not in self.obsActions[0] and action != "NONE":
+        if action != None and action not in self.obsActions[0] and action != "none":
             # Remove 'nothing' action for one-hot encoding
-            self.obsActions[0].remove("NONE")
+            self.obsActions[0].remove("none")
             # Add new action and update one-hot encoded values
             self.obsActions[0].append(action)
             self.obsActions[1] = util.oneHot(self.obsActions[0])
             # Add 'nothing' option back in again
             actionLength = len(self.obsActions[1][0])
-            self.obsActions[0].append("NONE")
+            self.obsActions[0].append("none")
             self.obsActions[1].append([0 for i in range(actionLength)])
         # Check for new rewards
         if reward != None and reward not in self.obsRewards[0]:
@@ -170,9 +172,11 @@ class Model:
         self.action = full_state[1]
         self.reward = full_state[2]
         self.updateObsLists(None, self.action, self.reward)
+        # Update objects forming state description
+        state = deepcopy(full_state[0])
+        for key in state.keys():
+            state[key.capitalize()] = state.pop(key)
         if mode == "vgdl":
-            # Update objects forming state description
-            state = deepcopy(full_state[0])
             # Intialise arrays for storing IDs of objects that have changed or moved or both
             moved = []
             changed = []
@@ -242,7 +246,7 @@ class Model:
                         changed.remove(objId)
                     # If an object of a single type is found to exist in this location then we assume it is the same object
                     elif len(possibleNewType) == 1:
-                        newType = possibleNewType[O]
+                        newType = possibleNewType[0]
                         self.objects[objId].colour = newType
                         state[oldType].remove(objPos)
                         changed.remove(objId)
@@ -265,7 +269,7 @@ class Model:
                     intersection = [item for item in possibleNewPos if item in neighbours]
                     # If there are no neighbours at all we assume the object has disappeared
                     if len(intersection) == 0:
-                        self.objects[objId].nothing = "yes"
+                        self.objects[objId].nothing = "Yes"
 
 
                         print("oops, object " + str(objId) + " disappeared")
@@ -423,26 +427,6 @@ class Model:
                 self.schemas[r][key] = util.simplify(self, self.schemas[r][key], key)
         return
 
-    # TEMPORARILY REMOVED, MAY NOT BE EFFICIENT
-    # Updates one-hot encoding of matrices used to store data for schema learning
-    def updateMatrices(self, changes):
-        possibleChanges = [self.obsColours, self.obsShapes, self.obsXsizes, self.obsYsizes, self.obsActions, self.obsRewards]
-        # For each data point in X
-        for i in range(len(self.X)):
-            # Change the binary encoding of each object and its neighbours
-            for j in range(9):
-                for k in range(4):
-                    # If there is new attribute value of this type
-                    if changes[k]:
-                        oldBinaryAttribute = self.X[i][j][k+2]
-            # Change the binary encoding of each action
-            if changes[4]:
-                oldBinaryAction = self.X[i][9]
-            # Change the binary encoding of each reward
-            if changes[5]:
-                oldBinaryReward = self.X[i][10]
-        return
-
     # Updates and learns new schemas
     def learn(self):
         # Prepare for learning
@@ -521,7 +505,7 @@ class Object:
         self.y_size = None
         self.colour = None
         self.shape = None
-        self.nothing = "no"
+        self.nothing = "No"
         return
 
     # Outputs list representing the state of the object
@@ -532,13 +516,13 @@ class Object:
     # Displays object for use in forming Prolog file
     def observe(self):
         name = "obj" + str(self.id)
-        output = "x_pos(" + name + "):0 ~= val(" + str(self.x_pos) + ","
-        output = output + "observation(y_pos(" + name + ")) ~= " + str(self.y_pos) + ","
-        output = output + "observation(x_size(" + name + ")) ~= " + str(self.x_size) + ","
-        output = output + "observation(y_size(" + name + ")) ~= " + str(self.y_size) + ","
-        output = output + "observation(colour(" + name + ")) ~= " + self.colour + ","
-        output = output + "observation(shape(" + name + ")) ~= " + self.shape + ","
-        output = output + "observation(nothing(" + name + ")) ~= " + self.nothing + ","
+        output = "observation(x_pos(" + name + ")) ~= " + str(self.x_pos) + ", "
+        output = output + "observation(y_pos(" + name + ")) ~= " + str(self.y_pos) + ", "
+        output = output + "observation(x_size(" + name + ")) ~= " + str(self.x_size) + ", "
+        output = output + "observation(y_size(" + name + ")) ~= " + str(self.y_size) + ", "
+        output = output + "observation(colour(" + name + ")) ~= " + self.colour + ", "
+        output = output + "observation(shape(" + name + ")) ~= " + self.shape + ", "
+        output = output + "observation(nothing(" + name + ")) ~= " + self.nothing + ", "
         return output
 
 # Define the schema class
@@ -571,7 +555,7 @@ class Schema:
         return True
 
     # Prints out schema in human-readable format
-    def display(self):
+    def display(self, no_head=False):
         objects = ["obj"] + ["nb" + str(i+1) for i in range(NEIGHBOURS)]
         objNames = ["X"] + ["NB" + str(i+1) for i in range(NEIGHBOURS)]
         added = [False for item in objects]
@@ -585,7 +569,7 @@ class Schema:
             i = list(key)
             # Assert neighbour relation if needed
             if not added[i[0]]:
-                addNeighbour = objects[i[0]] + "(X," + objNames[i[0]] + "):t"
+                addNeighbour = objects[i[0]] + "(Obj," + objNames[i[0]] + "):t"
                 schemaBody = schemaBody + addNeighbour + ", "
                 added[i[0]] = True
             # Add schema preconditions
@@ -596,7 +580,10 @@ class Schema:
         else:
             schemaBody = schemaBody + "action(" + str(self.actionBody) + ")"
         schemaHead = str(self.head)
-        output = schemaBody + " , " + schemaHead
+        if no_head:
+            output = schemaBody
+        else:
+            output = schemaBody + ", " + schemaHead
         return output
 
 

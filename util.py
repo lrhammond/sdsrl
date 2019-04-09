@@ -76,7 +76,7 @@ def formXvector(objId, state, oldMap):
         # If there is no neighbour, add a vector with all None entries apart from the 'nothing' attribute
         else:
             new = [None for attribute in range(NOTHING+1)]
-            new[NOTHING] = "yes"
+            new[NOTHING] = "Yes"
             vector.append(new)
     return vector
 

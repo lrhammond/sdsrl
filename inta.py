@@ -118,6 +118,10 @@ def createPrologFile(model):
     f.write("""% Libraries
 :- use_module(library(planning)).
 :- use_module(library(lists)).
+:- use_module(library(system)).
+:- use_module(library(dcpf)).
+:- use_module(library(distributionalclause)).
+:- use_module(library(sst)).
 
 % Options
 :- set_options(default).
@@ -189,20 +193,28 @@ attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos
                                                                            colour(Obj):t ~= Colour,
                                                                            shape(Obj):t ~= Shape,
                                                                            nothing(Obj):t ~= Nothing.\n\n""")
+    # Write constants to file
+    f.write("% Constants\n")
+    observations = util.flatten([model.obsXsizes[0], model.obsYsizes[0], model.obsColours[0], model.obsShapes[0], model.obsNothing[0]])
+    observations = list(set(observations))
+    constants = [c + " = " + c.lower() for c in observations]
+    constant_list = ", ".join(constants)
+    f.write("constants <- " + constant_list + ".\n")
+    f.write("constants.\n\n")
     # Write actions to file
     f.write("% Actions\n")
     actions = ",".join(model.obsActions[0])
-    f.write("adm(action(A)):t <- member(A, ["+actions+"]).\n\n")
+    f.write("adm(action(A)):t <- member(A, [" + actions + "]).\n\n")
     # Write neighbour relations to file
     f.write("""% Neighbours
-nb1(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj - 1, Ynb is Yobj + 1,
-nb2(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj    , Ynb is Yobj + 1,
-nb3(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj + 1, Ynb is Yobj + 1,
-nb4(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj + 1, Ynb is Yobj    ,
-nb5(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj + 1, Ynb is Yobj - 1,
-nb6(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj    , Ynb is Yobj - 1,
-nb7(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj - 1, Ynb is Yobj - 1,
-nb8(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj - 1, Ynb is Yobj.\n\n""")
+nb1(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj - 1, Ynb is Yobj + 1.
+nb2(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj    , Ynb is Yobj + 1.
+nb3(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj + 1, Ynb is Yobj + 1.
+nb4(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj + 1, Ynb is Yobj    .
+nb5(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj + 1, Ynb is Yobj - 1.
+nb6(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj    , Ynb is Yobj - 1.
+nb7(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj - 1, Ynb is Yobj - 1.
+nb8(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj - 1, Ynb is Yobj    .\n\n""")
 # NEW FORMATTING USED HERE
 # nb1(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x - 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x + 1.
 # nb2(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y = X_pos_x,      y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x + 1.
@@ -216,7 +228,7 @@ nb8(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xn
     f.write("% Nothing\n")
     objects = ",".join(["obj" + str(i) for i in model.objects.keys()])
     f.write("nothing(Obj):t ~ val(Nothing) <- member(Obj, [" + objects + "]), Nothing = no.\n")
-    f.write("nothing(Obj):t ~ val(Nothing) <- member(Obj, [" + objects + "]), Nothing = yes.\n\n")
+    f.write("nothing(Obj):t ~ val(Nothing) <- \+member(Obj, [" + objects + "]), Nothing = yes.\n\n")
     # Write attribute schemas to file
     attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "nothing"]
     change = {"centre":"", "left":" - 1", "right":" + 1", "below":" - 1", "above":" + 1"}
@@ -230,17 +242,22 @@ nb8(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xn
     #             else:
     #                 f.write(attributes[i] + "(X):t+1 ~ val(New) <- (" + k.display() + " = New ; " + attributes[i] + "(X):t) ~= New).\n")
     for i in range(len(model.schemas) - 1):
+        numSchemas = 0
         att = attributes[i]
         for j in model.schemas[i].keys():
             for k in range(len(model.schemas[i][j])):
                 s = model.schemas[i][j][k]
+                numSchemas += 1
                 if i == X_POS or i == Y_POS:
-                    f.write("schema_" + att + "(Obj, New):t <- " + s.display() + " = New, " + att + "(Obj):t ~= Curr, " + s.head + " is Curr" + change[s.head] + ".\n")
+                    f.write("schema_" + att + "(Obj, New):t <- " + s.display(no_head=True) + ", " + att + "(Obj):t ~= Curr, New is Curr" + change[s.head] + ".\n")
                 else:
                     f.write("schema_" + att + "(Obj, New):t <- " + s.display() + " = New.\n")
-            f.write("no_schema_" + att + "(Obj, New):t <- \+schema_" + att + "(Obj, New):t, " + att + "(Obj):t ~= New.\n")
+        if numSchemas != 0:
+            f.write("no_schema_" + att + "(Obj, New):t <- \+schema_" + att + "(Obj, _):t, " + att + "(Obj):t ~= New.\n")
             f.write(att + "(Obj):t+1 ~ val(New) <- schema_" + att + "(Obj, New):t.\n")
             f.write(att + "(Obj):t+1 ~ val(New) <- no_schema_" + att + "(Obj, New):t.\n")
+        else:
+            f.write(att + "(Obj):t+1 ~ val(New) <- " + att + "(Obj):t ~= New.\n")
     f.write("\n")
     # Write reward schemas to file
     f.write("% Reward Schemas\n")
