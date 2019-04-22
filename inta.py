@@ -177,13 +177,13 @@ getparam(params) :- bb_put(user:spant,0),
                     !.
 
 % Functions
-builtin(x_pos(_)).
-builtin(y_pos(_)).
-builtin(x_size(_)).
-builtin(y_size(_)).
-builtin(colour(_)).
-builtin(shape(_)).
-builtin(nothing(_)).
+% builtin(x_pos(_)).
+% builtin(y_pos(_)).
+% builtin(x_size(_)).
+% builtin(y_size(_)).
+% builtin(colour(_)).
+% builtin(shape(_)).
+% builtin(nothing(_)).
 Var:t+1 ~ val(Val) <- observation(Var) ~= Val.
 observation(Var):t+1 ~ val(Val) <- Var:t+1 ~= Val.
 attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos(Obj):t ~= X_pos, 
@@ -207,14 +207,14 @@ attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos
     f.write("adm(action(A)):t <- member(A, [" + actions + "]).\n\n")
     # Write neighbour relations to file
     f.write("""% Neighbours
-nb1(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj - 1, Ynb is Yobj + 1.
-nb2(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj    , Ynb is Yobj + 1.
-nb3(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj + 1, Ynb is Yobj + 1.
-nb4(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj + 1, Ynb is Yobj    .
-nb5(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj + 1, Ynb is Yobj - 1.
-nb6(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj    , Ynb is Yobj - 1.
-nb7(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj - 1, Ynb is Yobj - 1.
-nb8(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj - 1, Ynb is Yobj    .\n\n""")
+nb1(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj - 1, Tmp2 is Yobj + 1, Xnb = Tmp1, Ynb = Tmp2.
+nb2(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t,                   Tmp2 is Yobj + 1, Xnb = Xobj, Ynb = Tmp2.
+nb3(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj + 1, Tmp2 is Yobj + 1, Xnb = Tmp1, Ynb = Tmp2.
+nb4(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj + 1,                   Xnb = Tmp1, Ynb = Yobj.
+nb5(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj + 1, Tmp2 is Yobj - 1, Xnb = Tmp1, Ynb = Tmp2.
+nb6(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t,                   Tmp2 is Yobj - 1, Xnb = Xobj, Ynb = Tmp2.
+nb7(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj - 1, Tmp2 is Yobj - 1, Xnb = Tmp1, Ynb = Tmp2.
+nb8(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj - 1,                   Xnb = Tmp1, Ynb = Yobj.\n\n""")
 # NEW FORMATTING USED HERE
 # nb1(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x - 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x + 1.
 # nb2(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y = X_pos_x,      y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x + 1.
@@ -231,7 +231,7 @@ nb8(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xn
     f.write("nothing(Obj):t ~ val(Nothing) <- \+member(Obj, [" + objects + "]), Nothing = yes.\n\n")
     # Write attribute schemas to file
     attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "nothing"]
-    change = {"centre":"", "left":" - 1", "right":" + 1", "below":" - 1", "above":" + 1"}
+    change = {"centre":"", "left":" - 1", "right":" + 1", "below":" + 1", "above":" - 1"}
     f.write("% Attribute Schemas\n")
     # for i in range(len(model.schemas) - 1):
     #     for j in model.schemas[i].keys():
@@ -261,14 +261,20 @@ nb8(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xn
     f.write("\n")
     # Write reward schemas to file
     f.write("% Reward Schemas\n")
-    for r in model.schemas[-1].keys():
-        for s in model.schemas[-1][r]:
-            f.write("reward:t+1 ~ val(Reward) <- (" + s.display() + " = Reward ; Reward = -1).\n")
-
-
-    f.write("reward(Obj):t ~ val(R) <- attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t, schema_reward(R, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t.\n")
-    f.write("reward(Obj):t ~ val(-1) <- attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t, \+schema_reward(R, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t.\n")
-    f.write("reward:t ~ val(R) <- reward(Obj):t ~= R.\n\n")
+    f.write("""r(Xobj, Yobj, Type, R):t <- R = -10, action(d), Xobj=1, Yobj=2, Type=agent.
+r(Xobj, Yobj, Type, R):t <- R = -10, action(l), Xobj=2, Yobj=3, Type=agent.
+r(Xobj, Yobj, Type, R):t <- R = 10, action(r), Xobj=2, Yobj=3, Type=agent.
+schema_reward(Obj):t ~ val(R) <- attributes(Obj, Xobj, Yobj, _, _, Type, _, _):t, r(Xobj, Yobj, Type, R):t.
+schema_reward(Obj):t ~ val(-1) <- attributes(Obj, Xobj, Yobj, _, _, Type, _, _):t, \+r(Xobj, Yobj, Type, _):t.
+reward:t ~ val(R) <- schema_reward(Obj):t ~= R.""")
+    # for r in model.schemas[-1].keys():
+    #     for s in model.schemas[-1][r]:
+    #         f.write("reward:t+1 ~ val(Reward) <- (" + s.display() + " = Reward ; Reward = -1).\n")
+    #
+    #
+    # f.write("reward(Obj):t ~ val(R) <- attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t, schema_reward(R, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t.\n")
+    # f.write("reward(Obj):t ~ val(-1) <- attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t, \+schema_reward(R, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t.\n")
+    # f.write("reward:t ~ val(R) <- reward(Obj):t ~= R.\n\n")
     # Write initialisation details to file (DOESN'T SEEM TO WORK PROPERLY)
     # f.write("% Initialisation\n")
     # for key in model.objects.keys():

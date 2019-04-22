@@ -9,13 +9,9 @@
 :- use_module(library(sst)).
 
 % Options
-% :- set_options(default).
-% :- set_query_propagation(true).
-% :- set_inference(backward(lazy)).
-% :- set_current2nextcopy(false).
-:- set_options(default),
-   set_query_propagation(true),
-   set_inference(backward(lazy)).
+:- set_options(default).
+:- set_query_propagation(true).
+:- set_inference(backward(lazy)).
 :- set_current2nextcopy(false).
 
 % Parameters
@@ -91,15 +87,6 @@ constants.
 adm(action(A)):t <- member(A, [u,l,d,r,none]).
 
 % Neighbours
-% nb1(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj - 1, Ynb is Yobj + 1.
-% nb2(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj    , Ynb is Yobj + 1.
-% nb3(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj + 1, Ynb is Yobj + 1.
-% nb4(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj + 1, Ynb is Yobj    .
-% nb5(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj + 1, Ynb is Yobj - 1.
-% nb6(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj    , Ynb is Yobj - 1.
-% nb7(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj - 1, Ynb is Yobj - 1.
-% nb8(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Xnb is Xobj - 1, Ynb is Yobj    .
-
 nb1(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj - 1, Tmp2 is Yobj + 1, Xnb = Tmp1, Ynb = Tmp2.
 nb2(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t,                   Tmp2 is Yobj + 1, Xnb = Xobj, Ynb = Tmp2.
 nb3(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj + 1, Tmp2 is Yobj + 1, Xnb = Tmp1, Ynb = Tmp2.
@@ -114,18 +101,16 @@ nothing(Obj):t ~ val(Nothing) <- member(Obj, [obj0,obj1,obj2,obj3,obj4,obj5,obj6
 nothing(Obj):t ~ val(Nothing) <- \+member(Obj, [obj0,obj1,obj2,obj3,obj4,obj5,obj6,obj7,obj8,obj9,obj10,obj11,obj12,obj13,obj14,obj15,obj16,obj17,obj18,obj19]), Nothing = yes.
 
 % Attribute Schemas
-schema_x_pos(Obj, New):t <- nb8(X,NB8):t, colour(NB8):t ~= Wall, nb2(X,NB2):t, colour(NB2):t ~= Wall, nb1(X,NB1):t, colour(NB1):t ~= Wall, colour(X):t ~= Agent, action(r), right = New, x_pos(Obj):t ~= Curr, right is Curr + 1.
-schema_x_pos(Obj, New):t <- colour(X):t ~= Agent, action(l), left = New, x_pos(Obj):t ~= Curr, left is Curr - 1.
+schema_x_pos(Obj, New):t <- nb4(Obj,Nb4):t, nothing(Nb4):t ~= Yes, colour(Obj):t ~= Agent, action(r), x_pos(Obj):t ~= Curr, New is Curr + 1.
+schema_x_pos(Obj, New):t <- nb8(Obj,Nb8):t, nothing(Nb8):t ~= Yes, colour(Obj):t ~= Agent, action(l), x_pos(Obj):t ~= Curr, New is Curr - 1.
 no_schema_x_pos(Obj, New):t <- \+schema_x_pos(Obj, _):t, x_pos(Obj):t ~= New.
 x_pos(Obj):t+1 ~ val(New) <- schema_x_pos(Obj, New):t.
 x_pos(Obj):t+1 ~ val(New) <- no_schema_x_pos(Obj, New):t.
-
-schema_y_pos(Obj, New):t <- colour(X):t ~= Agent, action(d), below = New, y_pos(Obj):t ~= Curr, below is Curr - 1.
-schema_y_pos(Obj, New):t <- nb4(X,NB4):t, colour(NB4):t ~= Goal, action(u), above = New, y_pos(Obj):t ~= Curr, above is Curr + 1.
+schema_y_pos(Obj, New):t <- nb6(Obj,Nb6):t, nothing(Nb6):t ~= Yes, colour(Obj):t ~= Agent, action(d), y_pos(Obj):t ~= Curr, New is Curr + 1.
+schema_y_pos(Obj, New):t <- nb2(Obj,Nb2):t, nothing(Nb2):t ~= Yes, colour(Obj):t ~= Agent, action(u), y_pos(Obj):t ~= Curr, New is Curr - 1.
 no_schema_y_pos(Obj, New):t <- \+schema_y_pos(Obj, _):t, y_pos(Obj):t ~= New.
 y_pos(Obj):t+1 ~ val(New) <- schema_y_pos(Obj, New):t.
 y_pos(Obj):t+1 ~ val(New) <- no_schema_y_pos(Obj, New):t.
-
 x_size(Obj):t+1 ~ val(New) <- x_size(Obj):t ~= New.
 y_size(Obj):t+1 ~ val(New) <- y_size(Obj):t ~= New.
 colour(Obj):t+1 ~ val(New) <- colour(Obj):t ~= New.
@@ -133,24 +118,9 @@ shape(Obj):t+1 ~ val(New) <- shape(Obj):t ~= New.
 nothing(Obj):t+1 ~ val(New) <- nothing(Obj):t ~= New.
 
 % Reward Schemas
-% reward:t+1 ~ val(Reward) <- (colour(X):t ~= Wall, action(r), 10 = Reward ; Reward = -1).
-% reward:t+1 ~ val(Reward) <- (nb6(X,NB6):t, colour(NB6):t ~= Wall, nb4(X,NB4):t, nothing(NB4):t ~= No, nb8(X,NB8):t, nothing(NB8):t ~= No, action(r), 10 = Reward ; Reward = -1).
-% reward:t+1 ~ val(Reward) <- (nb6(X,NB6):t, colour(NB6):t ~= Hole, -10 = Reward ; Reward = -1).
-% reward:t+1 ~ val(Reward) <- (nb5(X,NB5):t, colour(NB5):t ~= Agent, nb3(X,NB3):t, nothing(NB3):t ~= No, -10 = Reward ; Reward = -1).
-% reward:t+1 ~ val(Reward) <- (nb4(X,NB4):t, colour(NB4):t ~= Agent, action(d), -10 = Reward ; Reward = -1).
-% reward:t+1 ~ val(Reward) <- (nb7(X,NB7):t, nothing(NB7):t ~= Yes, nb2(X,NB2):t, nothing(NB2):t ~= Yes, nb1(X,NB1):t, nothing(NB1):t ~= Yes, action(d), -10 = Reward ; Reward = -1).
-% reward(Obj):t ~ val(R) <- attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t, schema_reward(R, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t.
-% reward(Obj):t ~ val(-1) <- attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t, \+schema_reward(R, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t.
-% reward:t ~ val(R) <- reward(Obj):t ~= R.
-
-r(Xobj, Yobj, Type, R):t <- R= -10, action(d), Xobj=1, Yobj=2, Type=agent.
-r(Xobj, Yobj, Type, R):t <- R= -10, action(l), Xobj=2, Yobj=3, Type=agent.
-r(Xobj, Yobj, Type, R):t <- R= 10, action(r), Xobj=2, Yobj=3, Type=agent.
-
-% reward(Obj):t ~ val(R) <- attributes(Obj, X, Y):t, r(X,Y,R).
-% reward(Obj):t ~ val(-1) <- attributes(Obj, X, Y):t, \+r(X,Y,R).
-
+r(Xobj, Yobj, Type, R):t <- R = -10, action(d), Xobj=1, Yobj=2, Type=agent.
+r(Xobj, Yobj, Type, R):t <- R = -10, action(l), Xobj=2, Yobj=3, Type=agent.
+r(Xobj, Yobj, Type, R):t <- R = 10, action(r), Xobj=2, Yobj=3, Type=agent.
 schema_reward(Obj):t ~ val(R) <- attributes(Obj, Xobj, Yobj, _, _, Type, _, _):t, r(Xobj, Yobj, Type, R):t.
 schema_reward(Obj):t ~ val(-1) <- attributes(Obj, Xobj, Yobj, _, _, Type, _, _):t, \+r(Xobj, Yobj, Type, _):t.
-
 reward:t ~ val(R) <- schema_reward(Obj):t ~= R.

@@ -1,0 +1,175 @@
+Episode 0
+l
+u
+r
+none -> r
+d
+d
+u
+d
+d
+u
+none -> r
+d
+d
+u
+d
+u
+u
+d
+r
+d
+r
+d
+r
+d
+d
+none -> l
+d
+d
+r
+Score: -20
+Episode 1
+d
+Score: -11
+Episode 2
+d
+d
+Score: -11
+Episode 3
+r
+u
+l
+r
+u
+r
+d
+u
+d
+d
+d
+d
+none
+d
+u
+d
+d
+d
+l
+none
+d
+d
+d
+r
+Score: -13
+Episode 4
+u
+r
+r
+l
+d
+r
+Score: 3
+Episode 5
+u
+d
+u
+d
+u
+l
+l
+u
+u
+r
+none
+d
+u
+r
+r
+r
+d
+d
+d
+u
+l
+d
+none
+u
+d
+u
+r
+l
+d
+r
+u
+l
+d
+l
+r
+l
+u
+u
+d
+l
+u
+u
+r
+d
+u
+Score: -47
+Episode 6
+u
+d
+u
+r
+u
+u
+d
+d
+r
+Score: 1
+Episode 7
+u
+u
+u
+d
+u
+u
+d
+Score: -17
+Episode 8
+d
+d
+Score: -11
+Episode 9
+l
+none
+r
+r
+d
+r
+r
+d
+d
+l
+r
+d
+none
+u
+d
+d
+d
+l
+l
+d
+l
+u
+u
+u
+u
+r
+d
+d
+d
+r
+Score: -19

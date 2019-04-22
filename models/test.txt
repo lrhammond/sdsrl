@@ -1,0 +1,352 @@
+Episode 0
+r
+l
+r
+r
+r
+l
+d
+r
+r
+r
+r
+r
+r
+r
+dEpisode 0
+d
+r
+d
+r
+Score: 7
+Episode 1
+u
+u
+l
+d
+u
+u
+r
+r
+l
+r
+u
+d
+d
+u
+d
+d
+d
+d
+r
+r
+d
+d
+d
+d
+d
+d
+d
+d
+u
+u
+d
+d
+d
+d
+r
+l
+r
+d
+r
+d
+d
+u
+d
+d
+d
+d
+l
+r
+r
+Score: -49
+Episode 2
+r
+r
+l
+u
+u
+u
+r
+u
+d
+d
+d
+u
+r
+d
+r
+d
+l
+u
+r
+d
+d
+d
+d
+d
+d
+u
+r
+d
+l
+l
+d
+u
+d
+r
+r
+d
+r
+Score: -26
+Episode 3
+l
+l
+r
+d
+r
+d
+r
+Score: 4
+Episode 4
+r
+r
+u
+d
+d
+r
+l
+d
+d
+r
+Score: 1
+Episode 5
+l
+u
+l
+r
+d
+r
+u
+d
+d
+r
+Score: 1
+Episode 6
+r
+r
+d
+d
+d
+d
+l
+l
+r
+d
+d
+r
+Score: -1
+Episode 7
+u
+r
+r
+r
+d
+l
+d
+d
+r
+Score: 2
+Episode 8
+l
+u
+r
+d
+d
+r
+Score: 5
+Episode 9
+l
+r
+d
+d
+r
+Score: 6
+Episode 0
+u
+r
+l
+r
+l
+r
+d
+d
+r
+Score: 2
+Episode 1
+r
+d
+d
+r
+Score: 7
+Episode 2
+d
+l
+r
+r
+d
+r
+Score: 5
+Episode 3
+r
+r
+r
+d
+d
+d
+d
+d
+u
+d
+d
+u
+u
+r
+d
+d
+d
+d
+d
+d
+d
+d
+d
+d
+d
+d
+d
+d
+l
+l
+r
+d
+d
+u
+r
+r
+r
+r
+r
+d
+r
+Score: -30
+Episode 4
+r
+u
+d
+d
+r
+Score: 6
+Episode 5
+d
+u
+r
+u
+d
+d
+r
+Score: 4
+Episode 6
+r
+d
+d
+r
+Score: 7
+Episode 7
+l
+r
+d
+d
+d
+r
+Score: 5
+Episode 8
+l
+l
+l
+l
+r
+r
+d
+d
+d
+r
+l
+u
+r
+d
+d
+d
+r
+d
+d
+d
+d
+d
+d
+l
+r
+u
+l
+d
+r
+r
+r
+r
+d
+r
+Score: -23
+Episode 9
+r
+r
+d
+d
+r
+d
+d
+d
+r
+d
+d
+d
+r
+d
+d
+r
+d
+d
+u
+d
+d
+u
+d
+d
+d
+l
+r
+l
+u
+d
+d
+r
+Score: -22

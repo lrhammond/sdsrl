@@ -46,8 +46,8 @@
 % NEW BEST
 r(X,Y,R) <- R=100, X>=1, Y>=1, X=<5, Y=<5.
 r(X,Y,R) <- R=10, -Y >= X + 2.
-reward(Obj):t ~ val(R) <- attributes(Obj, X, Y, _):t, r(X,Y,R).
-reward(Obj):t ~ val(-1) <- attributes(Obj, X, Y, _):t, \+r(X,Y,R).
+reward(Obj):t ~ val(R) <- attributes(Obj, X, Y, S):t, r(X,Y,R).
+reward(Obj):t ~ val(-1) <- attributes(Obj, X, Y, S):t, \+r(X,Y,R).
 reward:t ~ val(R) <- reward(Obj):t ~= R.
 
 % r(Obj,R):t <- posX(Obj):t ~= X, posY(Obj):t ~= Y, R=100, X=2, Y=2.
@@ -97,6 +97,20 @@ adm(action(A)):t <-
 
 Y:t+1 ~ val(X) <- observation(Y) ~= X.
 observation(Y):t+1 ~ val(X) <- Y:t+1 ~= X.
+%
+% observation(Y):t+1 ~ val(X) <- \+(Y:t+1 ~= X), Y:t ~= X.
+
+
+% Att:t+1 ~ val(X) <- \+Att:t ~= _, observation(Att) ~= X.
+%
+% % Att:t+1 ~ val(NX) <-
+% %    action(move(DX,DY)),
+% %    Att:t ~= X,
+% %    NX is X+DX.
+% Att:t+1 ~ val(X) <- Att:t ~= X.
+%
+% observation(Att):t+1 ~ val(Val) <- Att:t+1 ~= Val.
+% Att:t+1 ~ val(X) <- observation(Att) ~= X.
 
 % Y:t+1 ~ val(X) <- action(_), Y:t ~= X.
 
@@ -117,12 +131,58 @@ observation(Y):t+1 ~ val(X) <- Y:t+1 ~= X.
 % posY(Obj):t+1 ~ val(NY) <- su(Obj, NY):t.
 % posY(Obj):t+1 ~ val(NY) <- yn(Obj, NY):t.
 
-s1(Obj, NX):t <- action(l), shape(Obj):t ~= Square, posX(Obj):t ~= X, NX is X-1.
-s1(Obj, NX):t <- action(r), shape(Obj):t ~= Square, posX(Obj):t ~= X, NX is X+1.
-xn(Obj, NX):t <- \+s1(Obj, _):t, posX(Obj):t ~= NX.
-posX(Obj):t+1 ~ val(NX) <- s1(Obj, NX):t.
-posX(Obj):t+1 ~ val(NX) <- xn(Obj, NX):t.
+% existsRound(Obj):t ~ val(RoundObj) <- shape(RoundObj):t ~= Round, member(RoundObj, [obj,obj2]).
 
+% existsRound(Obj):t ~ val(RoundObj) <- shape(RoundObj):t ~= Goal, member(RoundObj, [obj,obj2]).
+% existsRound(Obj):t ~ val(nope) <- \+((shape(RoundObj):t ~= Goal, member(RoundObj, [obj,obj2]))).
+
+
+
+% THIS WORKS!!!!!!!!!!!!!!!!!!!
+% existsRound(RO):t <- shape(RO):t ~= Round.
+% existsRO(Obj):t ~ val(RO) <- existsRound(RO):t.
+% existsRO(Obj):t ~ val(nope) <- \+existsRound(RO):t.
+% s1(Obj, NX):t <- action(l), shape(Obj):t ~= Square, posX(Obj):t ~= X, NX is X-1.
+% s1(Obj, NX):t <- action(r), shape(Obj):t ~= Square, posX(Obj):t ~= X, NX is X+1.
+% xn(Obj, NX):t <- \+s1(Obj, _):t, posX(Obj):t ~= NX.
+% posX(Obj):t+1 ~ val(NX) <- s1(Obj, NX):t, existsRound(RO):t, posX(RO):t ~= F, F > 10.
+% posX(Obj):t+1 ~ val(NX) <- \+s1(Obj, _):t, posX(Obj):t ~= NX, existsRound(RO):t, posX(RO):t ~= F, F > 10.
+
+
+
+
+% existsRound(RO):t <- shape(RO):t ~= Round.
+% existsRO(Obj):t ~ val(RO) <- existsRound(RO):t.
+% existsRO(Obj):t ~ val(nope) <- \+existsRound(RO):t.
+
+minus1(X,Y) <- Y is X - 1.
+newpred(Obj):t ~ val(RO) <- shape(RO):t ~= S.
+
+s1(Obj, NX):t <- action(l), shape(Obj):t ~= Square, posX(Obj):t ~= X, NX is X-1, newpred(Obj):t ~= RO, x_pos(RO):t < 0.
+s1(Obj, NX):t <- action(r), shape(Obj):t ~= Square, posX(Obj):t ~= X, NX is X+1, newpred(Obj):t ~= RO, x_pos(RO):t < 0.
+xn(Obj, NX):t <- \+s1(Obj, _):t, posX(Obj):t ~= NX.
+
+schema(Obj, X):t <- newpred(RO, X):t.
+
+posX(Obj):t+1 ~ val(NX) <- s1(Obj, NX):t.
+posX(Obj):t+1 ~ val(X) <- \+s1(Obj, _):t, posX(Obj):t ~= X.
+
+
+% s1(Obj):t ~ finite([0.6:NX,0.2:X]) <- action(l), shape(Obj):t ~= Square, posX(Obj):t ~= X, NX is X-1.
+% s1(Obj):t ~ val(NX) <- action(r), shape(Obj):t ~= Square, posX(Obj):t ~= X, NX is X+1.
+% xn(Obj):t ~ val(NX) <- \+(s1(Obj):t ~= _), posX(Obj):t ~= NX.
+%
+% schema(Obj, X):t <- newpred(RO, X):t.
+%
+% posX(Obj):t+1 ~ val(NX) <- s1(Obj):t ~= NX.
+% posX(Obj):t+1 ~ val(X) <- xn(Obj):t ~= NX, posX(Obj):t ~= X.
+
+
+
+
+
+% posX(Obj):t+1 ~ val(NX) <- posX(Obj):t ~= X, NX is X+1.
+% posY(Obj):t+1 ~ val(NY) <- posY(Obj):t ~= Y, NY is Y+1.
 
 s2(Obj, NY):t <- action(d), shape(Obj):t ~= Square, posY(Obj):t ~= Y, NY is Y-1.
 s2(Obj, NY):t <- action(u), shape(Obj):t ~= Square, posY(Obj):t ~= Y, NY is Y+1.

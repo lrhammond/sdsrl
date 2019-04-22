@@ -169,7 +169,10 @@ def toBinary(model, x_original):
             else:
                 output = output + model.dictionaries[j][0][x[i][j]]
     # Add binary description of action
-    output = output + model.dictionaries[ACTION][0][x[ACTION]]
+    if x[ACTION] == None:
+        output = output + model.dictionaries[ACTION][0]["none"]
+    else:
+        output = output + model.dictionaries[ACTION][0][x[ACTION]]
     return output
 
 

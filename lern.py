@@ -4,6 +4,7 @@
 LIMIT = 10
 TOL = 1e-3
 
+import sys
 import util
 from scipy import optimize as opt
 import numpy as np
@@ -11,7 +12,9 @@ import blox
 from copy import deepcopy
 from random import choice
 import inta
-from pydc import HYPE
+import os
+
+import gc
 # import pyscipopt
 
 
@@ -23,15 +26,18 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
     initState = inta.observeState(mode, environment)
     rewards = [0 for ep in range(numEpisodes)]
 
-    # Intialise model and Q-function
+    # Intialise model
     M = blox.Model(name, mode, initState)
     M.obsActions = [["u", "l", "d", "r", "none"],[[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1],[0,0,0,0]]]
     M.updateDicts()
-    # Q = QFunction(mode)
-    Q = 0
+
+    # # Q = QFunction(mode)
+    # Q = 0
 
     # Learn model and Q-function
     for i in range(numEpisodes):
+        with open("models/" + M.name + ".txt", 'a+') as f:
+            f.write("Episode " + str(i))
         print("===========")
         print("Episode " + str(i))
         # Set up model for new episode
@@ -42,27 +48,33 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
         current_reward = 0
         for j in range(numSteps):
             # Check if the game has ended
-            if ended:
+            if ended or j == numSteps - 1:
                 # Display endgame information
                 rewards[i] = current_reward
                 print("*********")
                 print("Game Over")
                 print("Score: " + str(current_reward))
                 print("*********")
-                # Clean up data, evidence, and learnt schemas
-                M.clean()
-                # Update Q-function using HYPE
-                state = M.curr
-                hype(M, numSamples, state, Q)
+                with open("models/" + M.name + ".txt", 'a+') as f:
+                    f.write("\nScore: " + str(current_reward) + "\n")
                 break
             else:
                 print("-------")
                 print("Step " + str(j))
+                # Clean up data, evidence, and learnt schemas
+                M.clean()
+                # Find best action using HYPE
+                action = hype(M, numSamples)
+                if (action == "none" and i == 0) or action == "N/A":
+                    action = choice(M.obsActions[0][:4])
+                    with open("models/" + M.name + ".txt", 'a+') as f:
+                        f.write(" -> " + action)
                 # Take action in the game and observe reward using RMAX
-                action = rmax(M, Q, epsilon)
+                # action = rmax(M, Q, epsilon)
                 print("Action: " + action)
-                [reward, ended] = inta.performAction(M, mode, environment, action)
-                current_reward += reward
+                if action != "none":
+                    [reward, ended] = inta.performAction(M, mode, environment, action)
+                    current_reward += reward
                 # If the game has ended we only update the action and reward, as the state doesn't matter
                 if not ended:
                     state = [inta.observeState(mode, environment), action, reward]
@@ -78,6 +90,7 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
                 M.curr = M.getModelState()
                 M.updateData()
                 M.learn()
+
 
 
 
@@ -135,30 +148,36 @@ def rmax(M, Q, epsilon):
 
 
 # Updates Q function using abstracted trajectory samples from M
-def hype(model, num_samples, state, Q):
+def hype(model, num_samples):
     # Create Prolog file and initialise model
-    inta.createPrologFile(model)
-    hype = HYPE("models/" + model.name + ".pl", num_samples)
+
+
+    # inta.createPrologFile(model)
+
+
+
     # Form list of observations describing the current/initial state
     observations = ""
     for key in model.objects.keys():
         object = model.objects[key]
         observations += object.observe()
     observations = "[" + observations[:-2] + "]"
-
-
-    print observations
-
-
-    # Run HYPE and print the best action
-    result = hype.plan_step(observations, num_samples, max_horizon=10, used_horizon=5, use_abstraction=True)
-    best_action = result["best_action"]
-    print best_action
-    return
+    observations = observations.replace(" ", "")
+    # Run HYPE algorithm via separate script due to memory constraints
+    command = "python hype.py " + model.name + " " + str(num_samples) + " \"" + observations + "\""
+    os.system(command)
+    # Open file containing actions and read the most recent action in
+    with open("models/" + model.name + ".txt", 'r') as f:
+        lines = f.read().splitlines()
+        action = lines[-1]
+    return str(action)
 
 
 # Learns schemas for a particular object attribute given data X and y using linprog
 def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
+
+    failures = 0
+
     # If there are any contradictory data we remove them
     yes = [tuple(item) for item in xYes]
     no = [tuple(item) for item in xNo]
@@ -271,7 +290,9 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
         # If we have learned a bad schema we don't add it, and skip learning until we have more data
         if len(newEvidence) == 0:
             print("Schema failed to be learnt on this iteration")
-
+            failures += 1
+            if failures >= 5:
+                break
 
             # print("w_binary:")
             # print w_binary
@@ -294,6 +315,9 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
 
             # return [schemas, evidence, xYes]
         else:
+            # Reset failure count
+            failures = 0
+
             xYes = xYes + REMxYes
             REMxYes = []
 

@@ -418,7 +418,11 @@ class Model:
 
     # Function for cleaning model of duplicate information
     def clean(self):
-        for r in range(REWARD+1):
+
+        # DON't clean reward data ATM (add 1 to range!!)
+
+
+        for r in range(REWARD):
             for key in self.observations[r][0]:
                 # Remove duplicate data and schemas
                 self.XY[r][key] = util.deDupe(self.XY[r][key])
@@ -447,6 +451,11 @@ class Model:
                 if i < REWARD:
                     xYes = [case for case in self.XY[i][key] if case[0][i] != key]
                 else:
+
+
+
+
+
                     xYes = [case for case in self.XY[i][key] if key != -1]
 
 
@@ -470,8 +479,19 @@ class Model:
 
 
                 # Learn and output schemas, new evidence, and remaining positive cases
-                [binarySchemas, binaryEvidence, binaryRemaining] = lern.learnSchemas(self, xYes, xNo, schemas)
+
+
+
+                # Do not learn reward function for now
+                if i < 0:
+                    [binarySchemas, binaryEvidence, binaryRemaining] = lern.learnSchemas(self, xYes, xNo, schemas)
+                else:
+                    [binarySchemas, binaryEvidence, binaryRemaining] = [[],[],[]]
+
+
+
                 # Display new schemas to user
+
 
                 # print("111111111111111111")
                 # print schemas
@@ -516,13 +536,13 @@ class Object:
     # Displays object for use in forming Prolog file
     def observe(self):
         name = "obj" + str(self.id)
-        output = "observation(x_pos(" + name + ")) ~= " + str(self.x_pos) + ", "
-        output = output + "observation(y_pos(" + name + ")) ~= " + str(self.y_pos) + ", "
-        output = output + "observation(x_size(" + name + ")) ~= " + str(self.x_size) + ", "
-        output = output + "observation(y_size(" + name + ")) ~= " + str(self.y_size) + ", "
-        output = output + "observation(colour(" + name + ")) ~= " + self.colour + ", "
-        output = output + "observation(shape(" + name + ")) ~= " + self.shape + ", "
-        output = output + "observation(nothing(" + name + ")) ~= " + self.nothing + ", "
+        output = "observation(x_pos(" + name + ")) ~= " + str(self.x_pos).lower() + ", "
+        output = output + "observation(y_pos(" + name + ")) ~= " + str(self.y_pos).lower() + ", "
+        output = output + "observation(x_size(" + name + ")) ~= " + str(self.x_size).lower() + ", "
+        output = output + "observation(y_size(" + name + ")) ~= " + str(self.y_size).lower() + ", "
+        output = output + "observation(colour(" + name + ")) ~= " + self.colour.lower() + ", "
+        output = output + "observation(shape(" + name + ")) ~= " + self.shape.lower() + ", "
+        output = output + "observation(nothing(" + name + ")) ~= " + self.nothing.lower() + ", "
         return output
 
 # Define the schema class
@@ -557,7 +577,7 @@ class Schema:
     # Prints out schema in human-readable format
     def display(self, no_head=False):
         objects = ["obj"] + ["nb" + str(i+1) for i in range(NEIGHBOURS)]
-        objNames = ["X"] + ["NB" + str(i+1) for i in range(NEIGHBOURS)]
+        objNames = [name.capitalize() for name in objects]
         added = [False for item in objects]
         added[0] = True
         attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "nothing"]
