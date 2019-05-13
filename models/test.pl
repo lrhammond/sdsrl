@@ -259,15 +259,17 @@ isobj(Obj):t <- member(Obj, [obj0,obj1,obj2,obj3,obj4,obj5,obj6,obj7,obj8,obj9,o
 % schema_x_pos(Obj, New):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X + 1, NbY is Y, findall(Nb, map(Nb, NbX, NbY):t, List, []), length(List, 1), colour(Obj):t ~= Agent, action(r), x_pos(Obj):t ~= Curr, New is Curr + 1.
 
 
-schema_x_pos(Obj, NbX):t <- x_pos(Obj):t ~= X, NbX is X + 1, colour(Obj):t ~= Agent, action(r), nb4(Obj):t ~= Nb4, Nb4 = no_object.
-
-nb4pred(X, Y, Nb4):t <- NbX is X + 1, NbY is Y, x_pos(Nb4):t ~= NbX, y_pos(Nb4):t ~= NbY.
-nb4(Obj):t ~ val(Nb4) <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, nb4pred(X, Y, Nb4):t.
-nb4(Obj):t ~ val(no_object) <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, \+((nb4pred(X, Y, _):t)).
+schema_x_pos(Obj, NbX):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X + 1, NbY is Y, colour(Obj):t ~= Agent, action(r), \+((x_pos(Nb4):t ~= NbX, y_pos(Nb4):t ~= NbY)).
 
 
-nb4(Obj):t+1 ~ val(Nb4) <- new_x_pos(Obj, NX):t, new_y_pos(Obj, NY):t, nb4pred(NX, NY, Nb4):t.
-nb4(Obj):t+1 ~ val(no_object) <- new_x_pos(Obj, NX):t, new_y_pos(Obj, NY):t, \+((nb4pred(NX, NY, _):t)).
+
+% nb4pred(X, Y, Nb4):t <- NbX is X + 1, NbY is Y, x_pos(Nb4):t ~= NbX, y_pos(Nb4):t ~= NbY.
+nb4(Obj,Nb4):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X + 1, NbY is Y, x_pos(Nb4):t ~= NbX, y_pos(Nb4):t ~= NbY.
+nb4(Obj,no_object):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, \+((NbX is X + 1, NbY is Y, x_pos(Nb4):t ~= NbX, y_pos(Nb4):t ~= NbY)).
+
+
+% nb4(Obj):t+1 ~ val(Nb4) <- new_x_pos(Obj, NX):t, new_y_pos(Obj, NY):t, nb4pred(NX, NY, Nb4):t.
+% nb4(Obj):t+1 ~ val(no_object) <- new_x_pos(Obj, NX):t, new_y_pos(Obj, NY):t, \+((nb4pred(NX, NY, _):t)).
 
 
 
@@ -305,6 +307,8 @@ new_y_pos(Obj, New):t <- schema_y_pos(Obj, New):t.
 new_y_pos(Obj, New):t <- no_schema_y_pos(Obj, New):t.
 
 y_pos(Obj):t+1 ~ val(New) <- new_y_pos(Obj, New):t.
+
+
 % y_pos(Obj):t+1 ~ val(New) <- no_schema_y_pos(Obj, New):t.
 x_size(Obj):t+1 ~ val(New) <- x_size(Obj):t ~= New.
 y_size(Obj):t+1 ~ val(New) <- y_size(Obj):t ~= New.

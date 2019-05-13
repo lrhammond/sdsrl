@@ -35,7 +35,7 @@ class Model:
         self.obsYsizes = [[],[]]
         self.obsColours = [[],[]]
         self.obsShapes = [[],[]]
-        self.obsNothing = [["Yes", "No"], [[1,0],[0,1]]]
+        self.obsNothing = [["yes", "no"], [[1,0],[0,1]]]
         # Create lists for storing observed actions and rewards
         self.obsActions = [["none"],[[0]]]
         self.obsRewards = [[],[]]
@@ -43,9 +43,9 @@ class Model:
         self.observations = [self.obsXpos, self.obsYpos, self.obsXsizes, self.obsYsizes, self.obsColours, self.obsShapes, self.obsNothing, self.obsRewards, None, self.obsActions]
         self.dictionaries = {}
         # Create lists for storing schemas and learning data
-        self.schemas = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"Yes":[],"No":[]},{}]
-        self.evidence = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"Yes":[],"No":[]},{}]
-        self.XY = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"Yes":[],"No":[]},{}]
+        self.schemas = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
+        self.evidence = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
+        self.XY = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
         # Initialise state descriptions of model and update dictionaries
         self.initialise(mode, initState)
         return
@@ -78,7 +78,8 @@ class Model:
     # Set up objects and map based on vgdl state
     def setObjects(self, mode, state):
         for key in state.keys():
-            state[key.capitalize()] = state.pop(key)
+            # state[key.capitalize()] = state.pop(key)
+            state[key] = state.pop(key)
         if mode == "vgdl":
             i = max(list(self.objects.keys()) + [0])
             for objType in state.keys():
@@ -87,9 +88,9 @@ class Model:
                     # Create new object and add to the set of objects and the map
                     newObj = Object(i, position[0], position[1])
                     newObj.colour = objType
-                    newObj.x_size = "Small"
-                    newObj.y_size = "Small"
-                    newObj.shape = "Square"
+                    newObj.x_size = "small"
+                    newObj.y_size = "small"
+                    newObj.shape = "square"
                     self.objects[i] = newObj
                     if objPos in self.objMap.keys():
                         self.objMap[objPos].append(i)
@@ -175,7 +176,8 @@ class Model:
         # Update objects forming state description
         state = deepcopy(full_state[0])
         for key in state.keys():
-            state[key.capitalize()] = state.pop(key)
+            # state[key.capitalize()] = state.pop(key)
+            state[key] = state.pop(key)
         if mode == "vgdl":
             # Intialise arrays for storing IDs of objects that have changed or moved or both
             moved = []
@@ -269,7 +271,7 @@ class Model:
                     intersection = [item for item in possibleNewPos if item in neighbours]
                     # If there are no neighbours at all we assume the object has disappeared
                     if len(intersection) == 0:
-                        self.objects[objId].nothing = "Yes"
+                        self.objects[objId].nothing = "yes"
 
 
                         print("oops, object " + str(objId) + " disappeared")
@@ -433,6 +435,11 @@ class Model:
 
     # Updates and learns new schemas
     def learn(self):
+
+
+
+
+
         # Prepare for learning
         self.updateDicts()
 
@@ -461,6 +468,8 @@ class Model:
 
 
                 # xYes = [case for case in self.XY[i][key] if case[0][i] != key]
+
+
 
                 xNo = [self.XY[i][other] for other in self.XY[i].keys() if other != key]
                 xNo = util.flatten(xNo)
@@ -525,7 +534,7 @@ class Object:
         self.y_size = None
         self.colour = None
         self.shape = None
-        self.nothing = "No"
+        self.nothing = "no"
         return
 
     # Outputs list representing the state of the object
@@ -544,6 +553,10 @@ class Object:
         output = output + "observation(shape(" + name + ")) ~= " + self.shape.lower() + ", "
         output = output + "observation(nothing(" + name + ")) ~= " + self.nothing.lower() + ", "
         return output
+
+    def display(self):
+        output = ["obj" + str(self.id)] + [str(i) for i in self.getObjectState()]
+        return ", ".join(output)
 
 # Define the schema class
 class Schema:
@@ -590,6 +603,12 @@ class Schema:
             # Assert neighbour relation if needed
             if not added[i[0]]:
                 addNeighbour = objects[i[0]] + "(Obj," + objNames[i[0]] + "):t"
+
+                map(New, Y, NB):t
+
+                neighbours = [None] + [n[0] for n in neighbourPositions((0,0))]
+
+
                 schemaBody = schemaBody + addNeighbour + ", "
                 added[i[0]] = True
             # Add schema preconditions

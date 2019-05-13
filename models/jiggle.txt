@@ -1,0 +1,140 @@
+Episode 0Episode 0Episode 0Episode 0Episode 0Episode 0Episode 0Episode 0Episode 0Episode 0Episode 0Episode 1Episode 2Episode 3Episode 4Episode 5Episode 6Episode 7Episode 8Episode 9Episode 0Episode 1Episode 2Episode 3Episode 4Episode 5Episode 6Episode 7Episode 8Episode 9Episode 0Episode 1Episode 2Episode 3Episode 4Episode 5Episode 6Episode 7Episode 8Episode 9Episode 0Episode 1Episode 2Episode 3Episode 4Episode 5Episode 6Episode 7Episode 8Episode 9Episode 0 -> d -> l -> u -> d -> u -> u -> u -> l -> u
+Score: -9
+Episode 1 -> d -> u -> l -> r -> d -> u -> l -> l -> u
+Score: -9
+Episode 2 -> r -> d -> d -> u -> d -> d -> u -> l -> r
+Score: -9
+Episode 3 -> u -> l -> d -> u -> l -> u -> l -> l -> l
+Score: -9
+Episode 4 -> l -> r -> d -> r -> l -> r -> u -> u -> l
+Score: -9
+Episode 5 -> d -> u -> u -> r -> u -> r -> l -> r -> d
+Score: -9
+Episode 6 -> l -> u -> r -> r -> u -> u -> u -> l -> u
+Score: -9
+Episode 7 -> d -> u -> d -> r -> u -> l -> r -> d -> r
+Score: -9
+Episode 8 -> d -> u -> u -> u -> u -> d -> l -> u -> u
+Score: -9
+Episode 9 -> d -> l -> d
+Score: -12
+Episode 0 -> lEpisode 0 -> d -> l -> l -> u -> d -> r -> u -> l -> r
+Score: -9
+Episode 1 -> u -> u -> u -> r -> u -> d -> u -> d -> l
+Score: -9
+Episode 2 -> d -> l -> u -> r -> d -> r -> u -> l -> l
+Score: -9
+Episode 3 -> u -> u -> u -> u -> l -> u -> d -> u -> l
+Score: -9
+Episode 4 -> l -> l -> d -> u -> r -> r -> l -> d -> l
+Score: -9
+Episode 5 -> l -> u -> u -> d -> r -> r -> l -> u -> d
+Score: -9
+Episode 6 -> u -> l -> r -> l -> r -> l -> u -> d -> u
+Score: -9
+Episode 7 -> d -> u -> l -> l -> r -> u -> d -> r -> r
+Score: -9
+Episode 8 -> r -> d -> d -> r
+Score: 7
+Episode 9 -> u -> u -> l -> d -> l -> l -> u -> u -> u
+Score: -9
+Episode 0 -> r -> r -> l -> r -> d -> u -> u -> u -> r
+Score: -9
+Episode 1 -> r -> u -> l -> d -> r -> r -> r -> l -> r
+Score: -9
+Episode 2 -> u -> u -> d -> u -> l -> r -> l -> l -> l
+Score: -9
+Episode 3 -> u -> d -> u -> u -> u -> l -> l -> d -> d
+Score: -18
+Episode 4 -> l -> u -> u -> r -> r -> r -> u -> d -> u
+Score: -9
+Episode 5 -> l -> d -> u -> r -> l -> r -> l -> l -> d
+Score: -9
+Episode 6 -> r -> r -> u -> r -> r -> l -> u -> d -> r
+Score: -9
+Episode 7 -> r -> r -> d -> d -> r -> u -> l -> r -> u
+Score: -9
+Episode 8 -> l -> u -> d -> r -> u -> u -> l -> u -> l
+Score: -9
+Episode 9 -> r -> l -> d -> d
+Score: -13
+Episode 0 -> lEpisode 0 -> d -> l -> l -> dEpisode 0 -> l
+Score: -13
+Episode 1 -> u -> l -> l -> d -> u -> l -> l -> r -> d -> u -> r -> d -> r -> u -> u -> d -> u
+Score: -9
+Episode 1
+Score: -9
+Episode 2 -> r -> r -> r -> u -> d -> u -> r -> r -> d -> l -> d -> l -> u -> r -> d -> l -> d -> r
+Score: -9
+Episode 2 -> l
+Score: -9
+Episode 3 -> d -> u -> r -> u -> r -> l -> r -> d -> r
+Score: -13
+Episode 4 -> l -> d -> u -> r -> d -> r -> u
+Score: -9
+Episode 3 -> d -> d -> u -> r -> l -> r -> d -> d -> u -> l -> r
+Score: -18
+Episode 5 -> l -> d -> r -> u -> u -> l -> d
+Score: -9
+Episode 4 -> d -> r -> d -> r
+Score: -11
+Episode 5 -> d -> u -> u -> l -> d -> r -> l
+Score: -9
+Episode 6 -> d -> l -> u -> u -> u -> r -> u -> r -> u -> r -> r -> u -> d
+Score: -9
+Episode 7 -> u -> d -> l -> u -> u -> u -> r -> d -> r
+Score: -9
+Episode 8 -> r -> d -> u -> u -> r -> r -> lEpisode 0 -> rEpisode 0 -> u -> d -> r -> u -> l -> d -> u -> d -> d
+Score: -18
+Episode 1 -> u -> u -> l -> u -> u -> d -> l -> d
+Score: -17
+Episode 2 -> r -> d -> r -> d -> l
+Score: -14
+Episode 3 -> rEpisode 0 -> uEpisode 0 -> l -> r -> u -> d -> l -> r -> u -> d -> r
+Score: -9
+Episode 1 -> d -> r -> r -> l -> d
+Score: -14
+Episode 2 -> u -> r -> l -> l -> u -> r -> r -> r -> d
+Score: -9
+Episode 3 -> d -> u -> d -> r -> r -> d -> d -> u -> d
+Score: -9
+Episode 4 -> r -> d -> u -> u -> uEpisode 0 -> l -> dEpisode 0 -> u -> u -> uEpisode 0 -> d -> d
+Score: -11
+Episode 1 -> d -> d
+Score: -11
+Episode 2 -> r -> u -> d -> d -> u -> d -> u -> r -> u
+Score: -9
+Episode 3 -> d -> r -> r -> d -> l
+Score: -14
+Episode 4 -> u -> u -> rEpisode 0 -> u -> u -> d -> r -> r -> lEpisode 0 -> dEpisode 0 -> u -> l -> r -> dEpisode 0 -> u -> l -> d -> l -> l -> u -> l -> l -> d
+Score: -9
+Episode 1 -> r -> u -> l -> d -> d
+Score: -14
+Episode 2 -> r -> d -> u -> r -> l -> u -> r -> l -> l
+Score: -9
+Episode 3 -> l -> l -> l -> r -> d -> u -> d -> r -> u
+Score: -9
+Episode 4 -> u -> l -> d -> d
+Score: -13
+Episode 5 -> d -> u -> u -> u -> u -> d -> u -> r -> l
+Score: -9
+Episode 6 -> l -> d -> u -> l -> d -> u -> l -> d -> uEpisode 0 -> l -> u -> r -> d -> l -> u -> u -> u -> r
+Score: -9
+Episode 1 -> r -> d -> u -> l -> d -> d
+Score: -15
+Episode 2 -> r -> u -> u -> d -> u -> u -> d -> u -> l
+Score: -9
+Episode 3 -> d -> d
+Score: -11
+Episode 4 -> d -> l -> d
+Score: -12
+Episode 5 -> l -> r -> r -> r -> l -> r -> l -> d -> u
+Score: -9
+Episode 6 -> d -> u -> u -> r -> d -> r -> r -> d -> u
+Score: -9
+Episode 7 -> r -> r -> r -> d -> d -> l -> d -> u -> l
+Score: -9
+Episode 8 -> r -> u -> r -> d -> u -> l -> l -> l -> u
+Score: -9
+Episode 9 -> r -> l -> d -> u -> r -> d -> u -> u -> r
+Score: -9

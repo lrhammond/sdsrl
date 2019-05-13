@@ -76,7 +76,7 @@ def formXvector(objId, state, oldMap):
         # If there is no neighbour, add a vector with all None entries apart from the 'nothing' attribute
         else:
             new = [None for attribute in range(NOTHING+1)]
-            new[NOTHING] = "Yes"
+            new[NOTHING] = "yes"
             vector.append(new)
     return vector
 
@@ -310,5 +310,46 @@ def simplify(model, old, head):
     if numRemoved != 0:
         print("Successfully cut " + str(numRemoved) + " schemas")
     return new
+
+
+
+def to_problog_rule(att, key, schema):
+
+    # Initialise template variables and lists
+    blank_list = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "N"]
+    change = {"centre": "", "left": " - 1", "right": " + 1", "below": " + 1", "above": " - 1"}
+    neighbours = []
+
+    # Form body of schema
+    body_list = [deepcopy(blank_list) for _ in range(NEIGHBOURS + 1)]
+    for (i,j) in schema.objectBody.keys():
+        if i != 0:
+            body_list[i][0] = "Nb{0}_X_pos".format(i)
+            body_list[i][1] = "Nb{0}_Y_pos".format(i)
+            neighbours.append(i)
+        body_list[i][j] = str(schema.objectBody[(i,j)])
+    head_list = deepcopy(body_list[0])
+    body_list = ["att(Nb{0}, ".format(nb) + ", ".join(body_list[nb]) + ", T0)" for nb in neighbours]
+    body_list.insert(0, "att(Obj, " + ", ".join(head_list) + ", T0)")
+    if att != REWARD:
+        body_list.append("T1 is T0 + 1")
+    if schema.actionBody:
+        body_list.append(schema.actionBody + "(T0)")
+    body = ", ".join(body_list)
+
+    # Form head of schema
+    if att == REWARD:
+        return body
+    elif att == X_POS:
+        head_list[att] = "New_X_pos"
+        body_list.append("New_X_pos is X_pos " + change[key])
+    elif att == Y_POS:
+        head_list[att] = "New_Y_pos"
+        body_list.append("New_Y_pos is Y_pos " + change[key])
+    else:
+        head_list[att] = str(key)
+    head = "att(Obj, " + ", ".join(head_list) + ", T1)"
+
+    return head + " :- " + body + "."
 
 

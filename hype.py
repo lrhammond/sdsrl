@@ -12,7 +12,7 @@ observations = sys.argv[3]
 # Create model
 hype = HYPE("models/" + name + ".pl", num_samples)
 # Run HYPE and output the best action
-result = hype.plan_step(observations, 100, max_horizon=10, used_horizon=5, use_abstraction=False)
+result = hype.plan_step(observations, 100, max_horizon=10, used_horizon=7, use_abstraction=False)
 # Check if action was successfully selected
 if result["best_action"] == "" or result["best_action"] == None:
     print("HYPE failed to select an action on this iteration")

@@ -177,13 +177,6 @@ getparam(params) :- bb_put(user:spant,0),
                     !.
 
 % Functions
-% builtin(x_pos(_)).
-% builtin(y_pos(_)).
-% builtin(x_size(_)).
-% builtin(y_size(_)).
-% builtin(colour(_)).
-% builtin(shape(_)).
-% builtin(nothing(_)).
 Var:t+1 ~ val(Val) <- observation(Var) ~= Val.
 observation(Var):t+1 ~ val(Val) <- Var:t+1 ~= Val.
 attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos(Obj):t ~= X_pos, 
@@ -193,42 +186,62 @@ attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos
                                                                            colour(Obj):t ~= Colour,
                                                                            shape(Obj):t ~= Shape,
                                                                            nothing(Obj):t ~= Nothing.\n\n""")
-    # Write constants to file
-    f.write("% Constants\n")
-    observations = util.flatten([model.obsXsizes[0], model.obsYsizes[0], model.obsColours[0], model.obsShapes[0], model.obsNothing[0]])
-    observations = list(set(observations))
-    constants = [c + " = " + c.lower() for c in observations]
-    constant_list = ", ".join(constants)
-    f.write("constants <- " + constant_list + ".\n")
-    f.write("constants.\n\n")
+
+
+    # # Write constants to file
+    # f.write("% Constants\n")
+    # observations = util.flatten([model.obsXsizes[0], model.obsYsizes[0], model.obsColours[0], model.obsShapes[0], model.obsNothing[0]])
+    # observations = list(set(observations))
+    # constants = [c + " = " + c.lower() for c in observations]
+    # constant_list = ", ".join(constants)
+    # f.write("constants <- " + constant_list + ".\n")
+    # f.write("constants.\n\n")
+
+
     # Write actions to file
     f.write("% Actions\n")
     actions = ",".join(model.obsActions[0])
     f.write("adm(action(A)):t <- member(A, [" + actions + "]).\n\n")
-    # Write neighbour relations to file
-    f.write("""% Neighbours
-nb1(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj - 1, Tmp2 is Yobj + 1, Xnb = Tmp1, Ynb = Tmp2.
-nb2(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t,                   Tmp2 is Yobj + 1, Xnb = Xobj, Ynb = Tmp2.
-nb3(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj + 1, Tmp2 is Yobj + 1, Xnb = Tmp1, Ynb = Tmp2.
-nb4(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj + 1,                   Xnb = Tmp1, Ynb = Yobj.
-nb5(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj + 1, Tmp2 is Yobj - 1, Xnb = Tmp1, Ynb = Tmp2.
-nb6(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t,                   Tmp2 is Yobj - 1, Xnb = Xobj, Ynb = Tmp2.
-nb7(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj - 1, Tmp2 is Yobj - 1, Xnb = Tmp1, Ynb = Tmp2.
-nb8(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj - 1,                   Xnb = Tmp1, Ynb = Yobj.\n\n""")
-# NEW FORMATTING USED HERE
-# nb1(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x - 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x + 1.
-# nb2(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y = X_pos_x,      y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x + 1.
-# nb3(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x + 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x + 1.
-# nb4(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x + 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y = Y_pos_x.
-# nb5(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x + 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x - 1.
-# nb6(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y = X_pos_x,      y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x - 1.
-# nb7(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x - 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x - 1.
-# nb8(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x - 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y = Y_pos_x.\n\n""")
-    # Write 'nothing' rules to file
-    f.write("% Nothing\n")
-    objects = ",".join(["obj" + str(i) for i in model.objects.keys()])
-    f.write("nothing(Obj):t ~ val(Nothing) <- member(Obj, [" + objects + "]), Nothing = no.\n")
-    f.write("nothing(Obj):t ~ val(Nothing) <- \+member(Obj, [" + objects + "]), Nothing = yes.\n\n")
+
+
+#     # Write neighbour relations to file
+#     f.write("""% Neighbours
+# nb1(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj - 1, Tmp2 is Yobj + 1, Xnb = Tmp1, Ynb = Tmp2.
+# nb2(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t,                   Tmp2 is Yobj + 1, Xnb = Xobj, Ynb = Tmp2.
+# nb3(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj + 1, Tmp2 is Yobj + 1, Xnb = Tmp1, Ynb = Tmp2.
+# nb4(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj + 1,                   Xnb = Tmp1, Ynb = Yobj.
+# nb5(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj + 1, Tmp2 is Yobj - 1, Xnb = Tmp1, Ynb = Tmp2.
+# nb6(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t,                   Tmp2 is Yobj - 1, Xnb = Xobj, Ynb = Tmp2.
+# nb7(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj - 1, Tmp2 is Yobj - 1, Xnb = Tmp1, Ynb = Tmp2.
+# nb8(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj - 1,                   Xnb = Tmp1, Ynb = Yobj.\n\n""")
+# # NEW FORMATTING USED HERE
+# # nb1(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x - 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x + 1.
+# # nb2(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y = X_pos_x,      y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x + 1.
+# # nb3(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x + 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x + 1.
+# # nb4(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x + 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y = Y_pos_x.
+# # nb5(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x + 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x - 1.
+# # nb6(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y = X_pos_x,      y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x - 1.
+# # nb7(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x - 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x - 1.
+# # nb8(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x - 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y = Y_pos_x.\n\n""")
+
+
+    # Write map rules to file
+    f.write("% Map\n")
+    f.write("""map(X, Y, Obj):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y.
+map(New_X, New_Y, Obj):t+1 <- schema_x_pos(Obj, New_X):t, schema_y_pos(Obj, New_Y):t.
+map(Curr_X, New_Y, Obj):t+1 <- no_schema_x_pos(Obj, Curr_X):t, schema_y_pos(Obj, New_Y):t.
+map(New_X, Curr_Y, Obj):t+1 <- schema_x_pos(Obj, New_X):t, no_schema_y_pos(Obj, Curr_Y):t.
+map(Curr_X, Curr_Y, Obj):t+1 <- no_schema_x_pos(Obj, New_X):t, no_schema_y_pos(Obj, New_Y):t.\n\n"""
+
+
+    # # Write 'nothing' rules to file
+    # f.write("% Nothing\n")
+    # objects = ",".join(["obj" + str(i) for i in model.objects.keys()])
+    # f.write("nothing(Obj):t ~ val(Nothing) <- member(Obj, [" + objects + "]), Nothing = no.\n")
+    # f.write("nothing(Obj):t ~ val(Nothing) <- \+member(Obj, [" + objects + "]), Nothing = yes.\n\n")
+
+
+
     # Write attribute schemas to file
     attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "nothing"]
     change = {"centre":"", "left":" - 1", "right":" + 1", "below":" + 1", "above":" - 1"}

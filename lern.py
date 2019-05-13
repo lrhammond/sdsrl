@@ -13,6 +13,7 @@ from copy import deepcopy
 from random import choice
 import inta
 import os
+import veri
 
 import gc
 # import pyscipopt
@@ -64,7 +65,17 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
                 # Clean up data, evidence, and learnt schemas
                 M.clean()
                 # Find best action using HYPE
+
+                # veri.create_dtpl_file(M, numSteps, 0.9)
+
+
                 action = hype(M, numSamples)
+
+
+                # action = "N/A"
+
+
+
                 if (action == "none" and i == 0) or action == "N/A":
                     action = choice(M.obsActions[0][:4])
                     with open("models/" + M.name + ".txt", 'a+') as f:
