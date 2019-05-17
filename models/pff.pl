@@ -70,7 +70,7 @@ constants <- No = no, Yes = yes, Wall = wall, Agent = agent.
 constants.
 
 % Actions
-adm(action(A)):t <- member(A, [l,r]).
+adm(action(A)):t <- member(A, [l,r,n]).
 
 % Set nothing predicate to yes for the 'no object' constant
 % nothing(no_object):t ~= val(Yes) <- Yes = yes.
@@ -78,7 +78,7 @@ adm(action(A)):t <- member(A, [l,r]).
 
 % Neighbour on right
 nbRpred(X, Y, NbR):t <- NbX is X + 1, NbY is Y, x_pos(NbR):t ~= NbX, y_pos(NbR):t ~= NbY.
-nbR(Obj):t ~ val(NbR) <-       x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, nbRpred(X, Y, NbR):t.
+nbR(Obj):t ~ val(NbR) <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X + 1, NbY is Y, map(X, Y, NbR):t.
 % nbR(Obj):t ~ val(no_object) <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, \+((nbRpred(X, Y, _):t)).
 % nbR(Obj):t+1 ~ val(NbR) <-       new_x_pos(Obj, NX):t, new_y_pos(Obj, NY):t, nbRpred(NX, NY, NbR):t.
 % nbR(Obj):t+1 ~ val(no_object) <- new_x_pos(Obj, NX):t, new_y_pos(Obj, NY):t, \+((nbRpred(NX, NY, _):t)).
@@ -94,11 +94,13 @@ nbL(Obj):t ~ val(NbL) <-       x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, nbLpred(X, 
 % schema_x_pos(Obj, New):t <- colour(Obj):t ~= Agent, action(r), x_pos(Obj):t ~= Curr, New is Curr + 1, y_pos(Obj):t ~= Y, map(New, Y, no_object):t.
 % schema_x_pos(Obj, New):t <- colour(Obj):t ~= Agent, action(l), x_pos(Obj):t ~= Curr, New is Curr - 1.
 
-s1(Obj, New):t <- colour(Obj):t ~= agent, action(r), x_pos(Obj):t ~= Curr, New is Curr + 1, y_pos(Obj):t ~= Y, map(New, Y, NB):t, nothing(NB):t ~= yes, Yes = yes.
-s2(Obj, New):t <- colour(Obj):t ~= agent, action(l), x_pos(Obj):t ~= Curr, New is Curr - 1, y_pos(Obj):t ~= Y, map(New, Y, NB):t, nothing(NB):t ~= yes, Yes = yes.
 
-s1no(Obj, New):t <- nothing(Obj):t ~= yes, Yes = yes, x_pos(Obj):t ~= X, s1(NB, NX):t, New is X - 1.
-s2no(Obj, New):t <- nothing(Obj):t ~= yes, Yes = yes, x_pos(Obj):t ~= X, s2(NB, NX):t, New is X + 1.
+
+s1(Obj, New):t <- colour(Obj):t ~= agent, action(r), x_pos(Obj):t ~= Curr, New is Curr + 1, y_pos(Obj):t ~= Y, map(New, Y, NB):t, nothing(NB):t ~= yes.
+s2(Obj, New):t <- colour(Obj):t ~= agent, action(l), x_pos(Obj):t ~= Curr, New is Curr - 1, y_pos(Obj):t ~= Y, map(New, Y, NB):t, nothing(NB):t ~= yes.
+
+s1no(Obj, New):t <- nothing(Obj):t ~= yes, x_pos(Obj):t ~= X, s1(NB, X):t, New is X - 1.
+s2no(Obj, New):t <- nothing(Obj):t ~= yes, x_pos(Obj):t ~= X, s2(NB, X):t, New is X + 1.
 
 
 map(X, Y, Obj):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y.

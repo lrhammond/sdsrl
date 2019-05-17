@@ -1,0 +1,389 @@
+Episode 0Episode 0
+none -> u
+none -> l
+none -> r
+none -> u
+none -> d
+none -> u
+none -> r
+none -> r
+none -> l
+Score: -9
+Episode 1
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 2
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 3
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 4
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 5
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 6
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 7
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 8
+none
+none
+none
+noneEpisode 0
+none -> r
+none -> r
+none -> r
+none -> r
+none -> l
+none -> d
+none -> l
+none -> d
+Score: -17
+Episode 1
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 2
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 3
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 4
+none
+none
+none
+none
+none
+none
+noneEpisode 0
+none -> r
+none -> r
+none -> l
+none -> u
+none -> r
+none -> d
+none -> u
+none -> r
+none -> l
+Score: -9
+Episode 1
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 2
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 3
+none
+none
+none
+noneEpisode 0
+none -> u
+none -> rEpisode 0
+none -> dEpisode 0
+none -> r
+none -> r
+none -> d
+none -> l
+none -> r
+none -> l
+none -> d
+none -> r
+none -> u
+Score: -9
+Episode 1
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 2
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 3
+noneEpisode 0
+none -> r
+none -> r
+none -> r
+none -> r
+none -> l
+none -> u
+none -> u
+none -> d
+none -> l
+Score: -9
+Episode 1
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 2
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 3
+none
+noneEpisode 0
+none -> r
+none -> d
+none -> u
+none -> u
+none -> u
+none -> l
+none -> r
+none -> r
+none -> d
+Score: -9
+Episode 1
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 2
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 3
+none
+none
+none
+none
+noneEpisode 0
+none -> u
+none -> d
+none -> u
+N/A -> r
+d
+d
+none -> d
+none -> r
+Score: 2
+Episode 1
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 2
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 3Episode 0
+none -> d
+none -> l
+none -> l
+none -> r
+r
+r
+none -> dEpisode 0
+none -> r
+none -> d
+none -> r
+none -> d
+r
+Score: 6
+Episode 1
+none
+none
+none
+none
+none
+d
+none
+none
+none
+Score: -1
+Episode 2
+none
+none
+none
+none
+d
+none
+none
+d
+Score: -11
+Episode 3
+none
+none
+none
+none
+none
+none
+none
+none
+none
+Score: 0
+Episode 4
+none
+none
+noneEpisode 0
+none -> l
+none -> u
+none -> r
+none -> r
+none -> d
+none -> l
+rEpisode 0
+none -> u
+none -> l
+none -> d
+none -> u
+none -> l
+none -> r
+r
+d
+none -> l
+Score: -9
+Episode 1Episode 0
+none -> u
+none -> r

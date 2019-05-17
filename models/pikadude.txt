@@ -1,0 +1,186 @@
+Actions for pikadude
+
+Episode 0
+none -> u (from random)
+none -> r (from random)
+none -> d (from random)
+none -> u (from random)
+none -> d (from random)
+none -> l (from random)
+r
+none -> l (from random)
+N/A -> r (from policy)
+N/A -> d (from random)
+r
+Score: 0
+
+Episode 1
+none -> r (from random)
+none -> u (from random)
+none -> l (from random)
+none -> d (from random)
+N/A -> r (from policy)
+N/A -> l (from random)
+N/A -> r (from policy)
+N/A -> u (from random)
+N/A -> u (from random)
+N/A -> d (from random)
+N/A -> d (from random)
+r
+Score: -1
+
+Episode 2
+N/A -> u (from random)
+N/A -> d (from random)
+N/A -> r (from policy)
+N/A -> l (from random)
+N/A -> r (from policy)
+N/A -> u (from random)
+N/A -> l (from random)
+N/A -> l (from random)
+N/A -> u (from random)
+N/A -> u (from random)
+N/A -> r (from random)
+N/A -> r (from random)
+none -> l (from random)
+N/A -> u (from random)
+N/A -> d (from random)
+N/A -> u (from random)
+N/A -> u (from random)
+N/A -> l (from random)
+N/A -> u (from random)
+Score: -19
+
+Episode 3
+N/A -> r (from random)
+N/A -> r (from random)
+N/A -> d (from random)
+none -> u (from random)
+N/A -> l (from random)
+N/A -> u (from random)
+N/A -> r (from random)
+N/A -> u (from random)
+none -> r (from random)
+N/A -> u (from random)
+none -> r (from random)
+N/A -> u (from random)
+N/A -> u (from random)
+none -> d (from random)
+none -> u (from random)
+N/A -> r (from random)
+none -> l (from random)
+N/A -> r (from random)
+N/A -> l (from random)
+Score: -19
+
+Episode 4
+N/A -> u (from random)
+N/A -> l (from random)
+N/A -> l (from random)
+N/A -> d (from random)
+N/A -> r (from policy)
+N/A -> u (from random)
+N/A -> u (from random)
+N/A -> u (from random)
+N/A -> l (from random)
+N/A -> u (from random)
+N/A -> r (from random)
+N/A -> l (from random)
+N/A -> u (from random)
+N/A -> l (from random)
+N/A -> d (from random)
+N/A -> r (from policy)
+N/A -> r (from random)
+N/A -> u (from random)
+N/A -> d (from random)
+Score: -19
+
+Episode 5
+N/A -> u (from random)
+N/A -> d (from random)
+N/A -> r (from policy)
+N/A -> r (from random)
+N/A -> u (from random)
+N/A -> l (from random)
+N/A -> u (from random)
+N/A -> l (from random)
+N/A -> u (from random)
+N/A -> d (from random)
+N/A -> r (from policy)
+N/A -> l (from random)
+N/A -> r (from policy)
+N/A -> l (from random)
+N/A -> r (from policy)
+N/A -> r (from random)
+N/A -> d (from random)
+r
+Score: -7
+
+Episode 6
+none -> d (from random)
+N/A -> r (from policy)
+N/A -> u (from random)
+none -> r (from random)
+none -> u (from random)
+none -> r (from random)
+none -> r (from random)
+none -> u (from random)
+none -> l (from random)
+none -> d (from random)
+N/A -> u (from random)
+none -> l (from random)
+none -> u (from random)
+none -> l (from random)
+none -> u (from random)
+none -> l (from random)
+none -> l (from random)
+none -> d (from random)
+N/A -> r (from policy)
+Score: -19
+
+Episode 7
+none -> u (from random)
+none -> u (from random)
+none -> l (from random)
+none -> u (from random)
+none -> d (from random)
+N/A -> r (from policy)
+N/A -> u (from random)
+none -> r (from random)
+none -> r (from random)
+none -> l (from random)
+none -> l (from random)
+none -> u (from random)
+none -> d (from random)
+N/A -> r (from policy)
+N/A -> u (from random)
+none -> u (from random)
+none -> r (from random)
+none -> l (from random)
+none -> r (from random)
+Score: -19
+
+Episode 8
+none -> r (from random)
+none -> u (from random)
+none -> r (from random)
+none -> d (from random)
+none -> u (from random)
+none -> d (from random)
+none -> r (from random)
+none -> u (from random)
+none -> d (from random)
+none -> l (from random)
+none -> u (from random)
+none -> d (from random)
+N/A -> d (from random)
+r
+Score: -3
+
+Episode 9
+none -> r (from random)
+none -> d (from random)
+N/A -> d (from random)
+r
+Score: 7
+

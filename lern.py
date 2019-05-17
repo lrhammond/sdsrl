@@ -23,8 +23,8 @@ import gc
 def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
 
     # Set up game according to mode and return description of initial state
-    environment = inta.setup(mode,test=True)
-    initState = inta.observeState(mode, environment)
+    environment, dims = inta.setup(mode,test=True)
+    initState = inta.observeState(mode, environment, dims)
     rewards = [0 for ep in range(numEpisodes)]
 
     # Intialise model
@@ -35,6 +35,11 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
     # # Q = QFunction(mode)
     # Q = 0
 
+    pi = {}
+
+    with open("models/" + M.name + ".txt", 'w') as f:
+        f.write("Actions for " + name + "\n\n")
+
     # Learn model and Q-function
     for i in range(numEpisodes):
         with open("models/" + M.name + ".txt", 'a+') as f:
@@ -42,8 +47,8 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
         print("===========")
         print("Episode " + str(i))
         # Set up model for new episode
-        environment = inta.setup(mode, test=True)
-        initState = inta.observeState(mode, environment)
+        environment, dims = inta.setup(mode, test=True)
+        initState = inta.observeState(mode, environment, dims)
         M.initialise(mode, initState)
         ended = False
         current_reward = 0
@@ -57,7 +62,7 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
                 print("Score: " + str(current_reward))
                 print("*********")
                 with open("models/" + M.name + ".txt", 'a+') as f:
-                    f.write("\nScore: " + str(current_reward) + "\n")
+                    f.write("\nScore: " + str(current_reward) + "\n\n")
                 break
             else:
                 print("-------")
@@ -69,17 +74,26 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
                 # veri.create_dtpl_file(M, numSteps, 0.9)
 
 
-                action = hype(M, numSamples)
+                state_key, action = hype(M, numSamples)
 
 
                 # action = "N/A"
 
 
 
-                if (action == "none" and i == 0) or action == "N/A":
-                    action = choice(M.obsActions[0][:4])
-                    with open("models/" + M.name + ".txt", 'a+') as f:
-                        f.write(" -> " + action)
+                if action == "none" or action == "N/A":
+
+                    if state_key in pi.keys():
+                        action = pi[state_key]
+                        with open("models/" + M.name + ".txt", 'a+') as f:
+                            f.write(" -> " + action + " (from policy)")
+                    else:
+                        action = choice(M.obsActions[0][:4])
+                        with open("models/" + M.name + ".txt", 'a+') as f:
+                            f.write(" -> " + action + " (from random)")
+
+                else:
+                    pi[state_key] = action
                 # Take action in the game and observe reward using RMAX
                 # action = rmax(M, Q, epsilon)
                 print("Action: " + action)
@@ -88,12 +102,14 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
                     current_reward += reward
                 # If the game has ended we only update the action and reward, as the state doesn't matter
                 if not ended:
-                    state = [inta.observeState(mode, environment), action, reward]
+                    state = [inta.observeState(mode, environment, dims), action, reward]
                     prevState = deepcopy(state[0])
                 else:
                     state[0] = prevState
                     state[1] = action
                     state[2] = reward
+
+
                 # Update model, data, and schemas
                 M.prev = M.getModelState()
                 M.oldMap = deepcopy(M.objMap)
@@ -163,7 +179,7 @@ def hype(model, num_samples):
     # Create Prolog file and initialise model
 
 
-    # inta.createPrologFile(model)
+    inta.createPrologFile(model)
 
 
 
@@ -172,8 +188,27 @@ def hype(model, num_samples):
     for key in model.objects.keys():
         object = model.objects[key]
         observations += object.observe()
-    observations = "[" + observations[:-2] + "]"
+
+    obs_list = [model.objects[key].observe() for key in model.objects.keys()] + ["observation(nothing(no_object))~=yes"]
+    observations = ", ".join(obs_list)
+    state = observations
+
+
+
+    # # Add 'no object' placeholder observations
+    # num_no_obj = 0
+    # for i in range(0,model.xMax + 1):
+    #     for j in range(0,model.xMax + 1):
+    #         if (i,j) not in model.objMap.keys():
+    #             no_obj = blox.Object(num_no_obj, x_pos=i, y_pos=j)
+    #             no_obj.nothing = "yes"
+    #             observations += no_obj.observe(no_obj=True)
+    #             num_no_obj += 1
+
+    observations = "[" + observations + "]"
     observations = observations.replace(" ", "")
+
+
     # Run HYPE algorithm via separate script due to memory constraints
     command = "python hype.py " + model.name + " " + str(num_samples) + " \"" + observations + "\""
     os.system(command)
@@ -181,7 +216,7 @@ def hype(model, num_samples):
     with open("models/" + model.name + ".txt", 'r') as f:
         lines = f.read().splitlines()
         action = lines[-1]
-    return str(action)
+    return state, str(action)
 
 
 # Learns schemas for a particular object attribute given data X and y using linprog

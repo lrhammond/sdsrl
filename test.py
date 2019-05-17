@@ -16,4 +16,4 @@ def run(name, mode, numEpisodes, numSteps, numSamples, epsilon):
 
     return
 
-run("nos","vgdl",10, 10, 100, 0)
+run("pikadude","vgdl",10, 20, 250, 0)

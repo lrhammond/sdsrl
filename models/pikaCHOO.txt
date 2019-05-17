@@ -1,0 +1,102 @@
+Actions for pikaCHOO (100,10,6)
+
+Episode 0
+none -> l
+none -> d
+none -> u
+d
+N/A -> u
+N/A -> u
+N/A -> u
+N/A -> d
+N/A -> u
+Score: -9
+
+Episode 1
+N/A -> d
+N/A -> r
+d
+none -> d
+r
+Score: 6
+
+Episode 2
+none -> u
+none -> l
+none -> r
+none -> l
+none -> d
+none -> l
+none -> r
+none -> u
+none -> d
+Score: -9
+
+Episode 3
+l
+d
+r
+none -> u
+N/A -> u
+N/A -> r
+none -> d
+none -> d
+none -> d
+Score: -9
+
+Episode 4
+none -> r
+N/A -> u
+N/A -> d
+N/A -> d
+r
+Score: 6
+
+Episode 5
+none -> l
+none -> l
+none -> u
+none -> r
+none -> l
+none -> l
+none -> d
+none -> r
+d
+Score: -9
+
+Episode 6
+none -> d
+N/A -> l
+r
+none -> d
+r
+Score: 6
+
+Episode 7
+none -> d
+none -> d
+Score: -11
+
+Episode 8
+none -> r
+none -> u
+none -> u
+l
+none -> l
+none -> u
+none -> r
+none -> r
+none -> d
+Score: -9
+
+Episode 9
+none -> l
+none -> l
+none -> r
+none -> r
+none -> d
+none -> d
+none -> d
+none -> d
+none -> r
+Score: -9

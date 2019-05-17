@@ -59,6 +59,7 @@ def setup(mode, test=False):
         rle.recordingEnabled = True
         rle.reset()
         rle._game._drawAll()
+        dims = rle.outdim
         environment = rle
     # TODO
     elif mode == "ale":
@@ -66,17 +67,23 @@ def setup(mode, test=False):
     else:
         return
     # Return environment
-    return environment
+    return environment, dims
 
 
 # Observe state from game environment and output in basic format
-def observeState(mode, environment):
+def observeState(mode, environment, dims):
     if mode == "vgdl":
         # Get environment information
         state = environment._obstypes.copy()
         # Get agent information
         agentState = environment.getState()
         state['agent'] = [(agentState[0], agentState[1])]
+        height = dims[0] - 1
+        # Flip the y-axis for VGDL environments
+        y_flip_state = {}
+        for key in state.keys():
+            y_flip_state[key] = [(i, height-j) for (i,j) in state[key]]
+        state = y_flip_state
     # TODO
     elif mode == "ale":
         return
@@ -204,7 +211,7 @@ attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos
     f.write("adm(action(A)):t <- member(A, [" + actions + "]).\n\n")
 
 
-#     # Write neighbour relations to file
+#
 #     f.write("""% Neighbours
 # nb1(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj - 1, Tmp2 is Yobj + 1, Xnb = Tmp1, Ynb = Tmp2.
 # nb2(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t,                   Tmp2 is Yobj + 1, Xnb = Xobj, Ynb = Tmp2.
@@ -224,14 +231,24 @@ attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos
 # # nb7(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x - 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x - 1.
 # # nb8(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x - 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y = Y_pos_x.\n\n""")
 
+    # Write neighbour relations to file
+    f.write("""% Neighbours
+nb1(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X - 1, NbY is Y + 1, map(NbX, NbY, Nb):t.
+nb2(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X,     NbY is Y + 1, map(NbX, NbY, Nb):t.
+nb3(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X + 1, NbY is Y + 1, map(NbX, NbY, Nb):t.
+nb4(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X + 1, NbY is Y    , map(NbX, NbY, Nb):t.
+nb5(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X + 1, NbY is Y - 1, map(NbX, NbY, Nb):t.
+nb6(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X,     NbY is Y - 1, map(NbX, NbY, Nb):t.
+nb7(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X - 1, NbY is Y - 1, map(NbX, NbY, Nb):t.
+nb8(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X - 1, NbY is Y    , map(NbX, NbY, Nb):t.\n\n""")
+
 
     # Write map rules to file
-    f.write("% Map\n")
-    f.write("""map(X, Y, Obj):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y.
-map(New_X, New_Y, Obj):t+1 <- schema_x_pos(Obj, New_X):t, schema_y_pos(Obj, New_Y):t.
-map(Curr_X, New_Y, Obj):t+1 <- no_schema_x_pos(Obj, Curr_X):t, schema_y_pos(Obj, New_Y):t.
-map(New_X, Curr_Y, Obj):t+1 <- schema_x_pos(Obj, New_X):t, no_schema_y_pos(Obj, Curr_Y):t.
-map(Curr_X, Curr_Y, Obj):t+1 <- no_schema_x_pos(Obj, New_X):t, no_schema_y_pos(Obj, New_Y):t.\n\n"""
+    f.write("""% Map
+map(X, Y, Obj):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y.
+map(X, Y, no_object):t <- """)
+    places = ["\+((map(X, Y, obj{0}):t))".format(i) for i in model.objects.keys()]
+    f.write(", ".join(places) + ".\n\n")
 
 
     # # Write 'nothing' rules to file
@@ -244,7 +261,8 @@ map(Curr_X, Curr_Y, Obj):t+1 <- no_schema_x_pos(Obj, New_X):t, no_schema_y_pos(O
 
     # Write attribute schemas to file
     attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "nothing"]
-    change = {"centre":"", "left":" - 1", "right":" + 1", "below":" + 1", "above":" - 1"}
+    change = {"centre":"", "left":" - 1", "right":" + 1", "below":" - 1", "above":" + 1"}
+    # ns_change = {"centre":"", "left":" + 1", "right":" - 1", "below":" - 1", "above":" + 1"}
     f.write("% Attribute Schemas\n")
     # for i in range(len(model.schemas) - 1):
     #     for j in model.schemas[i].keys():
@@ -254,6 +272,7 @@ map(Curr_X, Curr_Y, Obj):t+1 <- no_schema_x_pos(Obj, New_X):t, no_schema_y_pos(O
     #                 f.write(att + "(X):t+1 ~ val(New) <- (" + k.display() + " = New, " + att + "(X):t ~= Curr, " + k.head + " is Curr" + change[k.head] + " ; " + att + "(X):t ~= New).\n")
     #             else:
     #                 f.write(attributes[i] + "(X):t+1 ~ val(New) <- (" + k.display() + " = New ; " + attributes[i] + "(X):t) ~= New).\n")
+
     for i in range(len(model.schemas) - 1):
         numSchemas = 0
         att = attributes[i]
@@ -262,24 +281,58 @@ map(Curr_X, Curr_Y, Obj):t+1 <- no_schema_x_pos(Obj, New_X):t, no_schema_y_pos(O
                 s = model.schemas[i][j][k]
                 numSchemas += 1
                 if i == X_POS or i == Y_POS:
-                    f.write("schema_" + att + "(Obj, New):t <- " + s.display(no_head=True) + ", " + att + "(Obj):t ~= Curr, New is Curr" + change[s.head] + ".\n")
+                    f.write("schema_" + att + "(Obj, New):t <- " + s.display(
+                        no_head=True) + ", " + att + "(Obj):t ~= Curr, New is Curr" + change[s.head] + ".\n")
                 else:
                     f.write("schema_" + att + "(Obj, New):t <- " + s.display() + " = New.\n")
         if numSchemas != 0:
-            f.write("no_schema_" + att + "(Obj, New):t <- \+schema_" + att + "(Obj, _):t, " + att + "(Obj):t ~= New.\n")
             f.write(att + "(Obj):t+1 ~ val(New) <- schema_" + att + "(Obj, New):t.\n")
-            f.write(att + "(Obj):t+1 ~ val(New) <- no_schema_" + att + "(Obj, New):t.\n")
-        else:
-            f.write(att + "(Obj):t+1 ~ val(New) <- " + att + "(Obj):t ~= New.\n")
+        f.write(att + "(Obj):t+1 ~ val(Curr) <- " + att + "(Obj):t ~= Curr.\n")
     f.write("\n")
+
+
+
+    # for i in range(len(model.schemas) - 1):
+    #     numSchemas = 0
+    #     att = attributes[i]
+    #     for j in model.schemas[i].keys():
+    #         nothing_schema_needed = False
+    #         for k in range(len(model.schemas[i][j])):
+    #             s = model.schemas[i][j][k]
+    #             numSchemas += 1
+    #             if i == X_POS or i == Y_POS:
+    #                 f.write("s_" + att + "_" + j + "(Obj, New):t <- " + s.display(no_head=True) + ", " + att + "(Obj):t ~= Curr, New is Curr" + s_change[j] + ".\n")
+    #                 nothing_schema_needed = True
+    #             else:
+    #                 f.write("s_" + att + "_" + j + "(Obj, New):t <- " + s.display() + " = New.\n")
+    #         # Write schemas that change the position of placeholder 'nothing' objects
+    #         if len(model.schemas[i][j]) != 0:
+    #             f.write("schema_" + att + "(Obj, New):t <- s_" + att + "_" + j + "(Obj, New):t.\n")
+    #         if nothing_schema_needed:
+    #             f.write("ns_" + att + "_" + j +"(Obj, New):t <- nothing(Obj):t ~= yes, " + att + "(Obj):t ~= Curr, s_" + att + "_" + j + "(Nb, Curr):t, New is Curr" + ns_change[j] + ".\n")
+    #             f.write("schema_" + att + "(Obj, New):t <- ns_" + att + "_" + j + "(Obj, New):t.\n")
+    #     if numSchemas != 0:
+    #         f.write("no_schema_" + att + "(Obj, New):t <- \+schema_" + att + "(Obj, _):t, " + att + "(Obj):t ~= New.\n")
+    #         f.write(att + "(Obj):t+1 ~ val(New) <- schema_" + att + "(Obj, New):t.\n")
+    #         # f.write(att + "(Obj):t+1 ~ val(New) <- no_schema_" + att + "(Obj, New):t.\n")
+    #     # If no schemas have been learnt then the attribute remains the same
+    #     f.write(att + "(Obj):t+1 ~ val(New) <- " + att + "(Obj):t ~= New.\n")
+
+
+
     # Write reward schemas to file
     f.write("% Reward Schemas\n")
     f.write("""r(Xobj, Yobj, Type, R):t <- R = -10, action(d), Xobj=1, Yobj=2, Type=agent.
-r(Xobj, Yobj, Type, R):t <- R = -10, action(l), Xobj=2, Yobj=3, Type=agent.
-r(Xobj, Yobj, Type, R):t <- R = 10, action(r), Xobj=2, Yobj=3, Type=agent.
+r(Xobj, Yobj, Type, R):t <- R = -10, action(l), Xobj=2, Yobj=1, Type=agent.
+r(Xobj, Yobj, Type, R):t <- R = 10, action(r), Xobj=2, Yobj=1, Type=agent.
 schema_reward(Obj):t ~ val(R) <- attributes(Obj, Xobj, Yobj, _, _, Type, _, _):t, r(Xobj, Yobj, Type, R):t.
 schema_reward(Obj):t ~ val(-1) <- attributes(Obj, Xobj, Yobj, _, _, Type, _, _):t, \+r(Xobj, Yobj, Type, _):t.
 reward:t ~ val(R) <- schema_reward(Obj):t ~= R.""")
+#
+#     f.write("""reward:t ~ val(-10) <-  map(1, 1, obj19):t.
+# reward:t ~ val(10) <- map(3, 1, obj19):t.
+# reward:t ~ val(0) <- \+((map(1,1,obj19):t)), \+((map(3,1,obj19):t)).""")
+
     # for r in model.schemas[-1].keys():
     #     for s in model.schemas[-1][r]:
     #         f.write("reward:t+1 ~ val(Reward) <- (" + s.display() + " = Reward ; Reward = -1).\n")

@@ -492,7 +492,7 @@ class Model:
 
 
                 # Do not learn reward function for now
-                if i < 0:
+                if i < REWARD:
                     [binarySchemas, binaryEvidence, binaryRemaining] = lern.learnSchemas(self, xYes, xNo, schemas)
                 else:
                     [binarySchemas, binaryEvidence, binaryRemaining] = [[],[],[]]
@@ -543,15 +543,19 @@ class Object:
         return state
 
     # Displays object for use in forming Prolog file
-    def observe(self):
-        name = "obj" + str(self.id)
+    def observe(self, no_obj=False):
+        if no_obj:
+            name = "no_obj" + str(self.id)
+        else:
+            name = "obj" + str(self.id)
         output = "observation(x_pos(" + name + ")) ~= " + str(self.x_pos).lower() + ", "
-        output = output + "observation(y_pos(" + name + ")) ~= " + str(self.y_pos).lower() + ", "
-        output = output + "observation(x_size(" + name + ")) ~= " + str(self.x_size).lower() + ", "
-        output = output + "observation(y_size(" + name + ")) ~= " + str(self.y_size).lower() + ", "
-        output = output + "observation(colour(" + name + ")) ~= " + self.colour.lower() + ", "
-        output = output + "observation(shape(" + name + ")) ~= " + self.shape.lower() + ", "
-        output = output + "observation(nothing(" + name + ")) ~= " + self.nothing.lower() + ", "
+        output = output + "observation(y_pos(" + name + ")) ~= " + str(self.y_pos) + ", "
+        if not no_obj:
+            output = output + "observation(x_size(" + name + ")) ~= " + str(self.x_size) + ", "
+            output = output + "observation(y_size(" + name + ")) ~= " + str(self.y_size) + ", "
+            output = output + "observation(colour(" + name + ")) ~= " + self.colour + ", "
+            output = output + "observation(shape(" + name + ")) ~= " + self.shape + ", "
+        output = output + "observation(nothing(" + name + ")) ~= " + self.nothing
         return output
 
     def display(self):
@@ -596,23 +600,16 @@ class Schema:
         attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "nothing"]
         # SCHEMA NAMING REMOVED FOR NOW
         # schemaName = "Schema " + str(self.id) + ": "
-        schemaName = ""
+        # schemaName = ""
         schemaBody = ""
-        for key in self.objectBody.keys():
-            i = list(key)
+        for (i,j) in self.objectBody.keys():
             # Assert neighbour relation if needed
-            if not added[i[0]]:
-                addNeighbour = objects[i[0]] + "(Obj," + objNames[i[0]] + "):t"
-
-                map(New, Y, NB):t
-
-                neighbours = [None] + [n[0] for n in neighbourPositions((0,0))]
-
-
+            if not added[i]:
+                addNeighbour = objects[i] + "(Obj," + objNames[i] + "):t"
                 schemaBody = schemaBody + addNeighbour + ", "
-                added[i[0]] = True
+                added[i] = True
             # Add schema preconditions
-            precondition = attributes[i[1]] + "(" + objNames[i[0]] + "):t ~= " + str(self.objectBody[key])
+            precondition = attributes[j] + "(" + objNames[i] + "):t ~= " + str(self.objectBody[(i,j)])
             schemaBody = schemaBody + precondition + ", "
         if self.actionBody == None:
             schemaBody = schemaBody[:-2]

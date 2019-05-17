@@ -42,13 +42,13 @@ def oneHot(inputList):
 
 # Given a position return a list of the eight surrounding neighbours and their relative position vectors
 def neighbourPositions(pos):
-    n1 = [tuple(map(add, pos, (-1, -1))), ["left", "above"]]
-    n2 = [tuple(map(add, pos, (0, -1))), ["centre", "above"]]
-    n3 = [tuple(map(add, pos, (1, -1))), ["right", "above"]]
+    n1 = [tuple(map(add, pos, (-1, 1))), ["left", "above"]]
+    n2 = [tuple(map(add, pos, (0, 1))), ["centre", "above"]]
+    n3 = [tuple(map(add, pos, (1, 1))), ["right", "above"]]
     n4 = [tuple(map(add, pos, (1, 0))), ["right", "centre"]]
-    n5 = [tuple(map(add, pos, (1, 1))), ["right", "below"]]
-    n6 = [tuple(map(add, pos, (0, 1))), ["centre", "below"]]
-    n7 = [tuple(map(add, pos, (-1, 1))), ["left", "below"]]
+    n5 = [tuple(map(add, pos, (1, -1))), ["right", "below"]]
+    n6 = [tuple(map(add, pos, (0, -1))), ["centre", "below"]]
+    n7 = [tuple(map(add, pos, (-1, -1))), ["left", "below"]]
     n8 = [tuple(map(add, pos, (-1, 0))), ["left", "centre"]]
     return [n1, n2, n3, n4, n5, n6, n7, n8]
 

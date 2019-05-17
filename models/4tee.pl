@@ -88,8 +88,7 @@ nbLpred(X, Y, NbL):t <- NbX is X - 1, NbY is Y, x_pos(NbL):t ~= NbX, y_pos(NbL):
 nbL(Obj):t ~ val(NbL) <-       x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, nbLpred(X, Y, NbL):t.
 
 
-nbr(Obj, NB):t <-x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X + 1, NbY is Y, map(NbX, NbY, NB):t.
-nbl(Obj, NB):t <-x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X - 1, NbY is Y, map(NbX, NbY, NB):t.
+
 
 
 % nbL(Obj):t ~ val(no_object) <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, \+((nbLpred(X, Y, _):t)).
@@ -100,8 +99,8 @@ nbl(Obj, NB):t <-x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X - 1, NbY is Y, m
 % schema_x_pos(Obj, New):t <- colour(Obj):t ~= Agent, action(r), x_pos(Obj):t ~= Curr, New is Curr + 1, y_pos(Obj):t ~= Y, map(New, Y, no_object):t.
 % schema_x_pos(Obj, New):t <- colour(Obj):t ~= Agent, action(l), x_pos(Obj):t ~= Curr, New is Curr - 1.
 
-s1(Obj, New):t <- colour(Obj):t ~= agent, action(r), x_pos(Obj):t ~= Curr, New is Curr + 1, nbr(Obj, NB):t, nothing(NB):t ~= yes.
-s2(Obj, New):t <- colour(Obj):t ~= agent, action(l), x_pos(Obj):t ~= Curr, New is Curr - 1, nbl(Obj, NB):t, nothing(NB):t ~= yes.
+s1(Obj, New):t <- colour(Obj):t ~= agent, action(r), x_pos(Obj):t ~= Curr, New is Curr + 1, y_pos(Obj):t ~= Y, map(New, Y, NB):t, nothing(NB):t ~= yes.
+s2(Obj, New):t <- colour(Obj):t ~= agent, action(l), x_pos(Obj):t ~= Curr, New is Curr - 1, y_pos(Obj):t ~= Y, map(New, Y, NB):t, nothing(NB):t ~= yes.
 
 s1no(Obj, New):t <- nothing(Obj):t ~= yes, x_pos(Obj):t ~= X, s1(NB, X):t, New is X - 1.
 s2no(Obj, New):t <- nothing(Obj):t ~= yes, x_pos(Obj):t ~= X, s2(NB, X):t, New is X + 1.
@@ -215,20 +214,16 @@ c :- executedplan_start, executedplan_step(BA,false,
                               observation(y_pos(obj1)) ~= 0,
                               observation(colour(obj1)) ~= wall,
                               observation(nothing(obj1)) ~= no,
-                              observation(x_pos(obj2)) ~= 3,
+                              observation(x_pos(obj2)) ~= 1,
                               observation(y_pos(obj2)) ~= 0,
                               observation(colour(obj2)) ~= agent,
                               observation(nothing(obj2)) ~= no,
-                              observation(x_pos(no_obj0)) ~= 2,
+                              observation(x_pos(no_obj0)) ~= 3,
                               observation(y_pos(no_obj0)) ~= 0,
                               observation(colour(no_obj0)) ~= none,
                               observation(nothing(no_obj0)) ~= yes,
-                              observation(x_pos(no_obj1)) ~= 1,
+                              observation(x_pos(no_obj1)) ~= 2,
                               observation(y_pos(no_obj1)) ~= 0,
                               observation(colour(no_obj1)) ~= none,
                               observation(nothing(no_obj1)) ~= yes]
-                        ,100,6,TotalR,T,6,STOP),
-
-                        print(BA),
-                        print(BA),
-                        print(BA).
+                        ,100,6,TotalR,T,6,STOP).
