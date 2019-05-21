@@ -71,8 +71,13 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
                 M.clean()
                 # Find best action using HYPE
 
-                # veri.create_dtpl_file(M, numSteps, 0.9)
 
+                # action = choice(M.obsActions[0][:4])
+
+                # action = ""
+                # while action not in ["r", "l", "u", "d"]:
+                #     action = raw_input("Enter action: ")
+                # state_key = "blank"
 
                 state_key, action = hype(M, numSamples)
 
@@ -94,8 +99,12 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
 
                 else:
                     pi[state_key] = action
+
+
                 # Take action in the game and observe reward using RMAX
                 # action = rmax(M, Q, epsilon)
+
+
                 print("Action: " + action)
                 if action != "none":
                     [reward, ended] = inta.performAction(M, mode, environment, action)
@@ -119,9 +128,6 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
                 M.learn()
 
 
-
-
-
         # print("Pre-clean:")
         # for i in M.schemas:
         #     for j in i.keys():
@@ -132,6 +138,7 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
         #     for j in i.keys():
         #         for k in i[j]:
         #             k.display()
+
 
     print("Rewards:")
     print rewards
@@ -150,12 +157,12 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
                 print k
 
     # print("Remaining:")
-    # for i in range(len(M.XY)):
-    #     for j in M.XY[i].keys():
+    # for i in range(len(M.data)):
+    #     for j in M.data[i].keys():
     #         if j == -1:
     #             continue
     #         print("Attribute: " + str(j))
-    #         for k in M.XY[i][j]:
+    #         for k in M.data[i][j]:
     #             predicted = False
     #             for schema in M.schemas[i][j]:
     #                 if schema.isActive(k):
@@ -175,52 +182,41 @@ def rmax(M, Q, epsilon):
 
 
 # Updates Q function using abstracted trajectory samples from M
-def hype(model, num_samples):
+def hype(model, num_samples, max=3):
+
     # Create Prolog file and initialise model
+    inta.createPrologFile(model, num_samples, gamma=0.95, horizon=10)
+
+    action = ""
+    counter = 0
+
+    while action not in model.obsActions[0] and counter < max:
+
+        counter += 1
+
+        # Run HYPE algorithm using YAP
+        os.system("yap -l models/{0}.pl -g run > models/{0}.txt".format(model.name))
+        os.system("halt.")
+        os.system("yap -g halt")
+
+        # Open file containing actions and read the most recent action in
+        with open("models/" + model.name + ".txt", 'r') as f:
+            lines = f.read().splitlines()
+            action = lines[-1][7:-1]
+
+    if counter == max:
+        print("HYPE failed to compute an action {0} times, none selected".format(max))
+        action = "none"
+
+    print("HYPE selected: " + action)
+
+    return None, action
 
 
-    inta.createPrologFile(model)
-
-
-
-    # Form list of observations describing the current/initial state
-    observations = ""
-    for key in model.objects.keys():
-        object = model.objects[key]
-        observations += object.observe()
-
-    obs_list = [model.objects[key].observe() for key in model.objects.keys()] + ["observation(nothing(no_object))~=yes"]
-    observations = ", ".join(obs_list)
-    state = observations
-
-
-
-    # # Add 'no object' placeholder observations
-    # num_no_obj = 0
-    # for i in range(0,model.xMax + 1):
-    #     for j in range(0,model.xMax + 1):
-    #         if (i,j) not in model.objMap.keys():
-    #             no_obj = blox.Object(num_no_obj, x_pos=i, y_pos=j)
-    #             no_obj.nothing = "yes"
-    #             observations += no_obj.observe(no_obj=True)
-    #             num_no_obj += 1
-
-    observations = "[" + observations + "]"
-    observations = observations.replace(" ", "")
-
-
-    # Run HYPE algorithm via separate script due to memory constraints
-    command = "python hype.py " + model.name + " " + str(num_samples) + " \"" + observations + "\""
-    os.system(command)
-    # Open file containing actions and read the most recent action in
-    with open("models/" + model.name + ".txt", 'r') as f:
-        lines = f.read().splitlines()
-        action = lines[-1]
-    return state, str(action)
 
 
 # Learns schemas for a particular object attribute given data X and y using linprog
-def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
+def learnSchemas(xYes, xNo, schemas, R=0, L=LIMIT):
 
     failures = 0
 
@@ -228,42 +224,46 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
     yes = [tuple(item) for item in xYes]
     no = [tuple(item) for item in xNo]
     both = [list(item) for item in list(set(yes) & set(no))]
+    if len(both) != 0:
+        print("{0} contradictory data points detected and removed.".format(len(both)))
     for datum in both:
         xYes.remove(datum)
         xNo.remove(datum)
     # If there are no more positive cases we do not try learning here
     if len(xYes) == 0:
-        return [schemas, xYes, []]
+        print("No more positive cases after removing contradictory data, schemas not learnt.")
+        return [schemas, [], []]
     # If all the cases are positive there are no constraints for learning schemas so we do not try
     if len(xNo) == 0:
-        return [schemas + [[0 for item in xYes[0]]], xYes, []]
+        print("No negative cases so no constraints for learning, schemas not learnt.")
+        schemas.append([0 for _ in schemas[0]])
+        return [schemas, xYes, []]
+
+
     # Initialise variables
     oneVector = np.ones((1, len(xYes[0])))
     evidence = []
-
-
     badSchemas = []
-
     REMxYes = []
 
 
 
     # While there are still schema transitions to explain and the complexity limit L has not been reached
     while (len(xYes) + len(REMxYes) > 0) and (len(schemas) < L):
+
+
         # Create LP inputs
-
-
         f = np.sum([oneVector - np.array(x) for x in xYes], axis=0)
         f = np.divide(f, len(xYes))
-        f = f + (R * oneVector)
 
+        # Add weight regulariser
+        f = f + (R * oneVector)
 
 
         # if len(badSchemas) != 0:
         #     b = np.sum(badSchemas, axis=0)
         #     b = np.divide(b, len(badSchemas))
         #     f = f + (R * b)
-
 
 
         # f = f * len(xYes)
@@ -295,6 +295,8 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
         # Convert w to binary version and add to set of schemas
         w_binary = w > TOL
         w_binary = [int(entry) for entry in w_binary]
+
+
 
         old = np.array(w_binary)
 
@@ -335,9 +337,10 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
 
         # If we have learned a bad schema we don't add it, and skip learning until we have more data
         if len(newEvidence) == 0:
-            print("Schema failed to be learnt on this iteration")
+            print("Schema failed to be learnt on this iteration.")
             failures += 1
             if failures >= 5:
+                print("Fifth failure, skipping learning.")
                 break
 
             # print("w_binary:")
@@ -436,7 +439,8 @@ def learnSchemas(model, xYes, xNo, schemas, R=0.1, L=LIMIT):
 
 
 
-        evidence = evidence + newEvidence
+        evidence += newEvidence
+
 
     return [schemas, evidence, xYes]
 

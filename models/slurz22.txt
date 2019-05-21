@@ -1,0 +1,139 @@
+Actions for slurz22
+
+Episode 0
+N/A -> r (from random)
+N/A -> l (from random)
+N/A -> u (from random)
+N/A -> u (from random)
+N/A -> l (from random)
+N/A -> l (from random)
+N/A -> l (from random)
+N/A -> r (from random)
+N/A -> d (from random)
+N/A -> r (from random)
+N/A -> l (from random)
+N/A -> u (from random)
+N/A -> u (from random)
+N/A -> d (from random)
+N/A -> r (from random)
+N/A -> u (from random)
+N/A -> r (from random)
+N/A -> l (from random)
+N/A -> r (from random)
+Score: -19
+
+Episode 1
+N/A -> r (from random)
+N/A -> u (from random)
+N/A -> r (from random)
+N/A -> r (from random)
+N/A -> u (from random)
+N/A -> u (from random)
+N/A -> d (from random)
+N/A -> d (from random)
+N/A -> d (from random)
+N/A -> l (from random)
+N/A -> d (from random)
+N/A -> l (from random)
+N/A -> u (from random)
+N/A -> u (from random)
+N/A -> l (from random)
+N/A -> u (from random)
+N/A -> d (from random)
+N/A -> d (from random)
+Score: -27
+
+Episode 2
+N/A -> u (from random)
+N/A -> l (from random)
+N/A -> l (from random)
+N/A -> d (from random)
+N/A -> d (from random)
+Score: -14
+
+Episode 3
+N/A -> d (from random)
+N/A -> u (from random)
+N/A -> r (from random)
+N/A -> r (from random)
+N/A -> d (from random)
+N/A -> r (from random)
+N/A -> d (from random)
+N/A -> u (from random)
+N/A -> r (from random)
+N/A -> l (from random)
+N/A -> u (from random)
+N/A -> l (from random)
+N/A -> d (from random)
+N/A -> u (from random)
+N/A -> u (from random)
+N/A -> l (from random)
+N/A -> d (from random)
+N/A -> d (from random)
+Score: -27
+
+Episode 4
+N/A -> l (from random)
+N/A -> d (from random)
+N/A -> l (from random)
+N/A -> d (from random)
+Score: -13
+
+Episode 5
+N/A -> l (from random)
+N/A -> u (from random)
+N/A -> d (from random)
+N/A -> d (from random)
+Score: -13
+
+Episode 6
+N/A -> r (from random)
+N/A -> u (from random)
+N/A -> u (from random)
+N/A -> l (from random)
+N/A -> l (from random)
+N/A -> l (from random)
+N/A -> d (from random)
+N/A -> d (from random)
+Score: -17
+
+Episode 7
+N/A -> u (from random)
+N/A -> u (from random)
+N/A -> r (from random)
+N/A -> d (from random)
+N/A -> l (from random)
+N/A -> u (from random)
+N/A -> l (from random)
+N/A -> d (from random)
+N/A -> d (from random)
+Score: -18
+
+Episode 8
+N/A -> l (from random)
+N/A -> d (from random)
+N/A -> d (from random)
+Score: -12
+
+Episode 9
+N/A -> l (from random)
+N/A -> d (from random)
+N/A -> l (from random)
+N/A -> u (from random)
+N/A -> u (from random)
+N/A -> r (from random)
+N/A -> u (from random)
+N/A -> r (from random)
+N/A -> r (from random)
+N/A -> r (from random)
+N/A -> u (from random)
+N/A -> d (from random)
+N/A -> l (from random)
+N/A -> r (from random)
+N/A -> r (from random)
+N/A -> d (from random)
+N/A -> d (from random)
+N/A -> d (from random)
+N/A -> d (from random)
+Score: -19
+

@@ -23,8 +23,9 @@ from copy import deepcopy
 class Model:
 
     # Initialise model according to mode
-    def __init__(self, name, mode, initState, xMax=0, yMax=0):
+    def __init__(self, name, mode, initState, xMax=0, yMax=0, deterministic=True):
         self.name = name
+        self.deterministic = deterministic
         # Intialise dimensions of map and object/map attributes
         self.xMax = xMax
         self.yMax = yMax
@@ -36,16 +37,17 @@ class Model:
         self.obsColours = [[],[]]
         self.obsShapes = [[],[]]
         self.obsNothing = [["yes", "no"], [[1,0],[0,1]]]
-        # Create lists for storing observed actions and rewards
+        # Create lists for storing observed actions, rewards, and transitions
         self.obsActions = [["none"],[[0]]]
         self.obsRewards = [[],[]]
+        self.obsTrans = set([])
         # Create dictionaries for fast conversion between attribute values and binary versions
         self.observations = [self.obsXpos, self.obsYpos, self.obsXsizes, self.obsYsizes, self.obsColours, self.obsShapes, self.obsNothing, self.obsRewards, None, self.obsActions]
         self.dictionaries = {}
         # Create lists for storing schemas and learning data
         self.schemas = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
         self.evidence = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
-        self.XY = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
+        self.data = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
         # Initialise state descriptions of model and update dictionaries
         self.initialise(mode, initState)
         return
@@ -153,7 +155,7 @@ class Model:
     def updateDataKeys(self, index, attribute):
         self.schemas[index][attribute] = []
         self.evidence[index][attribute] = []
-        self.XY[index][attribute] = []
+        self.data[index][attribute] = []
         return
 
     # Update dictionaries for fast conversion between attribute values and binary versions
@@ -323,68 +325,46 @@ class Model:
 
     # Updates matrices that store data for learning schemas
     def updateData(self):
-        changes = util.changes(self)
-        # If there are no changes to any object or the reward or action, then nothing needs updating
-        if len(changes) == 0:
-            return
 
 
-        # If there is a new action then this is relevant to all objects
-        elif "action" in changes:
+        # changes = util.changes(self)
+        # # If there are no changes to any object or the reward or action, then nothing needs updating
+        # if len(changes) == 0:
+        #     return
 
-            newReward = 1
-            if "reward" in changes:
-                newReward = 1
-                changes.remove("reward")
+        # if "action" in changes:
+        #     changes = self.objects.keys()
+
+        # # TODO
+        # if "reward" in changes:
+        #     changes.remove("reward")
 
 
+        # If we have made a new transition:
+        # trans = util.toHashable(self.prev, self.curr)
+
+        if True:
+            # self.obsTrans.add(trans)
             for objId in self.objects.keys():
                 xRow = util.formXvector(objId, self.prev, self.oldMap) + [self.action]
                 yRow = util.formYvector(objId, self.prev, self.curr) + [self.reward]
                 # Add new data points if they have not already been recorded
-
-
-                for i in range(len(yRow) - 1 + newReward):
-
-
-                    if self.checkDatum([xRow, yRow[i]], i):
+                for i in range(len(yRow)):
+                    if self.checkDatum([xRow, yRow[i]], i) and xRow not in self.evidence[i][yRow[i]]:
                         self.evidence[i][yRow[i]].append(xRow)
-                    if xRow not in self.XY[i][yRow[i]]:
-                        self.XY[i][yRow[i]].append(xRow)
-            return
+                    elif xRow not in self.data[i][yRow[i]]:
+                        self.data[i][yRow[i]].append(xRow)
 
+        return
 
-
-        # Otherwise we just update the data with those objects that have changed
-        else:
-
-            newReward = 1
-            if "reward" in changes:
-                newReward = 1
-                changes.remove("reward")
-
-            for objId in changes:
-                xRow = util.formXvector(objId, self.prev, self.oldMap) + [self.action]
-                yRow = util.formYvector(objId, self.prev, self.curr) + [self.reward]
-                # Add new data points if they have not already been recorded
-
-
-                for i in range(len(yRow) - 1 + newReward):
-                    if self.checkDatum([xRow, yRow[i]], i):
-                        self.evidence[i][yRow[i]].append(xRow)
-                    if xRow not in self.XY[i][yRow[i]]:
-                        self.XY[i][yRow[i]].append(xRow)
-
-
-            return
 
     # Checks whether existing schemas predict a datapoint correctly or not
     def checkDatum(self, datum, index):
         # If no schema is active we output "none"
         predicted = False
-        errorMade = False
         # Check each schema that predicts this attribute of the object
         for key in self.schemas[index].keys():
+            errorMade = False
             for schema in self.schemas[index][key]:
                 if schema.isActive(datum[0]):
                     # If an active schema predicts the attribute value correctly output "predicted"
@@ -392,7 +372,6 @@ class Model:
                         predicted = True
                     # If an incorrect prediction is made by a schema we remove it and add the relevant evidence back to the learning data
                     else:
-
                         # print("------------------------------------")
                         # print("Datum body: ")
                         # for item in datum[0]:
@@ -401,10 +380,8 @@ class Model:
                         # print datum[1]
                         # print("------------------------------------")
 
-
                         print("Removed schema:")
                         print schema.display()
-
 
                         # print schema.objectBody
                         # print schema.actionBody
@@ -414,68 +391,83 @@ class Model:
                         errorMade = True
             # If an incorrect prediction was made we remove all evidence for this particular attribute value
             if errorMade:
-                self.XY[index][key] = self.XY[index][key] + self.evidence[index][key]
+                self.data[index][key] += self.evidence[index][key]
                 self.evidence[index][key] = []
         return predicted
+
+
 
     # Function for cleaning model of duplicate information
     def clean(self):
 
         # DON't clean reward data ATM (add 1 to range!!)
 
-
         for r in range(REWARD):
             for key in self.observations[r][0]:
                 # Remove duplicate data and schemas
-                self.XY[r][key] = util.deDupe(self.XY[r][key])
+                self.data[r][key] = util.deDupe(self.data[r][key])
                 self.evidence[r][key] = util.deDupe(self.evidence[r][key])
                 # Simplify schemas
                 self.schemas[r][key] = util.simplify(self, self.schemas[r][key], key)
         return
 
+
+
+
+
+
     # Updates and learns new schemas
     def learn(self):
 
-
-
+        attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
 
 
         # Prepare for learning
         self.updateDicts()
 
         # For each object attribute
-        for i in range(len(self.XY)):
+        for i in range(len(self.data)):
             remaining = {}
             # For each binary object attribute to be predicted
-            for key in self.XY[i].keys():
+            for key in self.data[i].keys():
                 # If the maximum number of schemas has already been learn we skip this round of learning
                 if len(self.schemas[i][key]) >= LIMIT:
-                    remaining[key] = self.XY[i][key]
+                    remaining[key] = self.data[i][key]
                     continue
                 # Form lists of positive and negative cases
 
 
                 if i < REWARD:
-                    xYes = [case for case in self.XY[i][key] if case[0][i] != key]
+                    xYes = []
+                    for datum in self.data[i][key]:
+                        if datum[0][i] != key:
+                            if self.checkDatum([datum,key], i):
+                                self.evidence[i][key].append(datum)
+                            else:
+                                xYes.append(datum)
+                    self.data[i][key] = [datum for datum in self.data[i][key] if datum not in self.evidence[i][key]]
+
+
+
+                    # xYes = [case for case in self.data[i][key] if (case[0][i] != key and not self.checkDatum([case,key], i))]
                 else:
 
 
 
 
-
-                    xYes = [case for case in self.XY[i][key] if key != -1]
-
-
-
-                # xYes = [case for case in self.XY[i][key] if case[0][i] != key]
+                    xYes = [case for case in self.data[i][key] if key != -1]
 
 
 
-                xNo = [self.XY[i][other] for other in self.XY[i].keys() if other != key]
+                # xYes = [case for case in self.data[i][key] if case[0][i] != key]
+
+
+
+                xNo = [self.data[i][other] + self.evidence[i][other] for other in self.data[i].keys() if other != key]
                 xNo = util.flatten(xNo)
                 # If there are no changes in this attribute of the primary object then we skip this round of learning
                 if len(xYes) == 0:
-                    remaining[key] = self.XY[i][key]
+                    remaining[key] = self.data[i][key]
                     # print("no changes for " + str(key))
                     continue
                 # Form vectors for learning
@@ -493,7 +485,7 @@ class Model:
 
                 # Do not learn reward function for now
                 if i < REWARD:
-                    [binarySchemas, binaryEvidence, binaryRemaining] = lern.learnSchemas(self, xYes, xNo, schemas)
+                    [binarySchemas, binaryEvidence, binaryRemaining] = lern.learnSchemas(xYes, xNo, schemas)
                 else:
                     [binarySchemas, binaryEvidence, binaryRemaining] = [[],[],[]]
 
@@ -513,13 +505,21 @@ class Model:
                 if len(toPrint) != 0:
                     print("New schemas: ")
                     for s in toPrint:
-                        print s.display()
+                        print(attributes[i] + " = " + key + " <- " + s.display(no_head=True))
+
                 # Convert learnt schemas and evidence from binary output and add to model
                 self.schemas[i][key] = [util.fromBinarySchema(self, schema, key) for schema in binarySchemas]
-                self.evidence[i][key] = self.evidence[i][key] + [util.fromBinary(self, datum) for datum in binaryEvidence]
+                self.evidence[i][key] += [util.fromBinary(self, datum) for datum in binaryEvidence]
                 remaining[key] = [util.fromBinary(self, datum) for datum in binaryRemaining]
-            self.XY[i] = remaining
+            self.data[i] = remaining
         return
+
+
+
+
+
+
+
 
 
 # Define the object class
@@ -572,6 +572,8 @@ class Schema:
         self.objectBody = {}
         self.actionBody = None
         self.head = None
+        self.positive = 0
+        self.negative = 0
         return
 
     # Checks if the schema is active against a vector describing an object
@@ -581,6 +583,8 @@ class Schema:
             for key in self.objectBody.keys():
                 objAtt = list(key)
                 # If there is no object in the position referred to by the attribute
+                # print x
+                # print objAtt[0]
                 if len(x[objAtt[0]]) == 0:
                     return False
                 # If the object attribute is not the same as in the datum

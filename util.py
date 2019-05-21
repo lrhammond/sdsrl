@@ -75,7 +75,7 @@ def formXvector(objId, state, oldMap):
             vector.append(nbVector)
         # If there is no neighbour, add a vector with all None entries apart from the 'nothing' attribute
         else:
-            new = [None for attribute in range(NOTHING+1)]
+            new = [None for _ in range(NOTHING+1)]
             new[NOTHING] = "yes"
             vector.append(new)
     return vector
@@ -108,6 +108,24 @@ def changes(model):
             if model.prev[objId] != model.curr[objId]:
                 changes.append(objId)
     return changes
+
+
+# Converts a model state into a hashable format for storing in a set
+def toHashable(prev, curr):
+    #
+    prev_state = []
+    for key in prev.keys():
+        if key != "action" and key != "reward":
+            state.append(str(key) + ":(" + ",".join([str(item) for item in prev[key]]) + ")")
+    prev_state.sort()
+
+    curr_state = []
+    for key in curr.keys():
+        if key != "action" and key != "reward":
+            state.append(str(key) + ":(" + ",".join([str(item) for item in curr[key]]) + ")")
+    curr_state.sort()
+
+    return ", ".join(state)
 
 
 # Converts a binary vector x to a human-readable data point
@@ -262,7 +280,7 @@ def simplify(model, old, head):
         trimmed = False
         for key in schema.objectBody:
             obj = list(key)
-            if obj[0] in range(NEIGHBOURS + 1) and obj[1] in range(Y_POS+1):
+            if obj[0] in range(NEIGHBOURS + 1) and obj[1] in range(Y_POS + 1):
                 toRemove.append(key)
                 trimmed = True
         if trimmed:
@@ -285,15 +303,22 @@ def simplify(model, old, head):
     if counter != 0:
         print("Successfully reduced " + str(counter) + " schemas")
     # Remove more complex schemas
+    toRemove = []
     oldBinary = [tuple(toBinarySchema(model, s)) for s in old]
     newBinary = list(set(oldBinary))
     newBinary = [list(item) for item in newBinary]
     newBinary.sort(key=sum)
-    for s1 in newBinary:
-        for s2 in newBinary:
-            if s1 != s2 and np.dot(np.array(s1), np.array(s2)) == sum(s1):
-                newBinary.remove(s2)
+    for i in range(len(newBinary)):
+        for j in range(i + 1, len(newBinary)):
 
+
+
+
+            s1 = newBinary[i]
+            s2 = newBinary[j]
+
+
+            if s1 != s2 and np.dot(np.array(s1), np.array(s2)) == sum(s1):
 
                 print("Removed:")
                 ds2 = fromBinarySchema(model, s2, head)
@@ -302,9 +327,12 @@ def simplify(model, old, head):
                 ds1 = fromBinarySchema(model, s1, head)
                 print ds1.display()
 
+                toRemove.append(s2)
 
-        new.append(fromBinarySchema(model, s1, head))
-        newBinary.remove(s1)
+
+    new = [fromBinarySchema(model, s, head) for s in newBinary if s not in toRemove]
+
+
     # Display notification to user if any schemas were removed
     numRemoved = len(old) - len(new)
     if numRemoved != 0:
@@ -316,7 +344,7 @@ def simplify(model, old, head):
 def to_problog_rule(att, key, schema):
 
     # Initialise template variables and lists
-    blank_list = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "N"]
+    blank_list = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing"]
     change = {"centre": "", "left": " - 1", "right": " + 1", "below": " + 1", "above": " - 1"}
     neighbours = []
 

@@ -10,7 +10,7 @@ name = sys.argv[1]
 num_samples = int(sys.argv[2])
 observations = sys.argv[3]
 
-
+print observations
 
 # Create model
 hype = HYPE("models/" + name + ".pl", num_samples)

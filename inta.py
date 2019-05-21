@@ -117,7 +117,18 @@ def performAction(model, mode, environment, action):
         return
 
 
-def createPrologFile(model):
+def createPrologFile(model, numSamples, gamma=0.95, horizon=10):
+
+    # Form list of observations describing the current/initial state
+    observations = ""
+    for key in model.objects.keys():
+        object = model.objects[key]
+        observations += object.observe()
+    obs_list = [model.objects[key].observe() for key in model.objects.keys()] + ["observation(nothing(no_object))~=yes"]
+    observations = ", ".join(obs_list)
+    state = observations
+    observations = "[" + observations + "]"
+    observations = observations.replace(" ", "")
     f = open("models/" + model.name + ".pl", "w+")
     # f = open(os.path.join("models/", model.name + ".pl"), "w")
     # Write title, setup information, and options to file
@@ -155,7 +166,7 @@ getparam(params) :- bb_put(user:spant,0),
                         propfalse,
                         % relfalse,
                         % Discount
-                        0.95,
+                        {0},
                         % Probability to explore in the beginning (first sample)
                         0.25,
                         % Probability to explore in the end (last sample)
@@ -192,45 +203,11 @@ attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos
                                                                            y_size(Obj):t ~= Y_size, 
                                                                            colour(Obj):t ~= Colour,
                                                                            shape(Obj):t ~= Shape,
-                                                                           nothing(Obj):t ~= Nothing.\n\n""")
-
-
-    # # Write constants to file
-    # f.write("% Constants\n")
-    # observations = util.flatten([model.obsXsizes[0], model.obsYsizes[0], model.obsColours[0], model.obsShapes[0], model.obsNothing[0]])
-    # observations = list(set(observations))
-    # constants = [c + " = " + c.lower() for c in observations]
-    # constant_list = ", ".join(constants)
-    # f.write("constants <- " + constant_list + ".\n")
-    # f.write("constants.\n\n")
-
-
+                                                                           nothing(Obj):t ~= Nothing.\n\n""".format(gamma))
     # Write actions to file
     f.write("% Actions\n")
     actions = ",".join(model.obsActions[0])
     f.write("adm(action(A)):t <- member(A, [" + actions + "]).\n\n")
-
-
-#
-#     f.write("""% Neighbours
-# nb1(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj - 1, Tmp2 is Yobj + 1, Xnb = Tmp1, Ynb = Tmp2.
-# nb2(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t,                   Tmp2 is Yobj + 1, Xnb = Xobj, Ynb = Tmp2.
-# nb3(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj + 1, Tmp2 is Yobj + 1, Xnb = Tmp1, Ynb = Tmp2.
-# nb4(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj + 1,                   Xnb = Tmp1, Ynb = Yobj.
-# nb5(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj + 1, Tmp2 is Yobj - 1, Xnb = Tmp1, Ynb = Tmp2.
-# nb6(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t,                   Tmp2 is Yobj - 1, Xnb = Xobj, Ynb = Tmp2.
-# nb7(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj - 1, Tmp2 is Yobj - 1, Xnb = Tmp1, Ynb = Tmp2.
-# nb8(Obj,Nb):t <- attributes(Obj, Xobj, Yobj, _, _, _, _, _):t, attributes(Nb, Xnb, Ynb, _, _, _, _, _):t, Tmp1 is Xobj - 1,                   Xnb = Tmp1, Ynb = Yobj.\n\n""")
-# # NEW FORMATTING USED HERE
-# # nb1(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x - 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x + 1.
-# # nb2(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y = X_pos_x,      y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x + 1.
-# # nb3(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x + 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x + 1.
-# # nb4(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x + 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y = Y_pos_x.
-# # nb5(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x + 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x - 1.
-# # nb6(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y = X_pos_x,      y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x - 1.
-# # nb7(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x - 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y is Y_pos_x - 1.
-# # nb8(X,Y):t <- x_pos(Y):t ~= X_pos_y, x_pos(X):t ~= X_pos_x, X_pos_y is X_pos_x - 1, y_pos(Y):t ~= Y_pos_y, y_pos(X):t ~= Y_pos_x, Y_pos_y = Y_pos_x.\n\n""")
-
     # Write neighbour relations to file
     f.write("""% Neighbours
 nb1(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X - 1, NbY is Y + 1, map(NbX, NbY, Nb):t.
@@ -241,38 +218,19 @@ nb5(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X + 1, NbY is Y - 
 nb6(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X,     NbY is Y - 1, map(NbX, NbY, Nb):t.
 nb7(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X - 1, NbY is Y - 1, map(NbX, NbY, Nb):t.
 nb8(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X - 1, NbY is Y    , map(NbX, NbY, Nb):t.\n\n""")
-
-
     # Write map rules to file
     f.write("""% Map
 map(X, Y, Obj):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y.
 map(X, Y, no_object):t <- """)
     places = ["\+((map(X, Y, obj{0}):t))".format(i) for i in model.objects.keys()]
     f.write(", ".join(places) + ".\n\n")
-
-
-    # # Write 'nothing' rules to file
-    # f.write("% Nothing\n")
-    # objects = ",".join(["obj" + str(i) for i in model.objects.keys()])
-    # f.write("nothing(Obj):t ~ val(Nothing) <- member(Obj, [" + objects + "]), Nothing = no.\n")
-    # f.write("nothing(Obj):t ~ val(Nothing) <- \+member(Obj, [" + objects + "]), Nothing = yes.\n\n")
-
-
-
+    # Write 'nothing' rule to file
+    f.write("% Nothing\n")
+    f.write("nothing(no_object):t+1 ~ val(Curr) <- nothing(no_object):t ~= Curr.\n\n")
     # Write attribute schemas to file
     attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "nothing"]
     change = {"centre":"", "left":" - 1", "right":" + 1", "below":" - 1", "above":" + 1"}
-    # ns_change = {"centre":"", "left":" + 1", "right":" - 1", "below":" - 1", "above":" + 1"}
     f.write("% Attribute Schemas\n")
-    # for i in range(len(model.schemas) - 1):
-    #     for j in model.schemas[i].keys():
-    #         for k in model.schemas[i][j]:
-    #             if i == X_POS or i == Y_POS:
-    #                 att = attributes[i]
-    #                 f.write(att + "(X):t+1 ~ val(New) <- (" + k.display() + " = New, " + att + "(X):t ~= Curr, " + k.head + " is Curr" + change[k.head] + " ; " + att + "(X):t ~= New).\n")
-    #             else:
-    #                 f.write(attributes[i] + "(X):t+1 ~ val(New) <- (" + k.display() + " = New ; " + attributes[i] + "(X):t) ~= New).\n")
-
     for i in range(len(model.schemas) - 1):
         numSchemas = 0
         att = attributes[i]
@@ -281,63 +239,29 @@ map(X, Y, no_object):t <- """)
                 s = model.schemas[i][j][k]
                 numSchemas += 1
                 if i == X_POS or i == Y_POS:
-                    f.write("schema_" + att + "(Obj, New):t <- " + s.display(
-                        no_head=True) + ", " + att + "(Obj):t ~= Curr, New is Curr" + change[s.head] + ".\n")
+                    f.write("schema_" + att + "(Obj, New):t <- " + s.display(no_head=True) + ", " + att + "(Obj):t ~= Curr, New is Curr" + change[s.head] + ".\n")
                 else:
                     f.write("schema_" + att + "(Obj, New):t <- " + s.display() + " = New.\n")
         if numSchemas != 0:
             f.write(att + "(Obj):t+1 ~ val(New) <- schema_" + att + "(Obj, New):t.\n")
         f.write(att + "(Obj):t+1 ~ val(Curr) <- " + att + "(Obj):t ~= Curr.\n")
     f.write("\n")
-
-
-
-    # for i in range(len(model.schemas) - 1):
-    #     numSchemas = 0
-    #     att = attributes[i]
-    #     for j in model.schemas[i].keys():
-    #         nothing_schema_needed = False
-    #         for k in range(len(model.schemas[i][j])):
-    #             s = model.schemas[i][j][k]
-    #             numSchemas += 1
-    #             if i == X_POS or i == Y_POS:
-    #                 f.write("s_" + att + "_" + j + "(Obj, New):t <- " + s.display(no_head=True) + ", " + att + "(Obj):t ~= Curr, New is Curr" + s_change[j] + ".\n")
-    #                 nothing_schema_needed = True
-    #             else:
-    #                 f.write("s_" + att + "_" + j + "(Obj, New):t <- " + s.display() + " = New.\n")
-    #         # Write schemas that change the position of placeholder 'nothing' objects
-    #         if len(model.schemas[i][j]) != 0:
-    #             f.write("schema_" + att + "(Obj, New):t <- s_" + att + "_" + j + "(Obj, New):t.\n")
-    #         if nothing_schema_needed:
-    #             f.write("ns_" + att + "_" + j +"(Obj, New):t <- nothing(Obj):t ~= yes, " + att + "(Obj):t ~= Curr, s_" + att + "_" + j + "(Nb, Curr):t, New is Curr" + ns_change[j] + ".\n")
-    #             f.write("schema_" + att + "(Obj, New):t <- ns_" + att + "_" + j + "(Obj, New):t.\n")
-    #     if numSchemas != 0:
-    #         f.write("no_schema_" + att + "(Obj, New):t <- \+schema_" + att + "(Obj, _):t, " + att + "(Obj):t ~= New.\n")
-    #         f.write(att + "(Obj):t+1 ~ val(New) <- schema_" + att + "(Obj, New):t.\n")
-    #         # f.write(att + "(Obj):t+1 ~ val(New) <- no_schema_" + att + "(Obj, New):t.\n")
-    #     # If no schemas have been learnt then the attribute remains the same
-    #     f.write(att + "(Obj):t+1 ~ val(New) <- " + att + "(Obj):t ~= New.\n")
-
-
-
     # Write reward schemas to file
     f.write("% Reward Schemas\n")
-    f.write("""r(Xobj, Yobj, Type, R):t <- R = -10, action(d), Xobj=1, Yobj=2, Type=agent.
-r(Xobj, Yobj, Type, R):t <- R = -10, action(l), Xobj=2, Yobj=1, Type=agent.
-r(Xobj, Yobj, Type, R):t <- R = 10, action(r), Xobj=2, Yobj=1, Type=agent.
-schema_reward(Obj):t ~ val(R) <- attributes(Obj, Xobj, Yobj, _, _, Type, _, _):t, r(Xobj, Yobj, Type, R):t.
-schema_reward(Obj):t ~ val(-1) <- attributes(Obj, Xobj, Yobj, _, _, Type, _, _):t, \+r(Xobj, Yobj, Type, _):t.
-reward:t ~ val(R) <- schema_reward(Obj):t ~= R.""")
-#
+    f.write("""reward:t ~ val(-10) <-  map(1, 2, obj19):t, action(d).
+reward:t ~ val(-10) <- map(2, 1, obj19):t, action(l).
+reward:t ~ val(10) <- map(2, 1, obj19):t, action(r).
+reward:t ~ val(-1) <- map(1, 2, obj19):t, \+action(d).
+reward:t ~ val(-1) <- map(1, 2, obj19):t, \+action(l).
+reward:t ~ val(-1) <- map(1, 1, obj19):t, \+action(r).
+reward:t ~ val(-1) <- \+(map(1, 2, obj19):t), \+(map(2, 1, obj19):t).\n\n""")
 #     f.write("""reward:t ~ val(-10) <-  map(1, 1, obj19):t.
 # reward:t ~ val(10) <- map(3, 1, obj19):t.
 # reward:t ~ val(0) <- \+((map(1,1,obj19):t)), \+((map(3,1,obj19):t)).""")
-
     # for r in model.schemas[-1].keys():
     #     for s in model.schemas[-1][r]:
     #         f.write("reward:t+1 ~ val(Reward) <- (" + s.display() + " = Reward ; Reward = -1).\n")
-    #
-    #
+
     # f.write("reward(Obj):t ~ val(R) <- attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t, schema_reward(R, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t.\n")
     # f.write("reward(Obj):t ~ val(-1) <- attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t, \+schema_reward(R, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t.\n")
     # f.write("reward:t ~ val(R) <- reward(Obj):t ~= R.\n\n")
@@ -346,7 +270,15 @@ reward:t ~ val(R) <- schema_reward(Obj):t ~= R.""")
     # for key in model.objects.keys():
     #     object = model.objects[key]
     #     f.write(object.display())
+
+
     # Write constraints to file
     # TODO
+
+    # Write run command to file
+    f.write("% Run command\n")
+    f.write("run :- executedplan_start,executedplan_step(BA,true," + observations + ",{0},{1},TotalR,T,{1},STOP),print(BA),halt.".format(numSamples, horizon))
+
+
     f.close()
     return
