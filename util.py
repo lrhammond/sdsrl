@@ -340,6 +340,14 @@ def simplify(model, old, head):
     return new
 
 
+# Recursively converts a nested mixture of lists and tuples into a nested tuple
+def to_tuple(x):
+    
+    if type(x) != list and type(x) != tuple:
+        return x
+    else:
+        return tuple([to_tuple(y) for y in x])
+
 
 def to_problog_rule(att, key, schema):
 

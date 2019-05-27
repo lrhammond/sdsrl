@@ -26,6 +26,10 @@ class Model:
     def __init__(self, name, mode, initState, xMax=0, yMax=0, deterministic=True):
         self.name = name
         self.deterministic = deterministic
+        # Create empty policy, Q fucntion and reward function
+        self.pi = {}
+        self.Q = {}
+        self.R ={}
         # Intialise dimensions of map and object/map attributes
         self.xMax = xMax
         self.yMax = yMax
@@ -73,8 +77,6 @@ class Model:
         state = {}
         for objId in self.objects.keys():
             state[objId] = self.objects[objId].getObjectState()
-        state["action"] = self.action
-        state["reward"] = self.reward
         return state
 
     # Set up objects and map based on vgdl state
@@ -158,7 +160,7 @@ class Model:
         self.data[index][attribute] = []
         return
 
-    # Update dictionaries for fast conversion between attribute values and binary versions
+    # Update dictionaries for faster conversion between attribute values and binary versions
     def updateDicts(self):
         self.observations = [self.obsXpos, self.obsYpos, self.obsXsizes, self.obsYsizes, self.obsColours, self.obsShapes, self.obsNothing, self.obsRewards, None, self.obsActions]
         self.dictionaries = []
@@ -170,16 +172,18 @@ class Model:
         return
 
     # Update model based on new observation
-    def updateModel(self, mode, full_state):
+    def updateModel(self, mode, observation):
         # Update action and reward as well as lists of observed values
-        self.action = full_state[1]
-        self.reward = full_state[2]
+        self.action = observation[1]
+        self.reward = observation[2]
         self.updateObsLists(None, self.action, self.reward)
+        # If the game has ended there is no new state observed
+        if observation[0] == None:
+            return
         # Update objects forming state description
-        state = deepcopy(full_state[0])
-        for key in state.keys():
+        state = deepcopy(observation[0])
+        # for key in state.keys():
             # state[key.capitalize()] = state.pop(key)
-            state[key] = state.pop(key)
         if mode == "vgdl":
             # Intialise arrays for storing IDs of objects that have changed or moved or both
             moved = []
@@ -326,22 +330,6 @@ class Model:
     # Updates matrices that store data for learning schemas
     def updateData(self):
 
-
-        # changes = util.changes(self)
-        # # If there are no changes to any object or the reward or action, then nothing needs updating
-        # if len(changes) == 0:
-        #     return
-
-        # if "action" in changes:
-        #     changes = self.objects.keys()
-
-        # # TODO
-        # if "reward" in changes:
-        #     changes.remove("reward")
-
-
-        # If we have made a new transition:
-        # trans = util.toHashable(self.prev, self.curr)
 
         if True:
             # self.obsTrans.add(trans)

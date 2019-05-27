@@ -3,6 +3,7 @@
 
 LIMIT = 10
 TOL = 1e-3
+RMAX = 1e6
 
 import sys
 import util
@@ -34,8 +35,6 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
 
     # # Q = QFunction(mode)
     # Q = 0
-
-    pi = {}
 
     with open("models/" + M.name + ".txt", 'w') as f:
         f.write("Actions for " + name + "\n\n")
@@ -79,26 +78,32 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
                 #     action = raw_input("Enter action: ")
                 # state_key = "blank"
 
-                state_key, action = hype(M, numSamples)
-
+                
+                # If the current state is new we initialise it to have maximum reward
+                state = util.to_tuple(sorted([(key, M.curr[key]) for key in M.curr.keys()]))
+                if state not in M.R.keys():
+                    M.R[state] = dict(zip(M.obsActions, [RMAX for _ in M.obsActions]))
+                
+                
+                # Use HYPE to return the optimum action and expected value of ........
+                action, expected_value = hype(M, numSamples)
+                
 
                 # action = "N/A"
 
-
-
-                if action == "none" or action == "N/A":
-
-                    if state_key in pi.keys():
-                        action = pi[state_key]
+                # If HYPE fails to select an action then we use the policy (if available) or make a random choice
+                if action == "N/A":
+                    if state in M.pi.keys():
+                        action = M.pi[state]
                         with open("models/" + M.name + ".txt", 'a+') as f:
                             f.write(" -> " + action + " (from policy)")
                     else:
-                        action = choice(M.obsActions[0][:4])
+                        action = choice(M.obsActions[0])
                         with open("models/" + M.name + ".txt", 'a+') as f:
                             f.write(" -> " + action + " (from random)")
-
+                # Otherwise we perform the action selected by HYPE and update the policy            
                 else:
-                    pi[state_key] = action
+                    M.pi[state] = action
 
 
                 # Take action in the game and observe reward using RMAX
@@ -109,23 +114,31 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
                 if action != "none":
                     [reward, ended] = inta.performAction(M, mode, environment, action)
                     current_reward += reward
+                    M.R[state][action] = reward
                 # If the game has ended we only update the action and reward, as the state doesn't matter
                 if not ended:
-                    state = [inta.observeState(mode, environment, dims), action, reward]
-                    prevState = deepcopy(state[0])
+                    observation = [inta.observeState(mode, environment, dims), action, reward]
                 else:
-                    state[0] = prevState
-                    state[1] = action
-                    state[2] = reward
+                    observation = [None, action, reward]
+                
+                
 
 
-                # Update model, data, and schemas
+                # Update model
                 M.prev = M.getModelState()
                 M.oldMap = deepcopy(M.objMap)
-                M.updateModel(mode, state)
+                M.updateModel(mode, observation)
                 M.curr = M.getModelState()
-                M.updateData()
-                M.learn()
+                
+                # Save transition so we don't have to update our data or do learning next time
+                new_state = util.to_tuple(sorted([(key, M.curr[key]) for key in M.curr.keys()]))
+                transition = util.to_tuple([state, action, new_state, reward])
+                
+                # If the transition has not previously been observed then we update the data
+                if transition not in M.obsTrans:
+                    M.obsTrans.add(transition)
+                    M.updateData()
+                    M.learn()
 
 
         # print("Pre-clean:")
@@ -175,6 +188,9 @@ def hyperMax(name, mode, numEpisodes, numSteps, numSamples, epsilon):
 
 # Chooses and returns action using RMAX framework with M and Q
 def rmax(M, Q, epsilon):
+    
+    
+    
 
     # TODO
     # return "DOWN"
@@ -187,7 +203,7 @@ def hype(model, num_samples, max=3):
     # Create Prolog file and initialise model
     inta.createPrologFile(model, num_samples, gamma=0.95, horizon=10)
 
-    action = ""
+    action = "N/A"
     counter = 0
 
     while action not in model.obsActions[0] and counter < max:
@@ -196,6 +212,7 @@ def hype(model, num_samples, max=3):
 
         # Run HYPE algorithm using YAP
         os.system("yap -l models/{0}.pl -g run > models/{0}.txt".format(model.name))
+        # Run in case HYPE crashes due to currently undiagnosed memory issues
         os.system("halt.")
         os.system("yap -g halt")
 
@@ -203,14 +220,16 @@ def hype(model, num_samples, max=3):
         with open("models/" + model.name + ".txt", 'r') as f:
             lines = f.read().splitlines()
             action = lines[-1][7:-1]
+            
+            # TODO
+            expected_value = None
 
     if counter == max:
-        print("HYPE failed to compute an action {0} times, none selected".format(max))
-        action = "none"
+        print("HYPE failed to compute an action {0} times, skipping on this step".format(max))
 
     print("HYPE selected: " + action)
 
-    return None, action
+    return action, expected_value
 
 
 
