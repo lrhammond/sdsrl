@@ -16,4 +16,4 @@ def main(name, mode, numEpisodes, numSteps, numSamples, epsilon, manual_episodes
 
     return
 
-main("cak","vgdl",10, 20, 100, 0, 1)
+main("def","vgdl",4, 20, 100, 0, 1)

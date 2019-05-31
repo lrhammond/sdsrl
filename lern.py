@@ -125,6 +125,7 @@ def run(name, mode, numEpisodes, numSteps, numSamples, epsilon, manual_episodes=
                 M.oldMap = deepcopy(M.objMap)
                 M.updateModel(mode, observation)
                 M.curr = M.getModelState()
+                M.obsChanges.update(set(util.changes(M)))
                 
                 # Save transition so we don't have to update our data or do learning next time
                 new_state = util.to_tuple(sorted([(key, M.curr[key]) for key in M.curr.keys()]))
@@ -163,9 +164,9 @@ def run(name, mode, numEpisodes, numSteps, numSamples, epsilon, manual_episodes=
     print rewards
 
     print("Schemas:")
-    for i in M.schemas:
-        for j in i.keys():
-            for k in i[j]:
+    for i in range(len(M.schemas)):
+        for j in M.schemas[i].keys():
+            for k in M.schemas[i][j]:
                 print(attributes[i] + " = " + j + " <- " + k.display(no_head=True))
 
     print("Evidence:")

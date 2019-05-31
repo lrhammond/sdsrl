@@ -46,6 +46,7 @@ class Model:
         self.obsRewards = [[],[]]
         self.obsTrans = set([])
         self.obsState = set([])
+        self.obsChanges = set([])
         # Create dictionaries for fast conversion between attribute values and binary versions
         self.observations = [self.obsXpos, self.obsYpos, self.obsXsizes, self.obsYsizes, self.obsColours, self.obsShapes, self.obsNothing, self.obsRewards, None, self.obsActions]
         self.dictionaries = {}
@@ -338,13 +339,12 @@ class Model:
 
         # Update transition data
         for objId in self.objects.keys():
-            x = util.formXvector(objId, self.prev, self.oldMap)
-            rRow[objId] = x
-            xRow = x + [a]
+            xRow = util.formXvector(objId, self.prev, self.oldMap) + [a]
             yRow = util.formYvector(objId, self.prev, self.curr) + [r]
+            rRow[objId] = xRow
 
             # Add new data points if they have not already been recorded
-            for i in range(len(yRow)):
+            for i in range(REWARD):
                 if self.checkDatum([xRow, yRow[i]], i) and xRow not in self.evidence[i][yRow[i]]:
                     self.evidence[i][yRow[i]].append(xRow)
                 elif xRow not in self.data[i][yRow[i]]:
@@ -356,17 +356,14 @@ class Model:
             # If the data point is predicted it is added to the evidence set
             predicted = False
             for key in rRow.keys():
-                if self.checkDatum([rRow[key] + [a], r], REWARD):
+                if self.checkDatum([rRow[key], r], REWARD):
                     predicted = True
+                    self.evidence[REWARD][r].append(rRow)
                     break
-            if predicted:
-                rRow["action"] = a
-                self.evidence[REWARD][r].append(rRow)
 
             # Otherwise we add it to the data set
             if not predicted and rRow not in self.data[REWARD][r]:
-                rRow["action"] = a
-                self.data[REWARD][r].append(rRow)
+                self.data[REWARD][r] += [rRow]
 
         return
 
@@ -412,7 +409,6 @@ class Model:
         return predicted
 
 
-
     # Function for cleaning model of duplicate information
     def clean(self):
 
@@ -430,20 +426,27 @@ class Model:
         return
 
 
-
     # Updates and learns new schemas
     def learn(self, transitions, rewards):
 
-        attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
-
         # Prepare for learning
         self.updateDicts()
+        attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
+        if transitions and rewards:
+            att_list = range(REWARD + 1)
+        elif transitions and not rewards:
+            att_list = range(REWARD)
+        elif not transitions and rewards:
+            att_list = [REWARD]
+        else:
+            return
 
-        # For each object attribute
-        for i in range(len(self.data)):
-            remaining = {}
+        # For each object attribute or reward
+        for i in att_list:
 
-            # For each binary object attribute to be predicted
+            remaining = dict(zip(self.data[i].keys(),[[] for key in self.data[i].keys()]))
+
+            # For each attribute/reward value to be predicted
             for key in self.data[i].keys():
 
                 # If the maximum number of schemas has already been learn we skip this round of learning
@@ -451,8 +454,32 @@ class Model:
                     remaining[key] = self.data[i][key]
                     continue
 
-                # Form lists of positive and negative cases
-                if i < REWARD:
+                # If we are predicting rewards the learning data is constructed from all objects that have changed
+                if i == REWARD:
+
+                    # Form positive cases
+                    xYes = []
+                    xNo = []
+                    for datum in self.data[i][key]:
+                        predicted = False
+                        for o in datum.keys():
+                            if self.checkDatum([datum[o], key], i):
+                                predicted = True
+                                self.evidence[i][key].append(datum)
+                                break
+                        if not predicted:
+                            xYes += [datum[c] for c in self.obsChanges]
+                            xNo += [datum[o]for o in datum.keys() if o not in self.obsChanges]
+
+                    # Form negative cases
+                    for other in self.data[i].keys():
+                        if other != key:
+                            xNo += util.flatten([[datum[o] for o in datum.keys()] for datum in self.data[i][other] + self.evidence[i][other]])
+
+                # Otherwise we construct learning data in the standard way
+                else:
+
+                    # Form positive cases
                     xYes = []
                     for datum in self.data[i][key]:
                         if datum[0][i] != key:
@@ -462,17 +489,9 @@ class Model:
                                 xYes.append(datum)
                     self.data[i][key] = [datum for datum in self.data[i][key] if datum not in self.evidence[i][key]]
 
-                    # xYes = [case for case in self.data[i][key] if (case[0][i] != key and not self.checkDatum([case,key], i))]
-
-                else:
-
-                    xYes = [case for case in self.data[i][key] if key != -1]
-                    xYes = []
-
-                # xYes = [case for case in self.data[i][key] if case[0][i] != key]
-
-                xNo = [self.data[i][other] + self.evidence[i][other] for other in self.data[i].keys() if other != key]
-                xNo = util.flatten(xNo)
+                    # Form negative cases
+                    xNo = [self.data[i][other] + self.evidence[i][other] for other in self.data[i].keys() if other != key]
+                    xNo = util.flatten(xNo)
 
                 # If there are no changes in this attribute of the primary object then we skip this round of learning
                 if len(xYes) == 0:
@@ -480,7 +499,7 @@ class Model:
                     # print("no changes for " + str(key))
                     continue
 
-                # Form vectors for learning
+                # Form binary vectors for learning
                 xYes = [util.toBinary(self, item) for item in xYes]
                 xNo = [util.toBinary(self, item) for item in xNo]
                 schemas = [util.toBinarySchema(self, schema) for schema in self.schemas[i][key]]
@@ -489,12 +508,10 @@ class Model:
                 # print("Learning for " + str(key))
 
                 # Learn and output schemas, new evidence, and remaining positive cases
-
-                # Do not learn reward function for now
-                if i < REWARD:
-                    [binarySchemas, binaryEvidence, binaryRemaining] = lern.learnSchemas(xYes, xNo, schemas)
+                if i == REWARD:
+                    [binarySchemas, _, _] = lern.learnSchemas(xYes, xNo, schemas)
                 else:
-                    [binarySchemas, binaryEvidence, binaryRemaining] = [[],[],[]]
+                    [binarySchemas, binaryEvidence, binaryRemaining] = lern.learnSchemas(xYes, xNo, schemas)
 
                 # print("111111111111111111")
                 # print schemas
@@ -507,12 +524,28 @@ class Model:
                 if len(toPrint) != 0:
                     print("New schemas: ")
                     for s in toPrint:
-                        print(attributes[i] + " = " + key + " <- " + s.display(no_head=True))
+                        print(attributes[i] + " = " + str(key) + " <- " + s.display(no_head=True))
 
                 # Convert learnt schemas and evidence from binary output and add to model
                 self.schemas[i][key] = [util.fromBinarySchema(self, schema, key) for schema in binarySchemas]
-                self.evidence[i][key] += [util.fromBinary(self, datum) for datum in binaryEvidence]
-                remaining[key] = [util.fromBinary(self, datum) for datum in binaryRemaining]
+
+                # If they are reward schemas then the binary evidence and remaining data are not in the correct form to be stored
+                if i == REWARD:
+                    for datum in self.data[i][key]:
+                        predicted = False
+                        for o in datum.keys():
+                            if self.checkDatum([datum[o], key], i):
+                                predicted = True
+                                self.evidence[i][key].append(datum)
+                                break
+                        if not predicted:
+                            remaining[key].append(datum)
+
+                # Otherwise we can convert directly back from the binary data and store the resukt
+                else:
+                    self.evidence[i][key] += [util.fromBinary(self, datum) for datum in binaryEvidence]
+                    remaining[key] = [util.fromBinary(self, datum) for datum in binaryRemaining]
+
             self.data[i] = remaining
 
         return

@@ -213,8 +213,15 @@ attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos
 
     # Write actions to file
     f.write("\n% Actions\n")
-    actions = ",".join(model.obsActions[0])
+
+
+
+
+    actions = ",".join(model.obsActions[0][:-1])
     f.write("adm(action(A)):t <- member(A, [" + actions + "]).\n")
+
+
+
 
     # Write neighbour relations to file
     f.write("""\n% Neighbours
@@ -264,13 +271,14 @@ map(X, Y, no_object):t <- """)
 
     # Write reward schemas to file
     f.write("\n% Reward Schemas\n")
-    f.write("""reward:t ~ val(-10) <-  map(1, 2, obj19):t, action(d).
-reward:t ~ val(-10) <- map(2, 1, obj19):t, action(l).
-reward:t ~ val(10) <- map(2, 1, obj19):t, action(r).
-reward:t ~ val(-1) <- map(1, 2, obj19):t, \+action(d).
-reward:t ~ val(-1) <- map(1, 2, obj19):t, \+action(l).
-reward:t ~ val(-1) <- map(1, 1, obj19):t, \+action(r).
-reward:t ~ val(-1) <- \+(map(1, 2, obj19):t), \+(map(2, 1, obj19):t).\n\n""")
+
+#     f.write("""reward:t ~ val(-10) <-  map(1, 2, obj19):t, action(d).
+# reward:t ~ val(-10) <- map(2, 1, obj19):t, action(l).
+# reward:t ~ val(10) <- map(2, 1, obj19):t, action(r).
+# reward:t ~ val(-1) <- map(1, 2, obj19):t, \+action(d).
+# reward:t ~ val(-1) <- map(1, 2, obj19):t, \+action(l).
+# reward:t ~ val(-1) <- map(1, 1, obj19):t, \+action(r).
+# reward:t ~ val(-1) <- \+(map(1, 2, obj19):t), \+(map(2, 1, obj19):t).\n\n""")
 
     for r in model.schemas[REWARD].keys():
         for s in model.schemas[REWARD][r]:
