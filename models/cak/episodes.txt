@@ -4,10 +4,23 @@ Episode 0
 r (from input)
 r (from input)
 r (from input)
-r (from input)
+l (from input)
 l (from input)
 d (from input)
-l (from input)
-l (from input)
-u (from input)
-u (from input)
+d (from input)
+Score: -16
+
+Episode 1
+none (from HYPE)
+d (from HYPE)
+r (from HYPE)
+d (from HYPE)
+r (from HYPE)
+Score: 7
+
+Episode 2
+d (from HYPE)
+none (from HYPE)
+none (from HYPE)
+none (from HYPE)
+r (from HYPE)

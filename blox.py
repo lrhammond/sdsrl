@@ -331,34 +331,62 @@ class Model:
     # Updates matrices that store data for learning schemas
     def updateData(self):
 
+        # Initialise variables
+        rRow = {}
+        a = self.action
+        r = self.reward
 
-        if True:
-            # self.obsTrans.add(trans)
-            for objId in self.objects.keys():
-                xRow = util.formXvector(objId, self.prev, self.oldMap) + [self.action]
-                yRow = util.formYvector(objId, self.prev, self.curr) + [self.reward]
-                # Add new data points if they have not already been recorded
-                for i in range(len(yRow)):
-                    if self.checkDatum([xRow, yRow[i]], i) and xRow not in self.evidence[i][yRow[i]]:
-                        self.evidence[i][yRow[i]].append(xRow)
-                    elif xRow not in self.data[i][yRow[i]]:
-                        self.data[i][yRow[i]].append(xRow)
+        # Update transition data
+        for objId in self.objects.keys():
+            x = util.formXvector(objId, self.prev, self.oldMap)
+            rRow[objId] = x
+            xRow = x + [a]
+            yRow = util.formYvector(objId, self.prev, self.curr) + [r]
+
+            # Add new data points if they have not already been recorded
+            for i in range(len(yRow)):
+                if self.checkDatum([xRow, yRow[i]], i) and xRow not in self.evidence[i][yRow[i]]:
+                    self.evidence[i][yRow[i]].append(xRow)
+                elif xRow not in self.data[i][yRow[i]]:
+                    self.data[i][yRow[i]].append(xRow)
+
+        # Update reward data
+        if rRow not in self.evidence[REWARD][r]:
+
+            # If the data point is predicted it is added to the evidence set
+            predicted = False
+            for key in rRow.keys():
+                if self.checkDatum([rRow[key] + [a], r], REWARD):
+                    predicted = True
+                    break
+            if predicted:
+                rRow["action"] = a
+                self.evidence[REWARD][r].append(rRow)
+
+            # Otherwise we add it to the data set
+            if not predicted and rRow not in self.data[REWARD][r]:
+                rRow["action"] = a
+                self.data[REWARD][r].append(rRow)
 
         return
 
 
     # Checks whether existing schemas predict a datapoint correctly or not
     def checkDatum(self, datum, index):
-        # If no schema is active we output "none"
+
+        # If no schema is active then the attribute value is not predicted
         predicted = False
+
         # Check each schema that predicts this attribute of the object
         for key in self.schemas[index].keys():
             errorMade = False
             for schema in self.schemas[index][key]:
                 if schema.isActive(datum[0]):
+
                     # If an active schema predicts the attribute value correctly output "predicted"
                     if key == datum[1]:
                         predicted = True
+
                     # If an incorrect prediction is made by a schema we remove it and add the relevant evidence back to the learning data
                     else:
                         # print("------------------------------------")
@@ -368,20 +396,19 @@ class Model:
                         # print("Datum head: ")
                         # print datum[1]
                         # print("------------------------------------")
-
                         print("Removed schema:")
                         print schema.display()
-
                         # print schema.objectBody
                         # print schema.actionBody
                         # print("---")
-
                         self.schemas[index][key].remove(schema)
                         errorMade = True
+
             # If an incorrect prediction was made we remove all evidence for this particular attribute value
             if errorMade:
                 self.data[index][key] += self.evidence[index][key]
                 self.evidence[index][key] = []
+
         return predicted
 
 
@@ -440,6 +467,7 @@ class Model:
                 else:
 
                     xYes = [case for case in self.data[i][key] if key != -1]
+                    xYes = []
 
                 # xYes = [case for case in self.data[i][key] if case[0][i] != key]
 
@@ -553,74 +581,85 @@ class Schema:
 
     # Checks if the schema is active against a vector describing an object
     def isActive(self, x):
+
         # Check if object attribute preconditions are met
         if len(self.objectBody.keys()) != 0:
             for key in self.objectBody.keys():
                 objAtt = list(key)
+
                 # If there is no object in the position referred to by the attribute
                 # print x
                 # print objAtt[0]
+
                 if len(x[objAtt[0]]) == 0:
                     return False
+
                 # If the object attribute is not the same as in the datum
                 if self.objectBody[key] != x[objAtt[0]][objAtt[1]]:
                     return False
+
         # Checks if action preconditions are met
         if self.actionBody != None and self.actionBody != x[9]:
             return False
+
         return True
 
     # Prints out schema in human-readable format
     def display(self, no_head=False):
+
         objects = ["obj"] + ["nb" + str(i+1) for i in range(NEIGHBOURS)]
         objNames = [name.capitalize() for name in objects]
         added = [False for item in objects]
         added[0] = True
         attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "nothing"]
+
         # SCHEMA NAMING REMOVED FOR NOW
         # schemaName = "Schema " + str(self.id) + ": "
         # schemaName = ""
+
         schemaBody = ""
         for (i,j) in self.objectBody.keys():
+
             # Assert neighbour relation if needed
             if not added[i]:
                 addNeighbour = objects[i] + "(Obj," + objNames[i] + "):t"
                 schemaBody = schemaBody + addNeighbour + ", "
                 added[i] = True
+
             # Add schema preconditions
             precondition = attributes[j] + "(" + objNames[i] + "):t ~= " + str(self.objectBody[(i,j)])
             schemaBody = schemaBody + precondition + ", "
+
         if self.actionBody == None:
             schemaBody = schemaBody[:-2]
         else:
             schemaBody = schemaBody + "action(" + str(self.actionBody) + ")"
-        schemaHead = str(self.head)
+
         if no_head:
-            output = schemaBody
+            return schemaBody
         else:
-            output = schemaBody + ", " + schemaHead
-        return output
+            return schemaBody + ", " + str(self.head)
 
 
-# Define the Q-function class
-class QFunction:
-
-    # Intialise Q-function
-    def __init__(self, mode):
-        # TODO
-        return
-
-    # Given a model, including current state choose an action to perform
-    def chooseAction(self, mode, model):
-        if mode == "vgdl":
-            # TODO
-            return
-        elif mode == "ale":
-            # TODO
-            return
-        else:
-            return
-
-    def update(self, model):
-        # TODO
-        return
+# # Define the Q-function class
+# class QFunction:
+#
+#     # Intialise Q-function
+#     def __init__(self, mode):
+#         # TODO
+#         return
+#
+#     # Given a model, including current state choose an action to perform
+#     def chooseAction(self, mode, model):
+#         if mode == "vgdl":
+#             # TODO
+#             return
+#         elif mode == "ale":
+#             # TODO
+#             return
+#         else:
+#             return
+#
+#     def update(self, model):
+#         # TODO
+#         return
