@@ -41,10 +41,11 @@ class Model:
         self.obsColours = [[],[]]
         self.obsShapes = [[],[]]
         self.obsNothing = [["yes", "no"], [[1,0],[0,1]]]
-        # Create lists for storing observed actions, rewards, and transitions
+        # Create lists for storing observed states, actions, rewards, and transitions
         self.obsActions = [["none"],[[0]]]
         self.obsRewards = [[],[]]
         self.obsTrans = set([])
+        self.obsState = set([])
         # Create dictionaries for fast conversion between attribute values and binary versions
         self.observations = [self.obsXpos, self.obsYpos, self.obsXsizes, self.obsYsizes, self.obsColours, self.obsShapes, self.obsNothing, self.obsRewards, None, self.obsActions]
         self.dictionaries = {}
@@ -388,27 +389,25 @@ class Model:
     # Function for cleaning model of duplicate information
     def clean(self):
 
-        # DON't clean reward data ATM (add 1 to range!!)
-
-        for r in range(REWARD):
+        # For each possible attribute or reward value
+        for r in range(REWARD + 1):
             for key in self.observations[r][0]:
+
                 # Remove duplicate data and schemas
                 self.data[r][key] = util.deDupe(self.data[r][key])
                 self.evidence[r][key] = util.deDupe(self.evidence[r][key])
+
                 # Simplify schemas
                 self.schemas[r][key] = util.simplify(self, self.schemas[r][key], key)
+
         return
 
 
 
-
-
-
     # Updates and learns new schemas
-    def learn(self):
+    def learn(self, transitions, rewards):
 
         attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
-
 
         # Prepare for learning
         self.updateDicts()
@@ -416,15 +415,16 @@ class Model:
         # For each object attribute
         for i in range(len(self.data)):
             remaining = {}
+
             # For each binary object attribute to be predicted
             for key in self.data[i].keys():
+
                 # If the maximum number of schemas has already been learn we skip this round of learning
                 if len(self.schemas[i][key]) >= LIMIT:
                     remaining[key] = self.data[i][key]
                     continue
+
                 # Form lists of positive and negative cases
-
-
                 if i < REWARD:
                     xYes = []
                     for datum in self.data[i][key]:
@@ -435,29 +435,23 @@ class Model:
                                 xYes.append(datum)
                     self.data[i][key] = [datum for datum in self.data[i][key] if datum not in self.evidence[i][key]]
 
-
-
                     # xYes = [case for case in self.data[i][key] if (case[0][i] != key and not self.checkDatum([case,key], i))]
+
                 else:
-
-
-
 
                     xYes = [case for case in self.data[i][key] if key != -1]
 
-
-
                 # xYes = [case for case in self.data[i][key] if case[0][i] != key]
-
-
 
                 xNo = [self.data[i][other] + self.evidence[i][other] for other in self.data[i].keys() if other != key]
                 xNo = util.flatten(xNo)
+
                 # If there are no changes in this attribute of the primary object then we skip this round of learning
                 if len(xYes) == 0:
                     remaining[key] = self.data[i][key]
                     # print("no changes for " + str(key))
                     continue
+
                 # Form vectors for learning
                 xYes = [util.toBinary(self, item) for item in xYes]
                 xNo = [util.toBinary(self, item) for item in xNo]
@@ -466,10 +460,7 @@ class Model:
 
                 # print("Learning for " + str(key))
 
-
                 # Learn and output schemas, new evidence, and remaining positive cases
-
-
 
                 # Do not learn reward function for now
                 if i < REWARD:
@@ -477,19 +468,14 @@ class Model:
                 else:
                     [binarySchemas, binaryEvidence, binaryRemaining] = [[],[],[]]
 
-
-
-                # Display new schemas to user
-
-
                 # print("111111111111111111")
                 # print schemas
                 # print("222222222222222222")
                 # print binarySchemas
                 # print("333333333333333333")
 
+                # Display new schemas to user
                 toPrint = [util.fromBinarySchema(self, s, key) for s in binarySchemas if s not in oldSchemas]
-
                 if len(toPrint) != 0:
                     print("New schemas: ")
                     for s in toPrint:
@@ -500,6 +486,7 @@ class Model:
                 self.evidence[i][key] += [util.fromBinary(self, datum) for datum in binaryEvidence]
                 remaining[key] = [util.fromBinary(self, datum) for datum in binaryRemaining]
             self.data[i] = remaining
+
         return
 
 

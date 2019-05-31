@@ -1,0 +1,13 @@
+Episode action sequences and rewards for cak
+
+Episode 0
+r (from input)
+r (from input)
+r (from input)
+r (from input)
+l (from input)
+d (from input)
+l (from input)
+l (from input)
+u (from input)
+u (from input)

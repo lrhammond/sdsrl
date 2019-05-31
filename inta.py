@@ -129,7 +129,7 @@ def createPrologFile(model, numSamples, gamma=0.95, horizon=10):
     state = observations
     observations = "[" + observations + "]"
     observations = observations.replace(" ", "")
-    f = open("models/" + model.name + ".pl", "w+")
+    f = open("models/" + model.name + "/hype_model.pl", "w+")
     # f = open(os.path.join("models/", model.name + ".pl"), "w")
     # Write title, setup information, and options to file
     f.write("% Prolog model for " + model.name + "\n\n")
