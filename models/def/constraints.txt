@@ -1,0 +1,2 @@
+right_of(Obj1, Obj2):t
+same_colour(Obj1, Obj2):t

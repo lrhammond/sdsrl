@@ -26,13 +26,16 @@ class Model:
     def __init__(self, name, mode, initState, xMax=0, yMax=0, deterministic=True):
         self.name = name
         self.deterministic = deterministic
-        # Create empty policy, Q fucntion and reward function
+
+        # Create empty policy, Q function and reward function
         self.pi = {}
         self.Q = {}
-        self.R ={}
+        self.R = {}
+
         # Intialise dimensions of map and object/map attributes
         self.xMax = xMax
         self.yMax = yMax
+
         # Create lists for storing observed attributes and one-hot encoded versions
         self.obsXpos = [["left", "centre", "right"], [[1,0,0],[0,1,0],[0,0,1]]]
         self.obsYpos = [["below", "centre", "above"], [[1,0,0],[0,1,0],[0,0,1]]]
@@ -41,48 +44,63 @@ class Model:
         self.obsColours = [[],[]]
         self.obsShapes = [[],[]]
         self.obsNothing = [["yes", "no"], [[1,0],[0,1]]]
+
         # Create lists for storing observed states, actions, rewards, and transitions
         self.obsActions = [["none"],[[0]]]
         self.obsRewards = [[],[]]
         self.obsTrans = set([])
         self.obsState = set([])
         self.obsChanges = set([])
+
         # Create dictionaries for fast conversion between attribute values and binary versions
         self.observations = [self.obsXpos, self.obsYpos, self.obsXsizes, self.obsYsizes, self.obsColours, self.obsShapes, self.obsNothing, self.obsRewards, None, self.obsActions]
         self.dictionaries = {}
+
         # Create lists for storing schemas and learning data
         self.schemas = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
         self.evidence = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
         self.data = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
+
         # Initialise state descriptions of model and update dictionaries
         self.initialise(mode, initState)
+
         return
+
 
     # Initialises model according an initial state
     def initialise(self, mode, initState):
-        # Create variables for storing the current action and reward values
+
+        # Create variables for storing the current action and reward values, plus the RMAX value
         self.action = None
         self.reward = None
+        self.RMAX = 0
+
         # Initialise map and object dictionaries
         self.objects = {}
         self.oldMap = {}
         self.objMap = {}
+
         # Set up model using intial observation
         self.setObjects(mode, initState)
         self.prev = None
         self.curr = self.getModelState()
         self.updateDicts()
+
         return
+
 
     # Outputs dictionary representing the state of the model
     def getModelState(self):
+
         state = {}
         for objId in self.objects.keys():
             state[objId] = self.objects[objId].getObjectState()
+
         return state
 
     # Set up objects and map based on vgdl state
     def setObjects(self, mode, state):
+
         for key in state.keys():
             # state[key.capitalize()] = state.pop(key)
             state[key] = state.pop(key)
@@ -91,6 +109,7 @@ class Model:
             for objType in state.keys():
                 for objPos in state[objType]:
                     position = list(objPos)
+
                     # Create new object and add to the set of objects and the map
                     newObj = Object(i, position[0], position[1])
                     newObj.colour = objType
@@ -102,23 +121,30 @@ class Model:
                         self.objMap[objPos].append(i)
                     else:
                         self.objMap[objPos] = [i]
-                    i = i + 1
+                    i += 1
                     # Update lists of observed attribute values and change schema learning data representations
+
                     self.updateObsLists(newObj, None, None)
+
                     # Update map dimensions if needed
                     if position[0] > self.xMax:
                         self.xMax = position[0]
                     if position[1] > self.yMax:
                         self.yMax = position[1]
+
             return
+
         # TODO
         elif mode == "ale":
             return
+
         else:
             return
 
+
     # Update lists of observed values and propagate changes to schema learning matrices
     def updateObsLists(self, obj, action, reward):
+
         # Check for object attributes
         if obj != None:
             if obj.x_size not in self.obsXsizes[0]:
@@ -137,33 +163,43 @@ class Model:
                 self.obsShapes[0].append(obj.shape)
                 self.obsShapes[1] = util.oneHot(self.obsShapes[0])
                 self.updateDataKeys(SHAPE, obj.shape)
+
         # Check for new actions
         if action != None and action not in self.obsActions[0] and action != "none":
+
             # Remove 'nothing' action for one-hot encoding
             self.obsActions[0].remove("none")
+
             # Add new action and update one-hot encoded values
             self.obsActions[0].append(action)
             self.obsActions[1] = util.oneHot(self.obsActions[0])
+
             # Add 'nothing' option back in again
             actionLength = len(self.obsActions[1][0])
             self.obsActions[0].append("none")
             self.obsActions[1].append([0 for i in range(actionLength)])
+
         # Check for new rewards
         if reward != None and reward not in self.obsRewards[0]:
             self.obsRewards[0].append(reward)
             self.obsRewards[1] = util.oneHot(self.obsRewards[0])
             self.updateDataKeys(REWARD, reward)
+
         return
+
 
     # Update keys for storing data and schemas
     def updateDataKeys(self, index, attribute):
+
         self.schemas[index][attribute] = []
         self.evidence[index][attribute] = []
         self.data[index][attribute] = []
+
         return
 
     # Update dictionaries for faster conversion between attribute values and binary versions
     def updateDicts(self):
+
         self.observations = [self.obsXpos, self.obsYpos, self.obsXsizes, self.obsYsizes, self.obsColours, self.obsShapes, self.obsNothing, self.obsRewards, None, self.obsActions]
         self.dictionaries = []
         for obs in self.observations:
@@ -171,26 +207,33 @@ class Model:
                 self.dictionaries.append(None)
             else:
                 self.dictionaries.append(util.obsToDicts(obs))
+
         return
+
 
     # Update model based on new observation
     def updateModel(self, mode, observation):
+
         # Update action and reward as well as lists of observed values
         self.action = observation[1]
         self.reward = observation[2]
         self.updateObsLists(None, self.action, self.reward)
+
         # If the game has ended there is no new state observed
         if observation[0] == None:
             return
+
         # Update objects forming state description
         state = deepcopy(observation[0])
         # for key in state.keys():
             # state[key.capitalize()] = state.pop(key)
         if mode == "vgdl":
+
             # Intialise arrays for storing IDs of objects that have changed or moved or both
             moved = []
             changed = []
             both = []
+
             # Check each object to see if it has changed or moved
             for objId in self.objects.keys():
                 objType = self.objects[objId].colour
@@ -202,6 +245,7 @@ class Model:
                         moved.append(objId)
                 else:
                     changed.append(objId)
+
             # Update objects that have moved unless there is some ambiguity after LIMIT attempts
             i = 0
             while (len(moved) != 0) and (i < LIMIT):
@@ -211,10 +255,12 @@ class Model:
                     possibleNewPos = state[objType]
                     neighbours = [n[0] for n in util.neighbourPositions(oldPos)]
                     intersection = [item for item in possibleNewPos if item in neighbours]
+
                     # If no neighbour of the same type can be found, the object may have changed
                     if len(intersection) == 0:
                         changed.append(objId)
                         moved.remove(objId)
+
                     # If a single neighbour of the same type can be found, it is assumed to be the same object
                     elif len(intersection) == 1:
                         newPos = intersection[0]
@@ -228,11 +274,13 @@ class Model:
                             self.objMap[newPos] = [objId]
                         state[objType].remove(newPos)
                         moved.remove(objId)
+
                         # Update map dimensions if needed
                         if position[0] > self.xMax:
                             self.xMax = position[0]
                         if position[1] > self.yMax:
                             self.yMax = position[1]
+
                     # If not then there is some ambiguity, so we try resolving other cases first
                     else:
                         continue
@@ -240,6 +288,7 @@ class Model:
             if i >= LIMIT:
                 print("Error: Ambiguity in attempting to identify moved objects")
                 return
+
             # Update objects that have changed unless there is some ambiguity after LIMIT attempts
             j = 0
             while (len(changed) != 0) and (j < LIMIT):
@@ -250,18 +299,22 @@ class Model:
                     for objType in state.keys():
                         if objPos in state[objType]:
                             possibleNewType.append(objType)
+
                     # If no object is now found in this position the object may have both changed and moved
                     if len(possibleNewType) == 0:
                         both.append(objId)
                         changed.remove(objId)
+
                     # If an object of a single type is found to exist in this location then we assume it is the same object
                     elif len(possibleNewType) == 1:
                         newType = possibleNewType[0]
                         self.objects[objId].colour = newType
                         state[oldType].remove(objPos)
                         changed.remove(objId)
+
                         # Update list of observed attribute values and data structures for schema learning
                         self.updateObsLists(self.objects[objId], None, None)
+
                     # If not then there is some ambiguity, so we try resolving other cases first
                     else:
                         continue
@@ -269,6 +322,7 @@ class Model:
             if j >= LIMIT:
                 print("Error: Ambiguity in attempting to identify changed objects")
                 return
+
             # Update objects that have changed and moved
             k = 0
             while (len(both) != 0) and (k < LIMIT):
@@ -277,6 +331,7 @@ class Model:
                     possibleNewPos = state.values()
                     neighbours = [n[0] for n in util.neighbourPositions(oldPos)]
                     intersection = [item for item in possibleNewPos if item in neighbours]
+
                     # If there are no neighbours at all we assume the object has disappeared
                     if len(intersection) == 0:
                         self.objects[objId].nothing = "yes"
@@ -288,6 +343,7 @@ class Model:
 
                         self.objMap[oldPos].remove(objId)
                         both.remove(objId)
+
                     # If there is a single neighbour (of different type) we assume it is the same object
                     if len(intersection) == 1:
                         newPos = intersection[O]
@@ -305,13 +361,16 @@ class Model:
                             self.objMap[newPos] = [objId]
                         state[newType].remove(newPos)
                         both.remove(objId)
+
                         # Update list of observed attribute values and data structures for schema learning
                         self.updateObsLists(self.objects[objId], None, None)
+
                         # Update map dimensions if needed
                         if position[0] > self.xMax:
                             self.xMax = position[0]
                         if position[1] > self.yMax:
                             self.yMax = position[1]
+
                     # If not then there is some ambiguity, so we try resolving other cases first
                     else:
                         continue
@@ -319,15 +378,18 @@ class Model:
             if k >= LIMIT:
                 print("Error: Ambiguity in attempting to identify objects that have both changed and moved")
                 return
+
             # Finally, add any new objects that might have appeared
             if len(state.values()) != 0:
                 self.setObjects(mode, state)
             return
+
         # TODO
         elif mode == "ale":
             return
         else:
             return
+
 
     # Updates matrices that store data for learning schemas
     def updateData(self):
@@ -375,6 +437,7 @@ class Model:
         predicted = False
 
         # Check each schema that predicts this attribute of the object
+        attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
         for key in self.schemas[index].keys():
             errorMade = False
             for schema in self.schemas[index][key]:
@@ -394,7 +457,7 @@ class Model:
                         # print datum[1]
                         # print("------------------------------------")
                         print("Removed schema:")
-                        print schema.display()
+                        print(attributes[index] + " = " + str(key) + " <- " + schema.display(no_head=True))
                         # print schema.objectBody
                         # print schema.actionBody
                         # print("---")
@@ -413,6 +476,7 @@ class Model:
     def clean(self):
 
         # For each possible attribute or reward value
+        attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
         for r in range(REWARD + 1):
             for key in self.observations[r][0]:
 
@@ -421,7 +485,7 @@ class Model:
                 self.evidence[r][key] = util.deDupe(self.evidence[r][key])
 
                 # Simplify schemas
-                self.schemas[r][key] = util.simplify(self, self.schemas[r][key], key)
+                self.schemas[r][key] = util.simplify(self, self.schemas[r][key], key, attributes[r])
 
         return
 
@@ -549,13 +613,6 @@ class Model:
             self.data[i] = remaining
 
         return
-
-
-
-
-
-
-
 
 
 # Define the object class

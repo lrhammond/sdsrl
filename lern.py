@@ -23,14 +23,16 @@ import gc
 # Learning procedure
 def run(name, mode, numEpisodes, numSteps, numSamples, epsilon, manual_episodes=0):
 
-    # Set up game according to mode and return description of initial state
-    environment, dims = inta.setup(mode,test=True)
-    initState = inta.observeState(mode, environment, dims)
-    rewards = [0 for _ in range(numEpisodes)]
-
     # Create directory to store files in
     if not os.path.exists("models/" + name):
         os.makedirs("models/" + name)
+
+    # Set up game according to mode and return description of initial state
+    environment, dims = inta.setup(name, mode)
+    initState = inta.observeState(mode, environment, dims)
+    rewards = [0 for _ in range(numEpisodes)]
+    all_constraints = inta.get_file(name, "constraints")
+    constraints = ", ".join(all_constraints.splitlines())
 
     # Intialise model
     M = blox.Model(name, mode, initState)
@@ -47,7 +49,7 @@ def run(name, mode, numEpisodes, numSteps, numSamples, epsilon, manual_episodes=
         print("Episode " + str(i))
 
         # Set up model for new episode
-        environment, dims = inta.setup(mode, test=True)
+        environment, dims = inta.setup(name, mode)
         initState = inta.observeState(mode, environment, dims)
         M.initialise(mode, initState)
         ended = False
@@ -77,6 +79,7 @@ def run(name, mode, numEpisodes, numSteps, numSamples, epsilon, manual_episodes=
                 state = util.to_tuple(sorted([(key, M.curr[key]) for key in M.curr.keys()]))
                 if state not in M.R.keys():
                     M.R[state] = dict(zip(M.obsActions[0], [RMAX for _ in M.obsActions]))
+                rmax_actions = [a for a in M.R[state] if M.R[state][a] == RMAX]
 
                 # If using manual control for episode, input action
                 if i in range(manual_episodes):
@@ -87,12 +90,15 @@ def run(name, mode, numEpisodes, numSteps, numSamples, epsilon, manual_episodes=
 
                 # Otherwise find the best action using HYPE
                 else:
-                    action, expected_value = hypermax(M, numSamples)
+                    action, expected_value = hypermax(M, numSamples, rmax_actions, constraints)
                     method = "HYPE"
 
-                # If HYPE fails to select an action then we use the policy (if available) or make a random choice
+                # If HYPE fails to select an action then we use RMAX, the policy (if available) or make a random choice
                 if action == "N/A":
-                    if state in M.pi.keys():
+                    if len(rmax_actions) != 0:
+                        action = choice(rmax_actions)
+                        method = "RMAX"
+                    elif state in M.pi.keys():
                         action = M.pi[state]
                         method = "policy"
                     else:
@@ -147,35 +153,21 @@ def run(name, mode, numEpisodes, numSteps, numSamples, epsilon, manual_episodes=
 
                 M.learn(new_trans, new_state)
 
-        # print("Pre-clean:")
-        # for i in M.schemas:
-        #     for j in i.keys():
-        #         for k in i[j]:
-        #             k.display()
-        # print("Post-clean:")
-        # for i in M.schemas:
-        #     for j in i.keys():
-        #         for k in i[j]:
-        #             k.display()
-
-    attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
-
+    # Print information from experiment
     print("Rewards:")
     print rewards
-
     print("Schemas:")
+    attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
     for i in range(len(M.schemas)):
         for j in M.schemas[i].keys():
             for k in M.schemas[i][j]:
                 print(attributes[i] + " = " + j + " <- " + k.display(no_head=True))
-
-    print("Evidence:")
-    for i in M.evidence:
-        for j in i.keys():
-            print("Attribute: " + str(j))
-            for k in i[j]:
-                print k
-
+    # print("Evidence:")
+    # for i in M.evidence:
+    #     for j in i.keys():
+    #         print("Attribute: " + str(j))
+    #         for k in i[j]:
+    #             print k
     # print("Remaining:")
     # for i in range(len(M.data)):
     #     for j in M.data[i].keys():
@@ -194,10 +186,10 @@ def run(name, mode, numEpisodes, numSteps, numSamples, epsilon, manual_episodes=
 
 
 # Updates Q function using abstracted trajectory samples from M
-def hypermax(model, num_samples, max=3):
+def hypermax(model, num_samples, rmax_actions, constraints, max=3):
 
     # Create Prolog file and initialise model
-    inta.createPrologFile(model, num_samples, gamma=0.95, horizon=10)
+    inta.createPrologFile(model, num_samples, rmax_actions, constraints, gamma=0.95, horizon=10)
 
     action = "N/A"
     counter = 0

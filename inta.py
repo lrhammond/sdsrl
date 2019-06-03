@@ -1,5 +1,5 @@
 # INTA
-# Functions for interfacing between game playing environments and the data needed for learning
+# Functions for interfacing between game playing environments and the data needed for learning and forming constraints
 
 # Define constants for repeated use and indexing
 X_POS = 0
@@ -24,28 +24,16 @@ import pygame
 import util
 import numpy as np
 import os
-
+import shutil
 
 # Setup game according to mode chosen
-def setup(mode, test=False):
+def setup(name, mode):
 
     if mode == "vgdl":
-        if test == False:
 
-            # Read in level and game descriptions
-            levelPath = raw_input("Input path to level file: ")
-            gamePath = raw_input("Input path to game file: ")
-        else:
-            levelPath = "level2.txt"
-            gamePath = "game.txt"
-
-        with open(levelPath, 'r') as levelFile:
-            level = levelFile.read()
-            # print("\nLevel:\n\n" + level)
-
-        with open(gamePath, 'r') as gameFile:
-            game = gameFile.read()
-            # print("\nGame:\n\n" + game)
+        # Read in level and game file information
+        level = get_file(name, "level")
+        game = get_file(name, "game")
 
         # Start game
         g = VGDLParser().parseGame(game)
@@ -129,7 +117,7 @@ def performAction(model, mode, environment, action):
         return
 
 
-def createPrologFile(model, numSamples, gamma=0.95, horizon=10):
+def createPrologFile(model, numSamples, rmax_actions, constraints, gamma=0.95, horizon=10):
 
     # Form list of observations describing the current/initial state
     obs_list = [model.objects[key].observe() for key in model.objects.keys()] + ["observation(nothing(no_object))~=yes"]
@@ -198,9 +186,10 @@ getparam(params) :- bb_put(user:spant,0),
                         -0.1,
                         % WHeuFinal
                         -0.1),
-                    !.
+                    !.\n""".format(gamma))
 
-% Functions
+    # Write core functions to file
+    f.write("""\n% Core Functions
 Var:t+1 ~ val(Val) <- observation(Var) ~= Val.
 observation(Var):t+1 ~ val(Val) <- Var:t+1 ~= Val.
 attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos(Obj):t ~= X_pos, 
@@ -209,19 +198,36 @@ attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos
                                                                            y_size(Obj):t ~= Y_size, 
                                                                            colour(Obj):t ~= Colour,
                                                                            shape(Obj):t ~= Shape,
-                                                                           nothing(Obj):t ~= Nothing.\n""".format(gamma))
+                                                                           nothing(Obj):t ~= Nothing.\n""")
 
-    # Write actions to file
+    # Write helper functions to file
+    f.write("""\n% Helper Functions
+dist(Obj1, Obj2):t ~ val(D) <- x_pos(Obj1):t ~= X1, y_pos(Obj1):t ~= Y1, x_pos(Obj2):t ~= X2, y_pos(Obj2):t ~= Y2, D is sqrt((X1 - X2)^2 + (Y1 - Y2)^2).
+dist_gt(Obj1, Obj2, V):t <- dist(Obj1, Obj2):t ~= D, D > V.
+dist_lt(Obj1, Obj2, V):t <- dist(Obj1, Obj2):t ~= D, D < V.
+dist_eq(Obj1, Obj2, V):t <- dist(Obj1, Obj2):t ~= D, D = V.
+right_of(Obj1, Obj2):t <- x_pos(Obj1):t ~= X1, x_pos(Obj2):t ~= X2, X1 > X2.
+left_of(Obj1, Obj2):t <- x_pos(Obj1):t ~= X1, x_pos(Obj2):t ~= X2, X1 < X2.
+above(Obj1, Obj2):t <- y_pos(Obj1):t ~= Y1, y_pos(Obj2):t ~= Y2, Y1 > Y2.
+below(Obj1, Obj2):t <- y_pos(Obj1):t ~= Y1, y_pos(Obj2):t ~= Y2, Y1 < Y2.
+bigger_x(Obj1, Obj2):t <- x_size(Obj1):t ~= XS1, x_size(Obj2):t ~= XS2, XS1 > XS2.
+bigger_y(Obj1, Obj2):t <- y_size(Obj1):t ~= YS1, y_size(Obj2):t ~= YS2, YS1 > YS2.
+bigger(Obj1, Obj2):t <- x_size(Obj1):t ~= XS1, x_size(Obj2):t ~= XS2, y_size(Obj1):t ~= YS1, y_size(Obj2):t ~= YS2, (XS1 * YS1) > (XS2 * YS2).
+occupied_pos(X, Y):t <- is_object(Obj), map(X, Y, Obj):t.
+unoccupied_pos(X, Y):t <- map(X, Y, no_object):t.
+same_x_pos(Obj1, Obj2):t <- x_pos(Obj1):t ~= X1, x_pos(Obj2):t ~= X2, X1 = X2.
+same_y_pos(Obj1, Obj2):t <- y_pos(Obj1):t ~= Y1, y_pos(Obj2):t ~= Y2, Y1 = Y2.
+same_x_size(Obj1, Obj2):t <- x_size(Obj1):t ~= XS1, x_size(Obj2):t ~= XS2, XS1 = XS2.
+same_y_size(Obj1, Obj2):t <- y_size(Obj1):t ~= YS1, y_size(Obj2):t ~= YS2, YS1 = YS2.
+same_colour(Obj1, Obj2):t <- colour(Obj1):t ~= C1, colour(Obj2):t ~= C2, C1 = C2.
+same_shape(Obj1, Obj2):t <- shape(Obj1):t ~= S1, shape(Obj2):t ~= S2, S1 = S2.\n""")
+
+    # Write action rules to file
     f.write("\n% Actions\n")
-
-
-
-
     actions = ",".join(model.obsActions[0][:-1])
-    f.write("adm(action(A)):t <- member(A, [" + actions + "]).\n")
-
-
-
+    f.write("""adm(action(A)):t <- member(A, [{0}]).
+\+(action_performed:0) <- true.
+action_performed:t+1 <- action(A), member(A, [{0}]).\n""".format(actions))
 
     # Write neighbour relations to file
     f.write("""\n% Neighbours
@@ -250,6 +256,10 @@ map(X, Y, no_object):t <- """)
     objects = ["obj{0}".format(i) for i in model.objects.keys()]
     f.write("is_object(Obj) <- member(Obj, [" + ",".join(objects) + "]).\n")
 
+    # Write constraints to file
+    f.write("\n% Constraints\n")
+    f.write("constraints:t <- " + constraints + ".\n")
+
     # Write attribute schemas to file
     attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "nothing"]
     change = {"centre":"", "left":" - 1", "right":" + 1", "below":" - 1", "above":" + 1"}
@@ -271,37 +281,12 @@ map(X, Y, no_object):t <- """)
 
     # Write reward schemas to file
     f.write("\n% Reward Schemas\n")
-
-#     f.write("""reward:t ~ val(-10) <-  map(1, 2, obj19):t, action(d).
-# reward:t ~ val(-10) <- map(2, 1, obj19):t, action(l).
-# reward:t ~ val(10) <- map(2, 1, obj19):t, action(r).
-# reward:t ~ val(-1) <- map(1, 2, obj19):t, \+action(d).
-# reward:t ~ val(-1) <- map(1, 2, obj19):t, \+action(l).
-# reward:t ~ val(-1) <- map(1, 1, obj19):t, \+action(r).
-# reward:t ~ val(-1) <- \+(map(1, 2, obj19):t), \+(map(2, 1, obj19):t).\n\n""")
-
+    if len(rmax_actions) != 0:
+        f.write("reward:t ~ val({0}) <- constraints:t, action(A), member(A, [{1}]), \+action_performed:t.\n".format(model.RMAX, ",".join(rmax_actions)))
     for r in model.schemas[REWARD].keys():
         for s in model.schemas[REWARD][r]:
-            f.write("reward:t ~ val({0}) <- is_object(Obj), ".format(r) + s.display(no_head=True) + ".\n")
-
-#     f.write("""reward:t ~ val(-10) <-  map(1, 1, obj19):t.
-# reward:t ~ val(10) <- map(3, 1, obj19):t.
-# reward:t ~ val(0) <- \+((map(1,1,obj19):t)), \+((map(3,1,obj19):t)).""")
-    # for r in model.schemas[-1].keys():
-    #     for s in model.schemas[-1][r]:
-    #         f.write("reward:t+1 ~ val(Reward) <- (" + s.display() + " = Reward ; Reward = -1).\n")
-
-    # f.write("reward(Obj):t ~ val(R) <- attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t, schema_reward(R, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t.\n")
-    # f.write("reward(Obj):t ~ val(-1) <- attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t, \+schema_reward(R, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t.\n")
-    # f.write("reward:t ~ val(R) <- reward(Obj):t ~= R.\n\n")
-    # Write initialisation details to file (DOESN'T SEEM TO WORK PROPERLY)
-    # f.write("% Initialisation\n")
-    # for key in model.objects.keys():
-    #     object = model.objects[key]
-    #     f.write(object.display())
-
-    # Write constraints to file
-    # TODO
+            f.write("reward:t ~ val({0}) <- constraints:t, is_object(Obj), ".format(r) + s.display(no_head=True) + ".\n")
+    f.write("reward:t ~ val(0) <- true.\n")
 
     # Write run command to file
     f.write("\n% Run command\n")
@@ -309,3 +294,21 @@ map(X, Y, no_object):t <- """)
     f.close()
 
     return
+
+
+# Gets a file if it doesn't already exists, copies it to the model folder, and returns the relevant data
+def get_file(name, type):
+
+    # Check if the file already exists, get the new path and copy to the model folder if it doesn't
+    file_name = "models/{0}/{1}.txt".format(name, type)
+    if not os.path.isfile(file_name):
+        path = ""
+        while not os.path.isfile(path):
+            path = raw_input("Input path to {0} file: ".format(type))
+        shutil.copy(path, file_name)
+
+    # Read in the file
+    with open(file_name, 'r') as f:
+        output = f.read()
+
+    return output

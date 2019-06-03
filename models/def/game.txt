@@ -1,0 +1,22 @@
+BasicGame 
+    LevelMapping
+        G > goal
+        A > avatar
+        H > hole
+        w > wall
+        
+    InteractionSet
+        avatar wall > stepBack
+        goal avatar > killSprite
+        avatar hole > killSprite
+
+    SpriteSet  
+        structure > Immovable
+            goal > color=GREEN
+            hole > color=RED
+            wall > color=BROWN
+            
+    TerminationSet
+        # SpriteCounter stype=goal limit=0 win=True
+        SpriteCounter stype=goal   win=True
+        SpriteCounter stype=avatar win=False

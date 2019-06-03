@@ -1,0 +1,41 @@
+Episode action sequences and rewards for def
+
+Episode 0
+r (from input)
+r (from input)
+r (from input)
+l (from input)
+l (from input)
+d (from input)
+r (from input)
+d (from input)
+d (from input)
+r (from input)
+Score: 1
+
+Episode 1
+l (from HYPE)
+u (from HYPE)
+r (from HYPE)
+u (from HYPE)
+r (from HYPE)
+u (from HYPE)
+r (from HYPE)
+r (from HYPE)
+r (from HYPE)
+r (from HYPE)
+r (from HYPE)
+r (from HYPE)
+r (from HYPE)
+r (from HYPE)
+r (from HYPE)
+r (from HYPE)
+r (from HYPE)
+r (from HYPE)
+r (from HYPE)
+Score: -19
+
+Episode 2
+r (from HYPE)
+r (from HYPE)
+r (from HYPE)

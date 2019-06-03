@@ -3,6 +3,7 @@
 
 
 import numpy as np
+import shutil
 from sklearn import preprocessing
 from operator import add
 from copy import deepcopy
@@ -271,7 +272,7 @@ def deDupe(old):
 
 
 # Simplifies a set a of schemas
-def simplify(model, old, head):
+def simplify(model, old, head, attribute):
     new = []
     # Remove pointless attributes
     counter = 0
@@ -322,10 +323,10 @@ def simplify(model, old, head):
 
                 print("Removed:")
                 ds2 = fromBinarySchema(model, s2, head)
-                print ds2.display()
+                print(attribute + " = " + head + " <- " + ds2.display(no_head=True))
                 print("Because of:")
                 ds1 = fromBinarySchema(model, s1, head)
-                print ds1.display()
+                print(attribute + " = " + head + " <- " + ds1.display(no_head=True))
 
                 toRemove.append(s2)
 
