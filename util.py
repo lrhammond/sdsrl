@@ -323,10 +323,10 @@ def simplify(model, old, head, attribute):
 
                 print("Removed:")
                 ds2 = fromBinarySchema(model, s2, head)
-                print(attribute + " = " + head + " <- " + ds2.display(no_head=True))
+                print(attribute + " = " + str(head) + " <- " + ds2.display(no_head=True))
                 print("Because of:")
                 ds1 = fromBinarySchema(model, s1, head)
-                print(attribute + " = " + head + " <- " + ds1.display(no_head=True))
+                print(attribute + " = " + str(head) + " <- " + ds1.display(no_head=True))
 
                 toRemove.append(s2)
 

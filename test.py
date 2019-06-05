@@ -5,15 +5,5 @@ import lern
 import veri
 import main
 
-# Runs learning and verification procedures
-def main(name, mode, numEpisodes, numSteps, numSamples, epsilon, manual_episodes):
-
-    # Learn model, Q-function, and policies
-    lern.run(name, mode, numEpisodes, numSteps, numSamples, epsilon, manual_episodes)
-
-    # Verify properties of model, Q-function, or resulting policies
-    # TODO
-
-    return
-
-main("def","vgdl",4, 20, 100, 0, 1)
+# main.run(name="one", mode="vgdl", numEpisodes=2, numSteps=50, numSamples=50, discount=0.95, horizon=5, manual_episodes=2)
+main.run(name="two", mode="vgdl", numEpisodes=2, numSteps=50, numSamples=50, discount=0.95, horizon=5, manual_episodes=0)

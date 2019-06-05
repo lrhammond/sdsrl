@@ -24,6 +24,7 @@ class Model:
 
     # Initialise model according to mode
     def __init__(self, name, mode, initState, xMax=0, yMax=0, deterministic=True):
+
         self.name = name
         self.deterministic = deterministic
 
@@ -73,7 +74,13 @@ class Model:
         # Create variables for storing the current action and reward values, plus the RMAX value
         self.action = None
         self.reward = None
-        self.RMAX = 0
+
+
+
+        self.RMAX = 100
+
+
+
 
         # Initialise map and object dictionaries
         self.objects = {}
@@ -85,6 +92,28 @@ class Model:
         self.prev = None
         self.curr = self.getModelState()
         self.updateDicts()
+
+        return
+
+
+    # Resets and renames a model for use in a new environment with the same dynamics
+    def reset(self, name):
+
+        # Reset/rename variables
+        self.name = name
+        self.pi = {}
+        self.Q = {}
+        self.R = {}
+        self.xMax = 0
+        self.yMax = 0
+        self.obsTrans = set([])
+        self.obsState = set([])
+        self.obsChanges = set([])
+        for att in range(REWARD + 1):
+            for val in self.observations[att][0]:
+                self.data[att][val] = []
+        for r in self.obsRewards[0]:
+            self.evidence[REWARD][r] = []
 
         return
 
@@ -113,8 +142,8 @@ class Model:
                     # Create new object and add to the set of objects and the map
                     newObj = Object(i, position[0], position[1])
                     newObj.colour = objType
-                    newObj.x_size = "small"
-                    newObj.y_size = "small"
+                    newObj.x_size = 1
+                    newObj.y_size = 1
                     newObj.shape = "square"
                     self.objects[i] = newObj
                     if objPos in self.objMap.keys():
@@ -122,8 +151,8 @@ class Model:
                     else:
                         self.objMap[objPos] = [i]
                     i += 1
-                    # Update lists of observed attribute values and change schema learning data representations
 
+                    # Update lists of observed attribute values and change schema learning data representations
                     self.updateObsLists(newObj, None, None)
 
                     # Update map dimensions if needed
@@ -477,15 +506,15 @@ class Model:
 
         # For each possible attribute or reward value
         attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
-        for r in range(REWARD + 1):
-            for key in self.observations[r][0]:
+        for att in range(REWARD + 1):
+            for val in self.observations[att][0]:
 
                 # Remove duplicate data and schemas
-                self.data[r][key] = util.deDupe(self.data[r][key])
-                self.evidence[r][key] = util.deDupe(self.evidence[r][key])
+                self.data[att][val] = util.deDupe(self.data[att][val])
+                self.evidence[att][val] = util.deDupe(self.evidence[att][val])
 
                 # Simplify schemas
-                self.schemas[r][key] = util.simplify(self, self.schemas[r][key], key, attributes[r])
+                self.schemas[att][val] = util.simplify(self, self.schemas[att][val], val, attributes[att])
 
         return
 

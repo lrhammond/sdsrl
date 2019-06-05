@@ -25,6 +25,9 @@ import util
 import numpy as np
 import os
 import shutil
+import blox
+import pickle
+
 
 # Setup game according to mode chosen
 def setup(name, mode):
@@ -59,6 +62,59 @@ def setup(name, mode):
     return environment, dims
 
 
+# Reads in model if it already exists, or uses a different model for transfer learning, or creates a new model
+def create_model(name, mode, initState):
+
+    # Create name for pickled model
+    file_name = "models/{0}/model.pickle".format(name)
+
+    # If the model already exists we load it back in
+    if os.path.isfile(file_name):
+        with open(file_name, 'rb') as f:
+            model = pickle.load(f)
+        print("Using existing model from the same environment")
+
+    # Optionally use the same dynamics as in another environment
+    elif raw_input("Use dynamics from another model (y/n)? ") == "y":
+        path = ""
+        while not os.path.isfile(path):
+            path = raw_input("Input path to pickled model: ")
+        with open(path, 'rb') as f:
+            model = pickle.load(f)
+        model.reset(name)
+        print("Using existing model from a different environment")
+
+    # Otherwise, create a new model and get actions
+    else:
+        model = blox.Model(name, mode, initState)
+        print("Creating new model for environment with unknown dynamics")
+        model.obsActions = get_actions()
+        model.updateDicts()
+
+    return model
+
+
+# Gets actions from user so they are specified in advance
+def get_actions():
+
+    # Get actions from user
+    print("Please enter any and all actions that may be taken in the environment (excluding the \'none\' action)")
+    print("When finished entering actions press return")
+    action_list = []
+    a = raw_input("Enter new action: ")
+    while a != "":
+        action_list.append(a)
+        a = raw_input("Enter new action: ")
+
+    # Add 'none' action and form list of actions
+    obs_actions = [action_list, util.oneHot(action_list)]
+    action_length = len(obs_actions[1][0])
+    obs_actions[0].append("none")
+    obs_actions[1].append([0 for i in range(action_length)])
+
+    return obs_actions
+
+
 # Observe state from game environment and output in basic format
 def observeState(mode, environment, dims):
     if mode == "vgdl":
@@ -89,11 +145,13 @@ def observeState(mode, environment, dims):
 
 # Perform action in game enviroment and output reward and whether game has ended
 def performAction(model, mode, environment, action):
+
     if mode == "vgdl":
 
         # Take action
-        actionVector = np.array(model.dictionaries[ACTION][0][action])
-        environment._performAction(actionVector)
+        action_dict = dict(zip(["u", "l", "d", "r", "none"], [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1], [0, 0, 0, 0]]))
+        action_vector = np.array(action_dict[action])
+        environment._performAction(action_vector)
         environment._game._drawAll()
 
         # Get reward
@@ -117,7 +175,7 @@ def performAction(model, mode, environment, action):
         return
 
 
-def createPrologFile(model, numSamples, rmax_actions, constraints, gamma=0.95, horizon=10):
+def createPrologFile(model, num_samples, rmax_actions, constraints, discount, horizon):
 
     # Form list of observations describing the current/initial state
     obs_list = [model.objects[key].observe() for key in model.objects.keys()] + ["observation(nothing(no_object))~=yes"]
@@ -142,7 +200,7 @@ def createPrologFile(model, numSamples, rmax_actions, constraints, gamma=0.95, h
 :- set_current2nextcopy(false).
 
 % Parameters
-maxV(D,100):t <- true.
+maxV(D,{0}):t <- true.
 getparam(params) :- bb_put(user:spant,0),
                     setparam(
                         % Enable abstraction
@@ -160,15 +218,15 @@ getparam(params) :- bb_put(user:spant,0),
                         propfalse,
                         % relfalse,
                         % Discount
-                        {0},
+                        {1},
                         % Probability to explore in the beginning (first sample)
                         0.25,
                         % Probability to explore in the end (last sample)
-                        0.05,
+                        0.15,
                         % Number of previous samples to use to estimate Q (larger is better but slower)
                         100,
                         % Max horizon span
-                        200,
+                        100,
                         % Lambda init
                         0.9,
                         % Lambda final
@@ -186,19 +244,12 @@ getparam(params) :- bb_put(user:spant,0),
                         -0.1,
                         % WHeuFinal
                         -0.1),
-                    !.\n""".format(gamma))
+                    !.\n""".format(num_samples, discount))
 
     # Write core functions to file
     f.write("""\n% Core Functions
 Var:t+1 ~ val(Val) <- observation(Var) ~= Val.
-observation(Var):t+1 ~ val(Val) <- Var:t+1 ~= Val.
-attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos(Obj):t ~= X_pos, 
-                                                                           y_pos(Obj):t ~= Y_pos, 
-                                                                           x_size(Obj):t ~= X_size, 
-                                                                           y_size(Obj):t ~= Y_size, 
-                                                                           colour(Obj):t ~= Colour,
-                                                                           shape(Obj):t ~= Shape,
-                                                                           nothing(Obj):t ~= Nothing.\n""")
+observation(Var):t+1 ~ val(Val) <- Var:t+1 ~= Val.\n""")
 
     # Write helper functions to file
     f.write("""\n% Helper Functions
@@ -220,7 +271,14 @@ same_y_pos(Obj1, Obj2):t <- y_pos(Obj1):t ~= Y1, y_pos(Obj2):t ~= Y2, Y1 = Y2.
 same_x_size(Obj1, Obj2):t <- x_size(Obj1):t ~= XS1, x_size(Obj2):t ~= XS2, XS1 = XS2.
 same_y_size(Obj1, Obj2):t <- y_size(Obj1):t ~= YS1, y_size(Obj2):t ~= YS2, YS1 = YS2.
 same_colour(Obj1, Obj2):t <- colour(Obj1):t ~= C1, colour(Obj2):t ~= C2, C1 = C2.
-same_shape(Obj1, Obj2):t <- shape(Obj1):t ~= S1, shape(Obj2):t ~= S2, S1 = S2.\n""")
+same_shape(Obj1, Obj2):t <- shape(Obj1):t ~= S1, shape(Obj2):t ~= S2, S1 = S2.
+attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos(Obj):t ~= X_pos, 
+                                                                           y_pos(Obj):t ~= Y_pos, 
+                                                                           x_size(Obj):t ~= X_size, 
+                                                                           y_size(Obj):t ~= Y_size, 
+                                                                           colour(Obj):t ~= Colour,
+                                                                           shape(Obj):t ~= Shape,
+                                                                           nothing(Obj):t ~= Nothing.\n""")
 
     # Write action rules to file
     f.write("\n% Actions\n")
@@ -283,14 +341,17 @@ map(X, Y, no_object):t <- """)
     f.write("\n% Reward Schemas\n")
     if len(rmax_actions) != 0:
         f.write("reward:t ~ val({0}) <- constraints:t, action(A), member(A, [{1}]), \+action_performed:t.\n".format(model.RMAX, ",".join(rmax_actions)))
+    num_r_schemas = 0
     for r in model.schemas[REWARD].keys():
         for s in model.schemas[REWARD][r]:
             f.write("reward:t ~ val({0}) <- constraints:t, is_object(Obj), ".format(r) + s.display(no_head=True) + ".\n")
-    f.write("reward:t ~ val(0) <- true.\n")
+            num_r_schemas += 1
+    if num_r_schemas == 0:
+        f.write("reward:t ~ val(0) <- true.\n")
 
     # Write run command to file
     f.write("\n% Run command\n")
-    f.write("run :- executedplan_start,executedplan_step(BA,true," + observations + ",{0},{1},TotalR,T,{1},STOP),print(BA),halt.".format(numSamples, horizon))
+    f.write("run :- executedplan_start,executedplan_step(BA,true," + observations + ",{0},{1},TotalR,T,{1},STOP),print(BA).".format(num_samples, horizon))
     f.close()
 
     return
