@@ -13,8 +13,6 @@ from random import choice
 
 
 
-
-
 # Run the main algorithm
 def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, manual_episodes=0):
 

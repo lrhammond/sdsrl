@@ -1,7 +1,12 @@
 %%% -*- Mode: Prolog; -*-
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% :- use_module(planning).
+% :- use_module(library(lists)).
+% :- use_module(library(system)).
+%
+%
+% :- set_options(default).
+% :- set_current2nextcopy(false).
 
 % Libraries
 :- use_module(library(planning)).
@@ -16,9 +21,6 @@
 :- set_query_propagation(true).
 :- set_inference(backward(lazy)).
 :- set_current2nextcopy(false).
-
-
-
 
 builtin(prob(P)).
 builtin(dim(_,_)).
@@ -84,22 +86,43 @@ rgbcolor(7,(1.0,1.0,1.0)).
 type(7,table).
 
 
+% reward:t ~ val(100) <-
+% 	true.
+
+% reward:t ~ val(100) <-
+% 	stop:t.
+%
+% reward:t ~ val(-10) <-
+% 	\+stop:t,
+% 	object(ID):t ~= (X,Y,Z),
+% 	sqrt((X-0.5)^2+(Y-0.8)^2)<0.2.
+%
+% reward:t ~ val(-1) <-
+% 	\+stop:t,
+% 	object(ID):t ~= (X,Y,Z),
+% 	sqrt((X-0.5)^2+(Y-0.8)^2)>=0.2.
+%
+% stop:t <-
+% 	object(ID):t ~= (X,Y,Z),
+% 	sqrt((X-0.6)^2+(Y-1)^2)<0.1.
+
+
+
 reward:t ~ val(100) <-
-	stop:t.
+	object(ID):t ~= (X,Y,Z),
+	sqrt((X-0.6)^2+(Y-1)^2)<0.1.
 
 reward:t ~ val(-10) <-
-	\+stop:t,
 	object(ID):t ~= (X,Y,Z),
+	sqrt((X-0.5)^2+(Y-0.8)^2)>=0.1,
 	sqrt((X-0.5)^2+(Y-0.8)^2)<0.2.
 
 reward:t ~ val(-1) <-
-	\+stop:t,
 	object(ID):t ~= (X,Y,Z),
 	sqrt((X-0.5)^2+(Y-0.8)^2)>=0.2.
 
-stop:t <-
-	object(ID):t ~= (X,Y,Z),
-	sqrt((X-0.6)^2+(Y-1)^2)<0.1.
+
+
 
 
 object(ID):0 ~  val(P) <-

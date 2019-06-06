@@ -25,8 +25,12 @@ class Model:
     # Initialise model according to mode
     def __init__(self, name, mode, initState, xMax=0, yMax=0, deterministic=True):
 
+
         self.name = name
         self.deterministic = deterministic
+
+        self.num_objects = 0
+        self.num_schemas = 0
 
         # Create empty policy, Q function and reward function
         self.pi = {}
@@ -88,6 +92,7 @@ class Model:
         self.objMap = {}
 
         # Set up model using intial observation
+        self.num_objects = 0
         self.setObjects(mode, initState)
         self.prev = None
         self.curr = self.getModelState()
@@ -109,9 +114,22 @@ class Model:
         self.obsTrans = set([])
         self.obsState = set([])
         self.obsChanges = set([])
+
+
+
+
+        # PROBLEMATIC? THIS SHOULD BE CONSISTENT
+        # We remove non-positive data points for each schema
         for att in range(REWARD + 1):
             for val in self.observations[att][0]:
                 self.data[att][val] = []
+
+
+
+
+
+
+        # We also remove all data points for each reward schema
         for r in self.obsRewards[0]:
             self.evidence[REWARD][r] = []
 
@@ -130,11 +148,11 @@ class Model:
     # Set up objects and map based on vgdl state
     def setObjects(self, mode, state):
 
-        for key in state.keys():
-            # state[key.capitalize()] = state.pop(key)
-            state[key] = state.pop(key)
+        # for key in state.keys():
+        #     # state[key.capitalize()] = state.pop(key)
+        #     state[key] = state.pop(key)
         if mode == "vgdl":
-            i = max(list(self.objects.keys()) + [0])
+
             for objType in state.keys():
                 for objPos in state[objType]:
                     position = list(objPos)
@@ -147,10 +165,10 @@ class Model:
                     newObj.shape = "square"
                     self.objects[i] = newObj
                     if objPos in self.objMap.keys():
-                        self.objMap[objPos].append(i)
+                        self.objMap[objPos].append(self.num_objects)
                     else:
-                        self.objMap[objPos] = [i]
-                    i += 1
+                        self.objMap[objPos] = [self.num_objects]
+                    self.num_objects += 1
 
                     # Update lists of observed attribute values and change schema learning data representations
                     self.updateObsLists(newObj, None, None)
@@ -612,15 +630,17 @@ class Model:
                 # print binarySchemas
                 # print("333333333333333333")
 
-                # Display new schemas to user
-                toPrint = [util.fromBinarySchema(self, s, key) for s in binarySchemas if s not in oldSchemas]
-                if len(toPrint) != 0:
+                # Name and display new schemas to user
+                new_schemas = [util.fromBinarySchema(self, s, key) for s in binarySchemas if s not in oldSchemas]
+                if len(new_schemas) != 0:
                     print("New schemas: ")
-                    for s in toPrint:
+                    for s in new_schemas:
+                        s.id = self.num_schemas
+                        self.num_schemas += 1
                         print(attributes[i] + " = " + str(key) + " <- " + s.display(no_head=True))
 
                 # Convert learnt schemas and evidence from binary output and add to model
-                self.schemas[i][key] = [util.fromBinarySchema(self, schema, key) for schema in binarySchemas]
+                self.schemas[i][key] += new_schemas
 
                 # If they are reward schemas then the binary evidence and remaining data are not in the correct form to be stored
                 if i == REWARD:
@@ -689,8 +709,7 @@ class Schema:
 
     # Initilaise schema
     def __init__(self):
-        # SCHEMA NAMING REMOVED FOR NOW
-        # self.id = id
+        self.id = id
         self.objectBody = {}
         self.actionBody = None
         self.head = None

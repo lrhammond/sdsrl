@@ -1,13 +1,28 @@
 %%% -*- Mode: Prolog; -*-
 
-:- use_module(library(distributionalclause)).
-:- use_module(library(dcpf)).
-:- use_module(library(sst)).
+% :- use_module(library(distributionalclause)).
+% :- use_module(library(dcpf)).
+% :- use_module(library(sst)).
+% :- use_module(library(planning)).
+% :- use_module(library(lists)).
+% :- use_module(library(system)).
+%
+% :- set_options(default).
+% :- set_current2nextcopy(false).
+
+
+% Libraries
 :- use_module(library(planning)).
 :- use_module(library(lists)).
 :- use_module(library(system)).
+:- use_module(library(dcpf)).
+:- use_module(library(distributionalclause)).
+:- use_module(library(sst)).
 
+% Options
 :- set_options(default).
+:- set_query_propagation(true).
+:- set_inference(backward(lazy)).
 :- set_current2nextcopy(false).
 
 
@@ -148,8 +163,8 @@ m(X,Y):t ~ contUniform(A,B,C,D) <-
 
 % fullplan execute the plan several times and store the performance in the specified file
 % it uses the same model to find the best action and to simulate the execution of the action.
-fullplan(name_file,initial_state_list,Result,name_domain,number_trials,max_steps,empty space)
-:- initialization(fullplan('resultspush.csv',[observation(object(1)) ~= (0.3,0.4,0)],AVG,test1,30,50,' ')).
+% fullplan(name_file,initial_state_list,Result,name_domain,number_trials,max_steps,empty space)
+% :- initialization(fullplan('resultspush.csv',[observation(object(1)) ~= (0.3,0.4,0)],AVG,test1,30,50,' ')).
 
 %single step planner (online execution, e.g. for robotics)
 % inititialize with: executedplan_start

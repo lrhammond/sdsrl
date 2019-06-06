@@ -1,14 +1,30 @@
 %%% -*- Mode: Prolog; -*-
 
-:- use_module(library(distributionalclause)).
-:- use_module(library(dcpf)).
-:- use_module(library(sst)).
+% :- use_module(library(distributionalclause)).
+% :- use_module(library(dcpf)).
+% :- use_module(library(sst)).
+% :- use_module(library(planning)).
+% :- use_module(library(lists)).
+% :- use_module(library(system)).
+%
+% :- set_options(default).
+% :- set_current2nextcopy(false).
+
+
+% Libraries
 :- use_module(library(planning)).
 :- use_module(library(lists)).
 :- use_module(library(system)).
+:- use_module(library(dcpf)).
+:- use_module(library(distributionalclause)).
+:- use_module(library(sst)).
 
+% Options
 :- set_options(default).
+:- set_query_propagation(true).
+:- set_inference(backward(lazy)).
 :- set_current2nextcopy(false).
+
 
 builtin(dim(_,_)).
 builtin(color(_,_)).
