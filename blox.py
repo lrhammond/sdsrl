@@ -25,7 +25,6 @@ class Model:
     # Initialise model according to mode
     def __init__(self, name, mode, initState, xMax=0, yMax=0, deterministic=True):
 
-
         self.name = name
         self.deterministic = deterministic
 
@@ -61,10 +60,11 @@ class Model:
         self.observations = [self.obsXpos, self.obsYpos, self.obsXsizes, self.obsYsizes, self.obsColours, self.obsShapes, self.obsNothing, self.obsRewards, None, self.obsActions]
         self.dictionaries = {}
 
-        # Create lists for storing schemas and learning data
+        # Create lists for storing schemas, learning data, and success counts for schemas per transition
         self.schemas = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
         self.evidence = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
         self.data = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
+        self.schema_updates = {}
 
         # Initialise state descriptions of model and update dictionaries
         self.initialise(mode, initState)
@@ -114,8 +114,7 @@ class Model:
         self.obsTrans = set([])
         self.obsState = set([])
         self.obsChanges = set([])
-
-
+        self.schema_updates = {}
 
 
         # # PROBLEMATIC? THIS SHOULD BE CONSISTENT
@@ -445,22 +444,33 @@ class Model:
         rRow = {}
         a = self.action
         r = self.reward
+        schema_updates = {}
 
         # Update transition data
         for objId in self.objects.keys():
             xRow = util.formXvector(objId, self.prev, self.oldMap) + [a]
             yRow = util.formYvector(objId, self.prev, self.curr) + [r]
             rRow[objId] = xRow
-
-            # Add new data points if they have not already been recorded
             for i in range(REWARD):
 
-                self.checkDatum([xRow, yRow[i]], i)
+                # Check current datum against attribute schemas
+                [_, u] = self.checkDatum([xRow, yRow[i]], i, update=True)
+
+                # Record updates to attribute schema success rates if required
+                if not self.deterministic:
+                    if schema_updates == {}:
+                        schema_updates = u
+                    else:
+                        for k in u.keys():
+                            schema_updates[k][0] += u[k][0]
+                            schema_updates[k][1] += u[k][1]
 
                 # if self.checkDatum([xRow, yRow[i]], i) and xRow not in self.evidence[i][yRow[i]]:
                 #     self.evidence[i][yRow[i]].append(xRow)
                 # elif xRow not in self.data[i][yRow[i]]:
                 #     self.data[i][yRow[i]].append(xRow)
+
+                # Add new data points if they have not already been recorded
                 if xRow not in self.data[i][yRow[i]]:
                     self.data[i][yRow[i]].append(xRow)
 
@@ -480,55 +490,114 @@ class Model:
         #     if not predicted and rRow not in self.data[REWARD][r]:
         #         self.data[REWARD][r] += [rRow]
 
+        # Check current datum against reward schemas
+        predictions = {}
         for key in rRow.keys():
-            self.checkDatum([rRow[key], r], REWARD)
+            [_, u] = self.checkDatum([rRow[key], r], REWARD, update=True)
+            predictions.update(u)
 
+        # Update reward schema success rates if required
+        if not self.deterministic:
+            for val in self.schemas[REWARD].keys():
+                for s in self.schemas[REWARD][val]:
+                    schema_updates[s.name] = [0, 0]
+                    if s.name in predictions.keys():
+                        if predictions[s.name]:
+                            s.positive += 1
+                            schema_updates[s.name][0] += 1
+                        else:
+                            s.negative += 1
+                            schema_updates[s.name][1] += 1
+
+        # Update reward data if required
         if rRow not in self.data[REWARD][r]:
             self.data[REWARD][r] += [rRow]
+
+        return schema_updates
+
+
+    # Update schema success counts using a previously recorded transition
+    def update_schemas(self, transition):
+
+        for att in range(REWARD+1):
+            for val in self.schemas[att].keys():
+                for s in self.schemas[att][val]:
+                    s.positive += self.schema_updates[transition][s.name][0]
+                    s.negative += self.schema_updates[transition][s.name][1]
 
         return
 
 
     # Checks whether existing schemas predict a datapoint correctly or not
-    def checkDatum(self, datum, index):
+    def checkDatum(self, datum, index, update=False):
+
+        # Boolean variables for indicating whether or not we need to update schema success rates
+        update_1 = False
+        if not self.deterministic and update:
+            update_1 = True
+        update_2 = False
+        if update_1 and index == REWARD:
+            update_2 = True
 
         # If no schema is active then the attribute value is not predicted
         predicted = False
+        updates = {}
 
         # Check each schema that predicts this attribute of the object
         attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
         for key in self.schemas[index].keys():
             errorMade = False
             for schema in self.schemas[index][key]:
+
+                if update_1 and not update_2:
+                    updates[schema.name] = [0, 0]
+
                 if schema.isActive(datum[0]):
 
                     # If an active schema predicts the attribute value correctly output "predicted"
                     if key == datum[1]:
                         predicted = True
 
+                        # Update schema success counts if we are in a non-deterministic environment
+                        if update_2:
+                            updates[schema.name] = True
+                        elif update_1:
+                            schema.positive += 1
+                            updates[schema.name][0] += 1
+
                     # If an incorrect prediction is made by a schema we remove it and add the relevant evidence back to the learning data
                     else:
-                        # print("------------------------------------")
-                        # print("Datum body: ")
-                        # for item in datum[0]:
-                        #     print item
-                        # print("Datum head: ")
-                        # print datum[1]
-                        # print("------------------------------------")
-                        print("Removed schema:")
-                        print(attributes[index] + " = " + str(key) + " <- " + schema.display(no_head=True))
-                        # print schema.objectBody
-                        # print schema.actionBody
-                        # print("---")
-                        self.schemas[index][key].remove(schema)
-                        errorMade = True
+
+                        # Update schema success counts if we are in a non-deterministic environment
+                        if update_2:
+                            updates[schema.name] = False
+                        elif update_1:
+                            schema.negative += 1
+                            updates[schema.name][1] += 1
+
+                        # Otherwise the schema is removed
+                        else:
+                            # print("------------------------------------")
+                            # print("Datum body: ")
+                            # for item in datum[0]:
+                            #     print item
+                            # print("Datum head: ")
+                            # print datum[1]
+                            # print("------------------------------------")
+                            print("Removed schema:")
+                            print(attributes[index] + " = " + str(key) + " <- " + schema.display(no_head=True))
+                            # print schema.objectBody
+                            # print schema.actionBody
+                            # print("---")
+                            self.schemas[index][key].remove(schema)
+                            errorMade = True
 
             # If an incorrect prediction was made we remove all evidence for this particular attribute value
             if errorMade:
                 self.data[index][key] += self.evidence[index][key]
                 self.evidence[index][key] = []
 
-        return predicted
+        return [predicted, updates]
 
 
     # Function for cleaning model of duplicate information
@@ -544,7 +613,7 @@ class Model:
                 self.evidence[att][val] = util.deDupe(self.evidence[att][val])
 
                 # Simplify schemas
-                self.schemas[att][val] = util.simplify(self, self.schemas[att][val], val, attributes[att])
+                # self.schemas[att][val] = util.simplify(self, self.schemas[att][val], val, attributes[att])
 
         return
 
@@ -586,7 +655,7 @@ class Model:
                     for datum in self.data[i][key]:
                         predicted = False
                         for o in datum.keys():
-                            if self.checkDatum([datum[o], key], i):
+                            if self.checkDatum([datum[o], key], i)[0]:
                                 predicted = True
                                 # self.evidence[i][key].append(datum)
                                 break
@@ -594,7 +663,7 @@ class Model:
                             xYes += [datum[c] for c in self.obsChanges]
                             xNo += [datum[o]for o in datum.keys() if o not in self.obsChanges]
 
-                            # if not self.checkDatum([datum[o], key], i):
+                            # if not self.checkDatum([datum[o], key], i)[0]:
                             #     xYes += [datum[c] for c in self.obsChanges]
                             #     xNo += [datum[o] for o in datum.keys() if o not in self.obsChanges]
 
@@ -610,11 +679,11 @@ class Model:
                     xYes = []
                     for datum in self.data[i][key]:
                         if datum[0][i] != key:
-                            # if self.checkDatum([datum,key], i):
+                            # if self.checkDatum([datum,key], i)[0]:
                             #     self.evidence[i][key].append(datum)
                             # else:
                             #     xYes.append(datum)
-                            if not self.checkDatum([datum,key], i):
+                            if not self.checkDatum([datum,key], i)[0]:
                                 xYes.append(datum)
 
 
@@ -655,7 +724,7 @@ class Model:
                 if len(new_schemas) != 0:
                     print("New schemas: ")
                     for s in new_schemas:
-                        s.id = self.num_schemas
+                        s.name = self.num_schemas
                         self.num_schemas += 1
                         print(attributes[i] + " = " + str(key) + " <- " + s.display(no_head=True))
 
@@ -667,7 +736,7 @@ class Model:
             #         for datum in self.data[i][key]:
             #             predicted = False
             #             for o in datum.keys():
-            #                 if self.checkDatum([datum[o], key], i):
+            #                 if self.checkDatum([datum[o], key], i)[0]:
             #                     predicted = True
             #                     self.evidence[i][key].append(datum)
             #                     break
@@ -688,8 +757,8 @@ class Model:
 class Object:
 
     # Intialise object
-    def __init__(self, id, x_pos=None, y_pos=None):
-        self.id = id
+    def __init__(self, name, x_pos=None, y_pos=None):
+        self.name = name
         self.x_pos = x_pos
         self.y_pos = y_pos
         self.x_size = None
@@ -707,9 +776,9 @@ class Object:
     # Displays object for use in forming Prolog file
     def observe(self, no_obj=False):
         if no_obj:
-            name = "no_obj" + str(self.id)
+            name = "no_obj" + str(self.name)
         else:
-            name = "obj" + str(self.id)
+            name = "obj" + str(self.name)
         output = "observation(x_pos(" + name + ")) ~= " + str(self.x_pos).lower() + ", "
         output = output + "observation(y_pos(" + name + ")) ~= " + str(self.y_pos) + ", "
         if not no_obj:
@@ -721,7 +790,7 @@ class Object:
         return output
 
     def display(self):
-        output = ["obj" + str(self.id)] + [str(i) for i in self.getObjectState()]
+        output = ["obj" + str(self.name)] + [str(i) for i in self.getObjectState()]
         return ", ".join(output)
 
 # Define the schema class
@@ -729,7 +798,7 @@ class Schema:
 
     # Initilaise schema
     def __init__(self):
-        self.id = id
+        self.name = None
         self.objectBody = {}
         self.actionBody = None
         self.head = None
@@ -772,7 +841,7 @@ class Schema:
         attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "nothing"]
 
         # SCHEMA NAMING REMOVED FOR NOW
-        # schemaName = "Schema " + str(self.id) + ": "
+        # schemaName = "Schema " + str(self.name) + ": "
         # schemaName = ""
 
         schemaBody = ""

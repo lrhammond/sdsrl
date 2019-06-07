@@ -103,7 +103,7 @@ def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, manual
                 #     action, expected_value = lern.hypermax(model, numSamples, rmax_actions, constraints, discount, horizon)
                 #     method = "HYPE"
 
-                action = "N/A"
+                # action = "N/A"
 
                 # If HYPE fails to select an action then we use RMAX, the policy (if available) or make a random choice
                 if action == "N/A":
@@ -155,8 +155,10 @@ def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, manual
                 new_trans = False
                 if transition not in model.obsTrans:
                     model.obsTrans.add(transition)
-                    model.updateData()
+                    model.schema_updates[transition] = model.updateData()
                     new_trans = True
+                elif not model.deterministic:
+                    model.update_schemas(transition)
 
                 # If the state is also new then record it separately and learn rewards
                 new_state = False
