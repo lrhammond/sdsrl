@@ -133,7 +133,7 @@ def learnSchemas(xYes, xNo, schemas, R=0, L=LIMIT, max_failures=5):
         print("---")
 
         # print("Learning schema...")
-        newEvidence = []
+        solved = []
 
         # Solve LP
         try:
@@ -171,16 +171,16 @@ def learnSchemas(xYes, xNo, schemas, R=0, L=LIMIT, max_failures=5):
                 # print [i for i in range(len(w_binary)) if w_binary[i] > 0]
 
                 if np.dot(w_binary, np.array(x)) == sum(w_binary):
-                    newEvidence.append(x)
+                    solved.append(x)
                     xYes.remove(x)
 
                     # print("Removed X!")
 
-            # print("Schema solves " + str(len(newEvidence)) + " positive cases against " + str(len(xNo)) + " negative cases")
+            # print("Schema solves " + str(len(solved)) + " positive cases against " + str(len(xNo)) + " negative cases")
             # print("Still have " + str(len(xYes) + len(REMxYes)) + " positive cases remaining")
 
         # If we have learned a bad schema we don't add it, and skip learning until we have more data
-        if len(newEvidence) == 0:
+        if len(solved) == 0:
             print("Schema failed to be learnt on this iteration")
             failures += 1
 
@@ -221,8 +221,8 @@ def learnSchemas(xYes, xNo, schemas, R=0, L=LIMIT, max_failures=5):
 
         A = np.negative(np.array(util.flatten([oneVector - np.array(x) for x in xNo])))
         b = np.negative(np.ones((1, len(xNo))))
-        C = np.array(util.flatten([oneVector - np.array(x) for x in (newEvidence + [w_binary])]))
-        d = np.zeros((1, len(newEvidence) + 1))
+        C = np.array(util.flatten([oneVector - np.array(x) for x in (solved + [w_binary])]))
+        d = np.zeros((1, len(solved) + 1))
 
         # Solve LP
         try:
@@ -266,18 +266,18 @@ def learnSchemas(xYes, xNo, schemas, R=0, L=LIMIT, max_failures=5):
             # print [i for i in range(len(w_binary)) if w_binary[i] > 0]
 
             if np.dot(w_binary, np.array(x)) == sum(w_binary):
-                newEvidence.append(x)
+                solved.append(x)
                 xYes.remove(x)
 
                 # print("Removed X!")
 
-        print("Schema solves " + str(len(newEvidence)) + " positive cases against " + str(len(xNo)) + " negative cases")
+        print("Schema solves " + str(len(solved)) + " positive cases against " + str(len(xNo)) + " negative cases")
         if (len(xYes) + len(REMxYes)) == 0:
             print("0 positive cases remaining")
         else:
             print("Still have " + str(len(xYes) + len(REMxYes)) + " positive cases remaining")
 
-        evidence += newEvidence
+        evidence += solved
 
     return [schemas, evidence, xYes]
 
@@ -322,11 +322,11 @@ def learnSchemas(xYes, xNo, schemas, R=0, L=LIMIT, max_failures=5):
 #
 #
 #         # Remove solved entries from xYes
-#         newEvidence = []
+#         solved = []
 #         for x in xYes:
 #             if np.dot(w_binary, np.array(x)) == sum(w_binary):
-#                 newEvidence.append(x)
+#                 solved.append(x)
 #                 xYes.remove(x)
 #         schemas.append(w_binary)
-#         evidence = evidence + newEvidence
+#         evidence = evidence + solved
 #     return [schemas, evidence, xYes]

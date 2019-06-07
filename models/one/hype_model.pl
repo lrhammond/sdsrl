@@ -94,9 +94,9 @@ attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos
                                                                            nothing(Obj):t ~= Nothing.
 
 % Actions
-adm(action(A)):t <- member(A, [r,d,u,l]).
+adm(action(A)):t <- member(A, [u,l,d,r]).
 \+(action_performed:0) <- true.
-action_performed:t+1 <- action(A), member(A, [r,d,u,l]).
+action_performed:t+1 <- action(A), member(A, [u,l,d,r]).
 
 % Neighbours
 nb1(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X - 1, NbY is Y + 1, map(NbX, NbY, Nb):t.
@@ -122,16 +122,17 @@ is_object(Obj) <- member(Obj, [obj0,obj1,obj2,obj3,obj4,obj5,obj6,obj7,obj8,obj9
 constraints:t <- true.
 
 % Attribute Schemas
-schema_x_pos(Obj, New):t <- nb6(Obj,Nb6):t, nothing(Nb6):t ~= yes, nb4(Obj,Nb4):t, nothing(Nb4):t ~= yes, colour(Obj):t ~= agent, action(r), x_pos(Obj):t ~= Curr, New is Curr + 1.
-schema_x_pos(Obj, New):t <- nb5(Obj,Nb5):t, nothing(Nb5):t ~= yes, nb4(Obj,Nb4):t, nothing(Nb4):t ~= yes, nb1(Obj,Nb1):t, colour(Nb1):t ~= wall, nb8(Obj,Nb8):t, colour(Nb8):t ~= wall, action(r), x_pos(Obj):t ~= Curr, New is Curr + 1.
+schema_x_pos(Obj, New):t <- nb5(Obj,Nb5):t, nothing(Nb5):t ~= yes, nb7(Obj,Nb7):t, colour(Nb7):t ~= wall, nb8(Obj,Nb8):t, colour(Nb8):t ~= wall, nb4(Obj,Nb4):t, nothing(Nb4):t ~= yes, colour(Obj):t ~= agent, action(r), x_pos(Obj):t ~= Curr, New is Curr + 1.
+schema_x_pos(Obj, New):t <- nb5(Obj,Nb5):t, colour(Nb5):t ~= wall, nb4(Obj,Nb4):t, nothing(Nb4):t ~= yes, nb6(Obj,Nb6):t, nothing(Nb6):t ~= yes, nb1(Obj,Nb1):t, colour(Nb1):t ~= wall, nb8(Obj,Nb8):t, nothing(Nb8):t ~= yes, nb3(Obj,Nb3):t, colour(Nb3):t ~= wall, action(r), x_pos(Obj):t ~= Curr, New is Curr + 1.
 schema_x_pos(Obj, New):t <- nb8(Obj,Nb8):t, nothing(Nb8):t ~= yes, colour(Obj):t ~= agent, action(l), x_pos(Obj):t ~= Curr, New is Curr - 1.
-schema_x_pos(Obj, New):t <- nb5(Obj,Nb5):t, nothing(Nb5):t ~= no, nb8(Obj,Nb8):t, nothing(Nb8):t ~= yes, nb7(Obj,Nb7):t, nothing(Nb7):t ~= yes, nb1(Obj,Nb1):t, colour(Nb1):t ~= wall, action(l), x_pos(Obj):t ~= Curr, New is Curr - 1.
+schema_x_pos(Obj, New):t <- nb8(Obj,Nb8):t, nothing(Nb8):t ~= yes, nb5(Obj,Nb5):t, colour(Nb5):t ~= wall, nb7(Obj,Nb7):t, nothing(Nb7):t ~= yes, nb1(Obj,Nb1):t, colour(Nb1):t ~= wall, action(l), x_pos(Obj):t ~= Curr, New is Curr - 1.
 x_pos(Obj):t+1 ~ val(New) <- schema_x_pos(Obj, New):t.
 x_pos(Obj):t+1 ~ val(Curr) <- x_pos(Obj):t ~= Curr.
-schema_y_pos(Obj, New):t <- nb7(Obj,Nb7):t, colour(Nb7):t ~= hole, action(d), y_pos(Obj):t ~= Curr, New is Curr - 1.
-schema_y_pos(Obj, New):t <- nb7(Obj,Nb7):t, colour(Nb7):t ~= wall, nb2(Obj,Nb2):t, colour(Nb2):t ~= wall, nb8(Obj,Nb8):t, colour(Nb8):t ~= wall, action(d), y_pos(Obj):t ~= Curr, New is Curr - 1.
-schema_y_pos(Obj, New):t <- nb3(Obj,Nb3):t, colour(Nb3):t ~= wall, nb4(Obj,Nb4):t, nothing(Nb4):t ~= yes, nb1(Obj,Nb1):t, colour(Nb1):t ~= wall, nb6(Obj,Nb6):t, nothing(Nb6):t ~= yes, action(d), y_pos(Obj):t ~= Curr, New is Curr - 1.
-schema_y_pos(Obj, New):t <- nb3(Obj,Nb3):t, nothing(Nb3):t ~= yes, colour(Obj):t ~= agent, action(u), y_pos(Obj):t ~= Curr, New is Curr + 1.
+schema_y_pos(Obj, New):t <- nb8(Obj,Nb8):t, nothing(Nb8):t ~= yes, nb6(Obj,Nb6):t, nothing(Nb6):t ~= yes, action(d), y_pos(Obj):t ~= Curr, New is Curr - 1.
+schema_y_pos(Obj, New):t <- nb5(Obj,Nb5):t, nothing(Nb5):t ~= yes, nb7(Obj,Nb7):t, nothing(Nb7):t ~= no, nb1(Obj,Nb1):t, colour(Nb1):t ~= wall, nb8(Obj,Nb8):t, colour(Nb8):t ~= wall, action(d), y_pos(Obj):t ~= Curr, New is Curr - 1.
+schema_y_pos(Obj, New):t <- nb4(Obj,Nb4):t, colour(Nb4):t ~= goal, action(u), y_pos(Obj):t ~= Curr, New is Curr + 1.
+schema_y_pos(Obj, New):t <- nb7(Obj,Nb7):t, colour(Nb7):t ~= hole, action(u), y_pos(Obj):t ~= Curr, New is Curr + 1.
+schema_y_pos(Obj, New):t <- nb6(Obj,Nb6):t, colour(Nb6):t ~= hole, action(u), y_pos(Obj):t ~= Curr, New is Curr + 1.
 y_pos(Obj):t+1 ~ val(New) <- schema_y_pos(Obj, New):t.
 y_pos(Obj):t+1 ~ val(Curr) <- y_pos(Obj):t ~= Curr.
 x_size(Obj):t+1 ~ val(Curr) <- x_size(Obj):t ~= Curr.
@@ -141,14 +142,13 @@ shape(Obj):t+1 ~ val(Curr) <- shape(Obj):t ~= Curr.
 nothing(Obj):t+1 ~ val(Curr) <- nothing(Obj):t ~= Curr.
 
 % Reward Schemas
-reward:t ~ val(10) <- constraints:t, is_object(Obj), nb6(Obj,Nb6):t, colour(Nb6):t ~= wall, nb7(Obj,Nb7):t, nothing(Nb7):t ~= no, nb2(Obj,Nb2):t, nothing(Nb2):t ~= yes, nb3(Obj,Nb3):t, colour(Nb3):t ~= wall, colour(Obj):t ~= agent, action(r).
-reward:t ~ val(-10) <- constraints:t, is_object(Obj), nb5(Obj,Nb5):t, nothing(Nb5):t ~= yes, nb7(Obj,Nb7):t, colour(Nb7):t ~= wall, nb4(Obj,Nb4):t, nothing(Nb4):t ~= yes, nb3(Obj,Nb3):t, nothing(Nb3):t ~= yes, nb8(Obj,Nb8):t, colour(Nb8):t ~= wall, action(d).
-reward:t ~ val(-1) <- constraints:t, is_object(Obj), nb8(Obj,Nb8):t, nothing(Nb8):t ~= yes, colour(Obj):t ~= agent.
-reward:t ~ val(-1) <- constraints:t, is_object(Obj), colour(Obj):t ~= agent, action(u).
-reward:t ~ val(-1) <- constraints:t, is_object(Obj), nb2(Obj,Nb2):t, colour(Nb2):t ~= wall, colour(Obj):t ~= agent.
-reward:t ~ val(-1) <- constraints:t, is_object(Obj), nb6(Obj,Nb6):t, colour(Nb6):t ~= hole, action(r).
-reward:t ~ val(-1) <- constraints:t, is_object(Obj), colour(Obj):t ~= agent, action(l).
-reward:t ~ val(-1) <- constraints:t, is_object(Obj), nb5(Obj,Nb5):t, colour(Nb5):t ~= wall, colour(Obj):t ~= agent, action(d).
+reward:t ~ val(100) <- constraints:t, action(A), member(A, [l]), \+action_performed:t.
+reward:t ~ val(10) <- constraints:t, is_object(Obj), nb4(Obj,Nb4):t, colour(Nb4):t ~= goal, action(r).
+reward:t ~ val(-1) <- constraints:t, is_object(Obj), nb6(Obj,Nb6):t, nothing(Nb6):t ~= yes, colour(Obj):t ~= agent.
+reward:t ~ val(-1) <- constraints:t, is_object(Obj), nb4(Obj,Nb4):t, colour(Nb4):t ~= wall, colour(Obj):t ~= agent.
+reward:t ~ val(-1) <- constraints:t, is_object(Obj), nb1(Obj,Nb1):t, colour(Nb1):t ~= wall, colour(Obj):t ~= agent.
+reward:t ~ val(-1) <- constraints:t, is_object(Obj), nb7(Obj,Nb7):t, colour(Nb7):t ~= wall, nb2(Obj,Nb2):t, nothing(Nb2):t ~= yes, nb3(Obj,Nb3):t, colour(Nb3):t ~= wall, action(u).
+reward:t ~ val(-1) <- constraints:t, is_object(Obj), nb6(Obj,Nb6):t, colour(Nb6):t ~= wall, nb2(Obj,Nb2):t, nothing(Nb2):t ~= yes, nb3(Obj,Nb3):t, colour(Nb3):t ~= wall, action(d).
 
 % Run command
 run :- executedplan_start,executedplan_step(BA,true,[observation(x_pos(obj0)) ~= 0, observation(y_pos(obj0)) ~= 4, observation(x_size(obj0)) ~= 1, observation(y_size(obj0)) ~= 1, observation(colour(obj0)) ~= wall, observation(shape(obj0)) ~= square, observation(nothing(obj0)) ~= no,

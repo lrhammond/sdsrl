@@ -99,9 +99,11 @@ def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, manual
                     method = "input"
 
                 # Otherwise find the best action using HYPE
-                else:
-                    action, expected_value = lern.hypermax(model, numSamples, rmax_actions, constraints, discount, horizon)
-                    method = "HYPE"
+                # else:
+                #     action, expected_value = lern.hypermax(model, numSamples, rmax_actions, constraints, discount, horizon)
+                #     method = "HYPE"
+
+                action = "N/A"
 
                 # If HYPE fails to select an action then we use RMAX, the policy (if available) or make a random choice
                 if action == "N/A":
@@ -118,6 +120,7 @@ def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, manual
                 # Otherwise we perform the action selected by HYPE and update the policy
                 else:
                     model.pi[state] = action
+
 
                 # Output action information
                 with open("models/" + model.name + "/episodes.txt", 'a') as f:

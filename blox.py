@@ -118,20 +118,20 @@ class Model:
 
 
 
-        # PROBLEMATIC? THIS SHOULD BE CONSISTENT
-        # We remove non-positive data points for each schema
-        for att in range(REWARD + 1):
-            for val in self.observations[att][0]:
-                self.data[att][val] = []
-
-
-
-
-
-
-        # We also remove all data points for each reward schema
+        # # PROBLEMATIC? THIS SHOULD BE CONSISTENT
+        # # We remove non-positive data points for each schema
+        # for att in range(REWARD + 1):
+        #     for val in self.observations[att][0]:
+        #         self.data[att][val] = []
+        #
+        #
+        #
+        #
+        #
+        #
+        # We remove all data points for each reward schema as their structure depends on the envrionment
         for r in self.obsRewards[0]:
-            self.evidence[REWARD][r] = []
+            self.data[REWARD][r] = []
 
         return
 
@@ -158,12 +158,12 @@ class Model:
                     position = list(objPos)
 
                     # Create new object and add to the set of objects and the map
-                    newObj = Object(i, position[0], position[1])
+                    newObj = Object(self.num_objects, position[0], position[1])
                     newObj.colour = objType
                     newObj.x_size = 1
                     newObj.y_size = 1
                     newObj.shape = "square"
-                    self.objects[i] = newObj
+                    self.objects[self.num_objects] = newObj
                     if objPos in self.objMap.keys():
                         self.objMap[objPos].append(self.num_objects)
                     else:
@@ -454,25 +454,37 @@ class Model:
 
             # Add new data points if they have not already been recorded
             for i in range(REWARD):
-                if self.checkDatum([xRow, yRow[i]], i) and xRow not in self.evidence[i][yRow[i]]:
-                    self.evidence[i][yRow[i]].append(xRow)
-                elif xRow not in self.data[i][yRow[i]]:
+
+                self.checkDatum([xRow, yRow[i]], i)
+
+                # if self.checkDatum([xRow, yRow[i]], i) and xRow not in self.evidence[i][yRow[i]]:
+                #     self.evidence[i][yRow[i]].append(xRow)
+                # elif xRow not in self.data[i][yRow[i]]:
+                #     self.data[i][yRow[i]].append(xRow)
+                if xRow not in self.data[i][yRow[i]]:
                     self.data[i][yRow[i]].append(xRow)
 
+
         # Update reward data
-        if rRow not in self.evidence[REWARD][r]:
+        # if rRow not in self.evidence[REWARD][r]:
+        #
+        #     # If the data point is predicted it is added to the evidence set
+        #     predicted = False
+        #     for key in rRow.keys():
+        #         if self.checkDatum([rRow[key], r], REWARD):
+        #             predicted = True
+        #             self.evidence[REWARD][r].append(rRow)
+        #             break
+        #
+        #     # Otherwise we add it to the data set
+        #     if not predicted and rRow not in self.data[REWARD][r]:
+        #         self.data[REWARD][r] += [rRow]
 
-            # If the data point is predicted it is added to the evidence set
-            predicted = False
-            for key in rRow.keys():
-                if self.checkDatum([rRow[key], r], REWARD):
-                    predicted = True
-                    self.evidence[REWARD][r].append(rRow)
-                    break
+        for key in rRow.keys():
+            self.checkDatum([rRow[key], r], REWARD)
 
-            # Otherwise we add it to the data set
-            if not predicted and rRow not in self.data[REWARD][r]:
-                self.data[REWARD][r] += [rRow]
+        if rRow not in self.data[REWARD][r]:
+            self.data[REWARD][r] += [rRow]
 
         return
 
@@ -576,11 +588,15 @@ class Model:
                         for o in datum.keys():
                             if self.checkDatum([datum[o], key], i):
                                 predicted = True
-                                self.evidence[i][key].append(datum)
+                                # self.evidence[i][key].append(datum)
                                 break
                         if not predicted:
                             xYes += [datum[c] for c in self.obsChanges]
                             xNo += [datum[o]for o in datum.keys() if o not in self.obsChanges]
+
+                            # if not self.checkDatum([datum[o], key], i):
+                            #     xYes += [datum[c] for c in self.obsChanges]
+                            #     xNo += [datum[o] for o in datum.keys() if o not in self.obsChanges]
 
                     # Form negative cases
                     for other in self.data[i].keys():
@@ -594,10 +610,14 @@ class Model:
                     xYes = []
                     for datum in self.data[i][key]:
                         if datum[0][i] != key:
-                            if self.checkDatum([datum,key], i):
-                                self.evidence[i][key].append(datum)
-                            else:
+                            # if self.checkDatum([datum,key], i):
+                            #     self.evidence[i][key].append(datum)
+                            # else:
+                            #     xYes.append(datum)
+                            if not self.checkDatum([datum,key], i):
                                 xYes.append(datum)
+
+
                     self.data[i][key] = [datum for datum in self.data[i][key] if datum not in self.evidence[i][key]]
 
                     # Form negative cases
@@ -642,24 +662,24 @@ class Model:
                 # Convert learnt schemas and evidence from binary output and add to model
                 self.schemas[i][key] += new_schemas
 
-                # If they are reward schemas then the binary evidence and remaining data are not in the correct form to be stored
-                if i == REWARD:
-                    for datum in self.data[i][key]:
-                        predicted = False
-                        for o in datum.keys():
-                            if self.checkDatum([datum[o], key], i):
-                                predicted = True
-                                self.evidence[i][key].append(datum)
-                                break
-                        if not predicted:
-                            remaining[key].append(datum)
-
-                # Otherwise we can convert directly back from the binary data and store the resukt
-                else:
-                    self.evidence[i][key] += [util.fromBinary(self, datum) for datum in binaryEvidence]
-                    remaining[key] = [util.fromBinary(self, datum) for datum in binaryRemaining]
-
-            self.data[i] = remaining
+            #     # If they are reward schemas then the binary evidence and remaining data are not in the correct form to be stored
+            #     if i == REWARD:
+            #         for datum in self.data[i][key]:
+            #             predicted = False
+            #             for o in datum.keys():
+            #                 if self.checkDatum([datum[o], key], i):
+            #                     predicted = True
+            #                     self.evidence[i][key].append(datum)
+            #                     break
+            #             if not predicted:
+            #                 remaining[key].append(datum)
+            #
+            #     # Otherwise we can convert directly back from the binary data and store the resukt
+            #     else:
+            #         self.evidence[i][key] += [util.fromBinary(self, datum) for datum in binaryEvidence]
+            #         remaining[key] = [util.fromBinary(self, datum) for datum in binaryRemaining]
+            #
+            # self.data[i] = remaining
 
         return
 
