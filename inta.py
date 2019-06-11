@@ -63,7 +63,7 @@ def setup(name, mode):
 
 
 # Reads in model if it already exists, or uses a different model for transfer learning, or creates a new model
-def create_model(name, mode, initState):
+def create_model(name, mode, initState, deterministic):
 
     # Create name for pickled model
     file_name = "models/{0}/model.pickle".format(name)
@@ -86,7 +86,7 @@ def create_model(name, mode, initState):
 
     # Otherwise, create a new model and get actions
     else:
-        model = blox.Model(name, mode, initState)
+        model = blox.Model(name, mode, initState, deterministic)
         print("Creating new model for environment with unknown dynamics")
         model.obsActions = get_actions()
         model.updateDicts()

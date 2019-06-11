@@ -303,41 +303,45 @@ def simplify(model, old, head, attribute):
 
     if counter != 0:
         print("Successfully reduced " + str(counter) + " schemas")
-    # Remove more complex schemas
+
+    # Remove duplicate schemas
     toRemove = []
-    oldBinary = [tuple(toBinarySchema(model, s)) for s in old]
-    newBinary = list(set(oldBinary))
-    newBinary = [list(item) for item in newBinary]
+    binary_name_dict = {}
+    old_binary = set([])
+    for s in old:
+        b = tuple(toBinarySchema(model, s))
+        binary_name_dict[b] = s.name
+        old_binary.add(b)
+    newBinary = [list(item) for item in old_binary]
+
+    # Remove schemas that are more complex/less general
     newBinary.sort(key=sum)
     for i in range(len(newBinary)):
         for j in range(i + 1, len(newBinary)):
-
-
-
-
             s1 = newBinary[i]
             s2 = newBinary[j]
-
-
             if s1 != s2 and np.dot(np.array(s1), np.array(s2)) == sum(s1):
-
                 print("Removed:")
                 ds2 = fromBinarySchema(model, s2, head)
                 print(attribute + " = " + str(head) + " <- " + ds2.display(no_head=True))
                 print("Because of:")
                 ds1 = fromBinarySchema(model, s1, head)
                 print(attribute + " = " + str(head) + " <- " + ds1.display(no_head=True))
-
                 toRemove.append(s2)
 
-
-    new = [fromBinarySchema(model, s, head) for s in newBinary if s not in toRemove]
-
+    # Create list of new schemas to be returned
+    new = []
+    for s in newBinary:
+        if s not in toRemove:
+            n_s = fromBinarySchema(model, s, head)
+            n_s.name = binary_name_dict[tuple(s)]
+            new.append(n_s)
 
     # Display notification to user if any schemas were removed
     numRemoved = len(old) - len(new)
     if numRemoved != 0:
         print("Successfully cut " + str(numRemoved) + " schemas")
+
     return new
 
 

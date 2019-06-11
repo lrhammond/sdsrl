@@ -23,7 +23,7 @@ from copy import deepcopy
 class Model:
 
     # Initialise model according to mode
-    def __init__(self, name, mode, initState, xMax=0, yMax=0, deterministic=True):
+    def __init__(self, name, mode, initState, deterministic, xMax=0, yMax=0):
 
         self.name = name
         self.deterministic = deterministic
@@ -64,7 +64,10 @@ class Model:
         self.schemas = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
         self.evidence = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
         self.data = [{"left":[], "centre":[], "right":[]},{"below":[], "centre":[], "above":[]},{},{},{},{},{"yes":[],"no":[]},{}]
+
+        # Store data for initialising and updating schema probabilities
         self.schema_updates = {}
+        self.transition_data = {}
 
         # Initialise state descriptions of model and update dictionaries
         self.initialise(mode, initState)
@@ -115,7 +118,7 @@ class Model:
         self.obsState = set([])
         self.obsChanges = set([])
         self.schema_updates = {}
-
+        self.transition_data = {}
 
         # # PROBLEMATIC? THIS SHOULD BE CONSISTENT
         # # We remove non-positive data points for each schema
@@ -438,42 +441,46 @@ class Model:
 
 
     # Updates matrices that store data for learning schemas
-    def updateData(self):
+    def updateData(self, ended):
 
         # Initialise variables
         rRow = {}
         a = self.action
         r = self.reward
         schema_updates = {}
+        data_set =  set([])
 
         # Update transition data
         for objId in self.objects.keys():
             xRow = util.formXvector(objId, self.prev, self.oldMap) + [a]
             yRow = util.formYvector(objId, self.prev, self.curr) + [r]
             rRow[objId] = xRow
-            for i in range(REWARD):
 
-                # Check current datum against attribute schemas
-                [_, u] = self.checkDatum([xRow, yRow[i]], i, update=True)
+            # We don't store attribute data if the game has ended
+            if not ended:
+                for i in range(REWARD):
 
-                # Record updates to attribute schema success rates if required
-                if not self.deterministic:
-                    if schema_updates == {}:
-                        schema_updates = u
-                    else:
+                    # Check current datum against attribute schemas
+                    [_, u] = self.checkDatum([xRow, yRow[i]], i, update=True)
+
+                    # Record updates to attribute schema success rates if required
+                    if not self.deterministic:
                         for k in u.keys():
-                            schema_updates[k][0] += u[k][0]
-                            schema_updates[k][1] += u[k][1]
+                            if k in schema_updates.keys():
+                                schema_updates[k][0] += u[k][0]
+                                schema_updates[k][1] += u[k][1]
+                            else:
+                                schema_updates[k] = u[k]
 
-                # if self.checkDatum([xRow, yRow[i]], i) and xRow not in self.evidence[i][yRow[i]]:
-                #     self.evidence[i][yRow[i]].append(xRow)
-                # elif xRow not in self.data[i][yRow[i]]:
-                #     self.data[i][yRow[i]].append(xRow)
+                    # if self.checkDatum([xRow, yRow[i]], i) and xRow not in self.evidence[i][yRow[i]]:
+                    #     self.evidence[i][yRow[i]].append(xRow)
+                    # elif xRow not in self.data[i][yRow[i]]:
+                    #     self.data[i][yRow[i]].append(xRow)
 
-                # Add new data points if they have not already been recorded
-                if xRow not in self.data[i][yRow[i]]:
-                    self.data[i][yRow[i]].append(xRow)
-
+                    # Add new data points if they have not already been recorded
+                    if xRow not in self.data[i][yRow[i]]:
+                        self.data[i][yRow[i]].append(xRow)
+                    data_set.add(util.to_tuple([xRow, yRow[i], i]))
 
         # Update reward data
         # if rRow not in self.evidence[REWARD][r]:
@@ -505,25 +512,46 @@ class Model:
                         if predictions[s.name]:
                             s.positive += 1
                             schema_updates[s.name][0] += 1
+                            s.failures = 0
                         else:
                             s.negative += 1
                             schema_updates[s.name][1] += 1
+                            s.failures += 1
 
         # Update reward data if required
         if rRow not in self.data[REWARD][r]:
             self.data[REWARD][r] += [rRow]
+        data_set.add(util.to_tuple([sorted([(k, rRow[k]) for k in rRow.keys()]), r, REWARD]))
 
-        return schema_updates
+        return schema_updates, data_set
 
 
     # Update schema success counts using a previously recorded transition
-    def update_schemas(self, transition):
+    def update_schemas(self, transition, ended, threshold=10):
 
-        for att in range(REWARD+1):
+        # We don't update attribute schemas if the game has ended
+        attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
+        if ended:
+            att_list = [REWARD]
+        else:
+            att_list = range(REWARD+1)
+
+        # Update schema success counts
+        for att in att_list:
             for val in self.schemas[att].keys():
                 for s in self.schemas[att][val]:
                     s.positive += self.schema_updates[transition][s.name][0]
                     s.negative += self.schema_updates[transition][s.name][1]
+
+                    # Remove schemas that have unsuccessfully been activated more times in a row than the threshold value
+                    if self.schema_updates[transition][s.name][0] == 0:
+                        s.failures += self.schema_updates[transition][s.name][1]
+                        if s.failures >= threshold:
+                            print("Removed schema that activated {0} times without success:".format(threshold))
+                            print(attributes[att] + " = " + str(val) + " <- " + s.display(no_head=True))
+                            self.schemas[att][val].remove(s)
+                    else:
+                        s.failures = 0
 
         return
 
@@ -564,6 +592,7 @@ class Model:
                         elif update_1:
                             schema.positive += 1
                             updates[schema.name][0] += 1
+                            schema.failures = 0
 
                     # If an incorrect prediction is made by a schema we remove it and add the relevant evidence back to the learning data
                     else:
@@ -574,9 +603,10 @@ class Model:
                         elif update_1:
                             schema.negative += 1
                             updates[schema.name][1] += 1
+                            schema.failures += 1
 
-                        # Otherwise the schema is removed
-                        else:
+                        # In a deterministic case any inconsistent schema is removed
+                        elif self.deterministic:
                             # print("------------------------------------")
                             # print("Datum body: ")
                             # for item in datum[0]:
@@ -584,7 +614,7 @@ class Model:
                             # print("Datum head: ")
                             # print datum[1]
                             # print("------------------------------------")
-                            print("Removed schema:")
+                            print("Removed inconsistent schema:")
                             print(attributes[index] + " = " + str(key) + " <- " + schema.display(no_head=True))
                             # print schema.objectBody
                             # print schema.actionBody
@@ -604,7 +634,7 @@ class Model:
     def clean(self):
 
         # For each possible attribute or reward value
-        attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
+        # attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
         for att in range(REWARD + 1):
             for val in self.observations[att][0]:
 
@@ -719,17 +749,29 @@ class Model:
                 # print binarySchemas
                 # print("333333333333333333")
 
-                # Name and display new schemas to user
+                # Name new schemas
+                new_names = []
                 new_schemas = [util.fromBinarySchema(self, s, key) for s in binarySchemas if s not in oldSchemas]
-                if len(new_schemas) != 0:
-                    print("New schemas: ")
-                    for s in new_schemas:
-                        s.name = self.num_schemas
-                        self.num_schemas += 1
-                        print(attributes[i] + " = " + str(key) + " <- " + s.display(no_head=True))
+                for s in new_schemas:
+                    s.name = self.num_schemas
+                    new_names.append(s.name)
+                    self.num_schemas += 1
 
                 # Convert learnt schemas and evidence from binary output and add to model
                 self.schemas[i][key] += new_schemas
+                self.schemas[i][key] = util.simplify(self, self.schemas[i][key], key, attributes[i])
+
+                # Get initial counts of and display new schemas
+                new_printed = False
+                for s in self.schemas[i][key]:
+                    if s.name in new_names:
+                        if not new_printed:
+                            print("New schemas: ")
+                            new_printed = True
+                        if not self.deterministic:
+                            s.get_initial_counts(self, i)
+                        print(attributes[i] + " = " + str(key) + " <- " + s.display(no_head=True))
+
 
             #     # If they are reward schemas then the binary evidence and remaining data are not in the correct form to be stored
             #     if i == REWARD:
@@ -756,6 +798,7 @@ class Model:
 # Define the object class
 class Object:
 
+
     # Intialise object
     def __init__(self, name, x_pos=None, y_pos=None):
         self.name = name
@@ -768,10 +811,12 @@ class Object:
         self.nothing = "no"
         return
 
+
     # Outputs list representing the state of the object
     def getObjectState(self):
         state = [self.x_pos, self.y_pos, self.x_size, self.y_size, self.colour, self.shape, self.nothing]
         return state
+
 
     # Displays object for use in forming Prolog file
     def observe(self, no_obj=False):
@@ -789,12 +834,15 @@ class Object:
         output = output + "observation(nothing(" + name + ")) ~= " + self.nothing
         return output
 
+
     def display(self):
         output = ["obj" + str(self.name)] + [str(i) for i in self.getObjectState()]
         return ", ".join(output)
 
+
 # Define the schema class
 class Schema:
+
 
     # Initilaise schema
     def __init__(self):
@@ -804,7 +852,9 @@ class Schema:
         self.head = None
         self.positive = 0
         self.negative = 0
+        self.failures = 0
         return
+
 
     # Checks if the schema is active against a vector describing an object
     def isActive(self, x):
@@ -830,6 +880,7 @@ class Schema:
             return False
 
         return True
+
 
     # Prints out schema in human-readable format
     def display(self, no_head=False):
@@ -866,6 +917,65 @@ class Schema:
             return schemaBody
         else:
             return schemaBody + ", " + str(self.head)
+
+
+    # Updates intial success rate counts of a newly created schema
+    def get_initial_counts(self, model, att):
+
+        # Initialise recorded counts
+        for t in model.obsTrans:
+            model.schema_updates[t][self.name] = [0, 0]
+
+        # If we are predicting an object attribute
+        if att != REWARD:
+            for val in model.data[att]:
+                for datum in model.data[att][val]:
+
+                    # Intialise variables
+                    pos = 0
+                    neg = 0
+
+                    # If the schema is active
+                    if self.isActive(datum):
+
+                        # Initialise schema counts accordingly
+                        if val == self.head:
+                            pos = 1
+                        else:
+                            neg = 1
+                        self.positive += pos
+                        self.negative += neg
+
+                        # Update recorded counts accordingly
+                        for t in model.obsTrans:
+                            if util.to_tuple([datum, val, att]) in model.transition_data[t]:
+                                model.schema_updates[t][self.name][0] += pos
+                                model.schema_updates[t][self.name][1] += neg
+
+        # If we are predicting reward
+        else:
+            for val in model.data[att]:
+                for datum in model.data[att][val]:
+
+                    # If the schema is active
+                    for n in datum.keys():
+                        if self.isActive(datum[n]):
+
+                            # Initialise schema counts and update recorded counts accordingly
+                            if val == self.head:
+                                self.positive += 1
+                                for t in model.obsTrans:
+                                    if util.to_tuple([sorted([(k, datum[k]) for k in datum.keys()]), val, att]) in model.transition_data[t]:
+                                        model.schema_updates[t][self.name][0] += 1
+                                        break
+                                break
+                            else:
+                                self.negative += 1
+                                for t in model.obsTrans:
+                                    if util.to_tuple([sorted([(k, datum[k]) for k in datum.keys()]).sort(), val, att]) in model.transition_data[t]:
+                                        model.schema_updates[t][self.name][1] += 1
+                                        break
+                                break
 
 
 # # Define the Q-function class

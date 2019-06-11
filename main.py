@@ -14,7 +14,7 @@ from random import choice
 
 
 # Run the main algorithm
-def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, manual_episodes=0):
+def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, deterministic=True, manual_episodes=0):
 
 
     RMAX = 100
@@ -35,7 +35,7 @@ def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, manual
     constraints = ", ".join(all_constraints.splitlines())
 
     # Create and save model
-    model = inta.create_model(name, mode, initState)
+    model = inta.create_model(name, mode, initState, deterministic)
     with open("models/{0}/model.pickle".format(name), 'wb') as f:
         pickle.dump(model, f)
 
@@ -155,10 +155,11 @@ def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, manual
                 new_trans = False
                 if transition not in model.obsTrans:
                     model.obsTrans.add(transition)
-                    model.schema_updates[transition] = model.updateData()
-                    new_trans = True
+                    model.schema_updates[transition], model.transition_data[transition] = model.updateData(ended)
+                    if not ended:
+                        new_trans = True
                 elif not model.deterministic:
-                    model.update_schemas(transition)
+                    model.update_schemas(transition, ended)
 
                 # If the state is also new then record it separately and learn rewards
                 new_state = False
