@@ -52,7 +52,7 @@ class Model:
         # Create lists for storing observed states, actions, rewards, and transitions
         self.obsActions = [["none"],[[0]]]
         self.obsRewards = [[],[]]
-        self.obsTrans = set([])
+        self.obsTrans = {}
         self.obsState = set([])
         self.obsChanges = set([])
 
@@ -114,7 +114,7 @@ class Model:
         self.R = {}
         self.xMax = 0
         self.yMax = 0
-        self.obsTrans = set([])
+        self.obsTrans = {}
         self.obsState = set([])
         self.obsChanges = set([])
         self.schema_updates = {}
@@ -467,7 +467,7 @@ class Model:
                     if not self.deterministic:
                         for k in u.keys():
                             if k in schema_updates.keys():
-                                for c in u[k].keys:
+                                for c in u[k].keys():
                                     if c in schema_updates[k].keys():
                                         schema_updates[k][c] += u[k][c]
                                     else:
@@ -519,11 +519,11 @@ class Model:
                         if predictions[s.name]:
                             s.positive += 1
                             schema_updates[s.name]["pos"] += 1
-                            s.failures = 0
+                            # s.failures = 0
                         else:
-                            # s.negative += 1
+                            # s.failures += 1
                             schema_updates[s.name]["neg"] += 1
-                            s.failures += 1
+                            # s.failures += 1
 
         # Update reward data if required
         if rRow not in self.data[REWARD][r]:
@@ -538,7 +538,7 @@ class Model:
 
 
     # Update schema success counts using a previously recorded transition
-    def update_schemas(self, transition, ended, threshold=10):
+    def update_schemas(self, transition, ended, threshold=0.1):
 
         # We don't update attribute schemas if the game has ended
         attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
@@ -552,32 +552,59 @@ class Model:
             for val in self.schemas[att].keys():
                 for s in self.schemas[att][val]:
                     failures = 0
-                    s.positive += self.schema_updates[transition][s.name]["pos"]
+
+                    try:
+                        s.positive += self.schema_updates[transition][s.name]["pos"]
+                    except KeyError:
+                        print s.name
+                        print("SHITE")
+
                     if att == REWARD:
-                        # s.negative += self.schema_updates[transition][s.name]["neg"]
+                        # s.failures += self.schema_updates[transition][s.name]["neg"]
                         failures = self.schema_updates[transition][s.name]["neg"]
                     else:
                         for k in self.schema_updates[transition][s.name].keys():
                             if k != "pos":
-                                s.negative[k] += self.schema_updates[transition][s.name][k]
-                                if not self.checkDatum([k[0], k[1]], k[2]):
-                                    failures += self.schema_updates[transition][s.name][k]
 
-                    # Remove schemas that have unsuccessfully been activated more times in a row than the threshold value
-                    if self.schema_updates[transition][s.name]["pos"] == 0:
-                        s.failures += failures
-                        if s.failures >= threshold:
-                            print("Removed schema that activated {0} times without success:".format(threshold))
-                            print(attributes[att] + " = " + str(val) + " <- " + s.display(no_head=True))
-                            self.schemas[att][val].remove(s)
-                    else:
-                        s.failures = 0
+                                try:
+                                    s.failures[k] += self.schema_updates[transition][s.name][k]
+                                except KeyError:
+                                    print s.name
+                                    print("SHITE")
+
+
+                                # if not self.checkDatum([k[0], k[1]], k[2]):
+                                #     failures += self.schema_updates[transition][s.name][k]
+
+        return
+
+
+    def update_probs(self, threshold=0.1):
+
+        # For each schema
+        attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
+        header_printed = False
+        for att in range(REWARD + 1):
+            for val in self.schemas[att].keys():
+                for s in self.schemas[att][val]:
+
+                    # Update negative counts based on other schemas
+                    s.negative = sum(
+                        [s.failures[d] for d in s.failures.keys() if not self.checkDatum(d, att, consistency_check=True)])
+
+                    # If the ratio of negative counts to positive counts is sufficiently high we remove the schema
+                    if float(s.positive) / (s.positive + s.negative) < threshold:
+                        if not header_printed:
+                            print("Removed schema(s) with success rate less than {0}:".format(threshold))
+                            header_printed = True
+                        print(attributes[att] + " = " + str(val) + " <- " + s.display(no_head=True))
+                        self.schemas[att][val].remove(s)
 
         return
 
 
     # Checks whether existing schemas predict a datapoint correctly or not
-    def checkDatum(self, datum, index, update=False):
+    def checkDatum(self, datum, index, update=False, consistency_check=False):
 
         # Boolean variables for indicating whether or not we need to update schema success rates
         update_1 = False
@@ -606,6 +633,10 @@ class Model:
                     if key == datum[1]:
                         predicted = True
 
+                        # If we are just checking for consistency then we are done
+                        if consistency_check:
+                            return predicted
+
                         # Update schema success counts if we are in a non-deterministic environment
                         if update_2:
                             updates[schema.name] = True
@@ -614,9 +645,13 @@ class Model:
                         elif update_1 and datum[0][0][index] != datum[1]:
                             schema.positive += 1
                             updates[schema.name]["pos"] += 1
-                            schema.failures = 0
+                            # schema.failures = 0
 
                     else:
+
+                        # If we a re just checking for consistency (i.e. predicted by some schema) we can continue
+                        if consistency_check:
+                            continue
 
                         # Update schema success counts if we are in a non-deterministic environment
                         if update_2:
@@ -625,21 +660,21 @@ class Model:
                         # Negative counts arise from cases where the schema activates unsuccessfully and no other schema predicts the data point
                         elif update_1 and datum[0][0][index] == datum[1]:
                             neg_key = util.to_tuple([datum[0], datum[1], index])
-                            schema.failures += 1
+                            # schema.failures += 1
 
                             # If the datum is already in the updates dictionary then it must have already been recorded under the schema as not being predicted
                             if neg_key in updates[schema.name].keys():
-                                schema.negative[neg_key] += 1
+                                schema.failures[neg_key] += 1
                                 updates[schema.name][neg_key] += 1
 
                             # If not, but it has been seen before, we create a new update entry and increment the schema negative count
-                            elif neg_key in schema.negative.keys():
-                                schema.negative[neg_key] += 1
+                            elif neg_key in schema.failures.keys():
+                                schema.failures[neg_key] += 1
                                 updates[schema.name][neg_key] = 1
 
                             # Otherwise we initialise both counts to 1
                             else:
-                                schema.negative[neg_key] = 1
+                                schema.failures[neg_key] = 1
                                 updates[schema.name][neg_key] = 1
 
                         # In a deterministic case any inconsistent schema is removed
@@ -664,7 +699,10 @@ class Model:
                 self.data[index][key] += self.evidence[index][key]
                 self.evidence[index][key] = []
 
-        return [predicted, updates]
+        if consistency_check:
+            return predicted
+        else:
+            return [predicted, updates]
 
 
     # Function for cleaning model of duplicate information
@@ -722,7 +760,7 @@ class Model:
                     for datum in self.data[i][key]:
                         predicted = False
                         for o in datum.keys():
-                            if self.checkDatum([datum[o], key], i)[0]:
+                            if self.checkDatum([datum[o], key], i, consistency_check=True):
                                 predicted = True
                                 # self.evidence[i][key].append(datum)
                                 break
@@ -750,7 +788,7 @@ class Model:
                             #     self.evidence[i][key].append(datum)
                             # else:
                             #     xYes.append(datum)
-                            if not self.checkDatum([datum,key], i)[0]:
+                            if not self.checkDatum([datum,key], i, consistency_check=True):
                                 xYes.append(datum)
 
 
@@ -888,8 +926,8 @@ class Schema:
         self.actionBody = None
         self.head = None
         self.positive = 0
-        self.negative = {}
-        self.failures = 0
+        self.negative = 0
+        self.failures = {}
         return
 
 
@@ -960,8 +998,8 @@ class Schema:
     def get_initial_counts(self, model, att):
 
         # Initialise recorded counts
-        for t in model.obsTrans:
-            model.schema_updates[t][self.name] = [0, 0]
+        for t in model.obsTrans.keys():
+            model.schema_updates[t][self.name] = {"pos": 0}
 
         # If we are predicting an object attribute
         if att != REWARD:
@@ -969,8 +1007,8 @@ class Schema:
                 for datum in model.data[att][val]:
 
                     # Intialise variables
-                    pos = 0
-                    neg = 0
+                    pos = False
+                    neg = False
                     d = util.to_tuple([datum, val, att])
 
                     # If the schema is active
@@ -978,29 +1016,36 @@ class Schema:
 
                         # Initialise schema counts accordingly
                         if val == self.head and datum[0][att] != val:
-                            pos = 1
-                            self.positive += pos
-                        elif datum[0][att] == val:
-                            neg = 1
-                            if d in self.negative.keys():
-                                self.negative[d] += neg
-                            else:
-                                self.negative[d] = neg
+                            pos = True
+                            # self.positive += pos
+                        elif val != self.head and datum[0][att] == val:
+                            neg = True
+                            if d not in self.failures.keys():
+                                self.failures[d] = 0
+                            # else:
+                            #     self.failures[d] = neg
 
-                        # Update recorded counts accordingly
-                        for t in model.obsTrans:
+                        # Update recorded counts accordingly, based on the number of times a data point occurs per transition, and the number of those transitions
+                        for t in model.obsTrans.keys():
                             if d in model.transition_data[t].keys():
-                                model.schema_updates[t][self.name]["pos"] += (pos * model.transition_data[t][d])
-                                if d in model.schema_updates[t][self.name].keys():
-                                    model.schema_updates[t][self.name][d] += (neg * model.transition_data[t][d])
-                                else:
-                                    model.schema_updates[t][self.name][d] = (neg * model.transition_data[t][d])
+                                if pos:
+                                    self.positive += model.obsTrans[t] * model.transition_data[t][d]
+                                    model.schema_updates[t][self.name]["pos"] += model.transition_data[t][d]
+                                elif neg:
+                                    self.failures[d] += model.obsTrans[t] * model.transition_data[t][d]
+                                    if d in model.schema_updates[t][self.name].keys():
+                                        model.schema_updates[t][self.name][d] += model.transition_data[t][d]
+                                    else:
+                                        model.schema_updates[t][self.name][d] = model.transition_data[t][d]
+
+            print("done!")
 
         # If we are predicting reward
         else:
             for val in model.data[att]:
                 for datum in model.data[att][val]:
                     d = util.to_tuple([sorted([(k, datum[k]) for k in datum.keys()]), val, att])
+                    positive = False
 
                     # If the schema is active
                     for n in datum.keys():
@@ -1008,18 +1053,27 @@ class Schema:
 
                             # Initialise schema counts and update recorded counts accordingly
                             if val == self.head:
-                                self.positive += 1
-                                for t in model.obsTrans:
+
+                                positive = True
+                                for t in model.obsTrans.keys():
+                                    model.schema_updates[t][self.name]["neg"] = 0
                                     if d in model.transition_data[t].keys():
                                         model.schema_updates[t][self.name]["pos"] += 1
+                                        self.positive += model.obsTrans[t]
                                 break
                             # else:
-                            #     self.negative += 1
+                            #     self.failures += 1
                             #     for t in model.obsTrans:
                             #         if d in model.transition_data[t]:
                             #             model.schema_updates[t][self.name][1] += 1
                             #             break
                             #     break
+                    if not positive:
+                        for t in model.obsTrans.keys():
+                            if d in model.transition_data[t].keys():
+                                model.schema_updates[t][self.name]["neg"] += model.obsTrans[t]
+
+        return
 
 
 # # Define the Q-function class

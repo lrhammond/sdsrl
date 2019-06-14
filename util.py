@@ -306,11 +306,11 @@ def simplify(model, old, head, attribute):
 
     # Remove duplicate schemas
     toRemove = []
-    binary_name_dict = {}
+    binary_schema_dict = {}
     old_binary = set([])
     for s in old:
         b = tuple(toBinarySchema(model, s))
-        binary_name_dict[b] = s.name
+        binary_schema_dict[b] = [s.name, s.positive, s.negative, s.failures]
         old_binary.add(b)
     newBinary = [list(item) for item in old_binary]
 
@@ -334,7 +334,12 @@ def simplify(model, old, head, attribute):
     for s in newBinary:
         if s not in toRemove:
             n_s = fromBinarySchema(model, s, head)
-            n_s.name = binary_name_dict[tuple(s)]
+
+            # Restore old
+            n_s.name = binary_schema_dict[tuple(s)][0]
+            n_s.positive = binary_schema_dict[tuple(s)][1]
+            n_s.negative = binary_schema_dict[tuple(s)][2]
+            n_s.failures = binary_schema_dict[tuple(s)][3]
             new.append(n_s)
 
     # Display notification to user if any schemas were removed

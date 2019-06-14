@@ -2,6 +2,18 @@
 # Primary script for running learning and verification procedures
 
 
+X_POS = 0
+Y_POS = 1
+X_SIZE = 2
+Y_SIZE = 3
+COLOUR = 4
+SHAPE = 5
+NOTHING = 6
+REWARD = 7
+NEIGHBOURS = 8
+ACTION = 9
+LIMIT = 10
+
 from copy import deepcopy
 import inta
 import lern
@@ -152,14 +164,20 @@ def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, determ
                 state = transition[:2]
 
                 # If the transition has not previously been observed then we update the data and learn transitions
+                update_schema_counts = False
                 new_trans = False
-                if transition not in model.obsTrans:
-                    model.obsTrans.add(transition)
+                if transition not in model.obsTrans.keys():
+                    model.obsTrans[transition] = 1
                     model.schema_updates[transition], model.transition_data[transition] = model.updateData(ended)
                     if not ended:
                         new_trans = True
+
+                # Otherwise we update schema probability counts from our recorded observations
                 elif not model.deterministic:
+                    model.obsTrans[transition] += 1
                     model.update_schemas(transition, ended)
+                else:
+                    model.obsTrans[transition] += 1
 
                 # If the state is also new then record it separately and learn rewards
                 new_state = False
@@ -167,8 +185,26 @@ def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, determ
                     model.obsState.add(state)
                     new_state = True
 
-                # Learn new schemas
+                # Learn new schemas and update their success probabilities if required
                 model.learn(new_trans, new_state)
+                if not model.deterministic:
+                    model.update_probs()
+
+
+
+
+                attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
+                print("======================================")
+                print("Schemas at the end of step " + str(j) + ":")
+                for att in range(REWARD + 1):
+                    for val in model.schemas[att].keys():
+                        for s in model.schemas[att][val]:
+                            print(str(s.name) + " : " + str(s.positive) + "/" + str(s.negative) + " : " + attributes[
+                                att] + " = " + str(val) + " <- " + s.display(no_head=True))
+                print("======================================")
+
+
+
 
     # Print information from experiment
     print("Rewards:")

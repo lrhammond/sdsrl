@@ -1,0 +1,9 @@
+Episode action sequences and rewards for k
+
+Episode 0
+r (from input)
+r (from input)
+r (from input)
+r (from input)
+r (from input)
+l (from input)
