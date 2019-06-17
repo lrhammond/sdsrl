@@ -74,10 +74,12 @@ def formXvector(objId, state, oldMap):
             nbVector[0] = nb[1][0]
             nbVector[1] = nb[1][1]
             vector.append(nbVector)
-        # If there is no neighbour, add a vector with all None entries apart from the 'nothing' attribute
+        # If there is no neighbour, add a vector with all None entries apart from the position and 'nothing' attributes
         else:
             new = [None for _ in range(NOTHING+1)]
             new[NOTHING] = "yes"
+            new[0] = nb[1][0]
+            new[1] = nb[1][1]
             vector.append(new)
     return vector
 

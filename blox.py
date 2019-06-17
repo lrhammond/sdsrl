@@ -579,7 +579,7 @@ class Model:
         return
 
 
-    def update_probs(self, threshold=0.1):
+    def update_probs(self, threshold=0.333):
 
         # For each schema
         attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
@@ -791,7 +791,6 @@ class Model:
                             if not self.checkDatum([datum,key], i, consistency_check=True):
                                 xYes.append(datum)
 
-
                     self.data[i][key] = [datum for datum in self.data[i][key] if datum not in self.evidence[i][key]]
 
                     # Form negative cases
@@ -814,9 +813,9 @@ class Model:
 
                 # Learn and output schemas, new evidence, and remaining positive cases
                 if i == REWARD:
-                    [binarySchemas, _, _] = lern.learnSchemas(xYes, xNo, schemas)
+                    [binarySchemas, _, _] = lern.learnSchemas(xYes, xNo, schemas, self.deterministic)
                 else:
-                    [binarySchemas, binaryEvidence, binaryRemaining] = lern.learnSchemas(xYes, xNo, schemas)
+                    [binarySchemas, binaryEvidence, binaryRemaining] = lern.learnSchemas(xYes, xNo, schemas, self.deterministic)
 
                 # print("111111111111111111")
                 # print schemas
@@ -919,7 +918,7 @@ class Object:
 class Schema:
 
 
-    # Initilaise schema
+    # Initialise schema
     def __init__(self):
         self.name = None
         self.objectBody = {}

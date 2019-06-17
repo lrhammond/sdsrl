@@ -21,14 +21,14 @@ import util
 import blox
 import pickle
 import os
-from random import choice
+from random import choice, seed, random
 
 
 
 # Run the main algorithm
 def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, deterministic=True, manual_episodes=0):
 
-
+    seed()
     RMAX = 100
 
     print("+++++++++++++++++++++++")
@@ -109,6 +109,14 @@ def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, determ
                     while action not in model.obsActions[0]:
                         action = raw_input("Enter action: ")
                     method = "input"
+
+
+                    # if random() < 0.5:
+                    #     action2 = choice(model.obsActions[0])
+                    #     method = "noise"
+                    # else:
+                    #     action2 = action
+
 
                 # Otherwise find the best action using HYPE
                 # else:

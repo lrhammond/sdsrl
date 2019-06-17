@@ -151,7 +151,8 @@ def performAction(model, mode, environment, action):
         # Take action
         action_dict = dict(zip(["u", "l", "d", "r", "none"], [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1], [0, 0, 0, 0]]))
         action_vector = np.array(action_dict[action])
-        environment._performAction(action_vector)
+        if action != "none":
+            environment._performAction(action_vector)
         environment._game._drawAll()
 
         # Get reward

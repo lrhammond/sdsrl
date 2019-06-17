@@ -18,7 +18,7 @@
 
 % Parameters
 % Most of these can be edited as you see fit. Note that the 'Enable abstraction' parameter is overidden by the second argument of 'executedplan_step'.
-maxV(D,100):t <- true.
+maxV(D,2000):t <- true.
 getparam(params) :- bb_put(user:spant,0),
                     setparam(
                         % Enable abstraction
@@ -38,13 +38,13 @@ getparam(params) :- bb_put(user:spant,0),
                         % Discount
                         1,
                         % Probability to explore in the beginning (first sample)
-                        0.25,
+                        0.5,
                         % Probability to explore in the end (last sample)
-                        0.15,
+                        0.2,
                         % Number of previous samples to use to estimate Q (larger is better but slower)
-                        100,
+                        2000,
                         % Max horizon span
-                        200,
+                        2000,
                         % Lambda init
                         0.9,
                         % Lambda final
@@ -75,7 +75,7 @@ attributes(Obj, X_pos, Y_pos, Type, Nothing):t <- x_pos(Obj):t ~= X_pos,
 
 % Actions
 % This can be made more complicated if you want, but should suffice for now.
-adm(action(A)):t <- member(A, [u,l,d,r]).
+adm(action(A)):t <- member(A, [l,r]).
 
 % Neighbours
 % You probably won't need to use this kind of thing unless you're using deictic rules, but I've left it in just in case as it's what I've used for my example.
@@ -116,26 +116,79 @@ nothing(no_object):t+1 ~ val(Curr) <- nothing(no_object):t ~= Curr.
 
 % Attribute rules
 % These govern the dynamics of the MDP by updating the attributes of objects in the domain.
-new_x_pos(Obj, New):t <- type(Obj):t ~= agent, action(r), x_pos(Obj):t ~= Curr, New is Curr + 1, nb4(Obj,Nb4):t, nothing(Nb4):t ~= yes.
-new_x_pos(Obj, New):t <- type(Obj):t ~= agent, action(l), x_pos(Obj):t ~= Curr, New is Curr - 1, nb8(Obj,Nb8):t, nothing(Nb8):t ~= yes.
-x_pos(Obj):t+1 ~ val(New) <- new_x_pos(Obj, New):t.
-x_pos(Obj):t+1 ~ val(Curr) <- x_pos(Obj):t ~= Curr.
+% new_x_pos(Obj, New):t <- type(Obj):t ~= agent, action(r), x_pos(Obj):t ~= Curr, New is Curr + 1, nb4(Obj,Nb4):t, nothing(Nb4):t ~= yes.
+% new_x_pos(Obj, New):t <- type(Obj):t ~= agent, action(l), x_pos(Obj):t ~= Curr, New is Curr - 1, nb8(Obj,Nb8):t, nothing(Nb8):t ~= yes.
+% x_pos(Obj):t+1 ~ val(New) <- new_x_pos(Obj, New):t.
+% x_pos(Obj):t+1 ~ val(Curr) <- x_pos(Obj):t ~= Curr.
+% new_y_pos(Obj, New):t <- type(Obj):t ~= agent, action(u), y_pos(Obj):t ~= Curr, New is Curr + 1, nb2(Obj,Nb2):t, nothing(Nb2):t ~= yes.
+% new_y_pos(Obj, New):t <- type(Obj):t ~= agent, action(d), y_pos(Obj):t ~= Curr, New is Curr - 1, nb6(Obj,Nb6):t, nothing(Nb6):t ~= yes.
+% y_pos(Obj):t+1 ~ val(New) <- new_y_pos(Obj, New):t.
+% y_pos(Obj):t+1 ~ val(Curr) <- y_pos(Obj):t ~= Curr.
+% type(Obj):t+1 ~ val(Curr) <- type(Obj):t ~= Curr.
+% nothing(Obj):t+1 ~ val(Curr) <- nothing(Obj):t ~= Curr.
+
+
+% x1(Obj):t ~ val((5,2)) <- type(Obj):t ~= agent, action(r), x_pos(Obj):t ~= Curr, New is Curr + 1, nb4(Obj,Nb4):t, nothing(Nb4):t ~= yes.
+% % x1(X1,F1):t ~ val((0,0)) <- true.
+%
+% x2(Obj):t ~ val((4,1)) <- type(Obj):t ~= agent, action(l), x_pos(Obj):t ~= Curr, New is Curr - 1, nb8(Obj,Nb8):t, nothing(Nb8):t ~= yes.
+% % x2(X2,F2):t ~ val((0,0)) <- true.
+%
+% % x_pos(Obj):t+1 ~ val(New) <- new_x_pos(Obj, New):t.
+% % x_pos(Obj):t+1 ~ val(Curr) <- x_pos(Obj):t ~= Curr.
+%
+% x_pos(Obj):t+1 ~ finite([P1:R, P2:L, P3:Curr]) <- x_pos(Obj):t ~= Curr, L is Curr - 1, R is Curr + 1,
+%                                                   x1(Obj):t ~= (X1, F1), x2(Obj):t ~= (X2, F2),
+%                                                   P1 is X1 / 12,
+%                                                   P2 is X2 / 12,
+%                                                   P3 is (F1 + F2) / 12.
+
+
+
+x1(Obj):t ~ val(0.8) <- action(r), type(Obj):t ~= agent.
+x1(Obj):t ~ val(0.8) <- true.
+x2(Obj):t ~ val(0.6) <- action(l), type(Obj):t ~= agent.
+x2(Obj):t ~ val(0.6) <- true.
+
+% x_pos(Obj):t+1 ~ val(New) <- new_x_pos(Obj, New):t.
+% x_pos(Obj):t+1 ~ val(Curr) <- x_pos(Obj):t ~= Curr.
+
+x_pos(Obj):t+1 ~ val(Curr) <- x_pos(Obj):t ~= Curr, x1(Obj):t ~= X1, x2(Obj):t ~= X2, D is X1 + X2, D = 0.
+
+x_pos(Obj):t+1 ~ finite([P1:R, P2:L, P3:Curr]) <- x_pos(Obj):t ~= Curr, L is Curr - 1, R is Curr + 1,
+                                                  x1(Obj):t ~= X1, x2(Obj):t ~= X2,
+                                                  P3 is (1 - X1) * (1 - X2),
+                                                  P1 is X1 * (1 - P3) / (X1 + X2),
+                                                  P2 is X2 * (1 - P3) / (X1 + X2).
+
+
+% x_pos(Obj):t+1 ~ val(Curr) <- x_pos(Obj):t ~= Curr, Obj \= obj17.
+
+
+
+
 new_y_pos(Obj, New):t <- type(Obj):t ~= agent, action(u), y_pos(Obj):t ~= Curr, New is Curr + 1, nb2(Obj,Nb2):t, nothing(Nb2):t ~= yes.
 new_y_pos(Obj, New):t <- type(Obj):t ~= agent, action(d), y_pos(Obj):t ~= Curr, New is Curr - 1, nb6(Obj,Nb6):t, nothing(Nb6):t ~= yes.
 y_pos(Obj):t+1 ~ val(New) <- new_y_pos(Obj, New):t.
 y_pos(Obj):t+1 ~ val(Curr) <- y_pos(Obj):t ~= Curr.
 type(Obj):t+1 ~ val(Curr) <- type(Obj):t ~= Curr.
+
+% type(Obj):t+1 ~ finite([X:wall,0.5:Curr]) <- type(Obj):t ~= Curr, X = 0.5.
+
 nothing(Obj):t+1 ~ val(Curr) <- nothing(Obj):t ~= Curr.
 
 % Reward rules
 % I haven't finished working out how to represent my reward rules yet, so this is a simple temporary solution.
-reward:t ~ val(-10) <- map(1, 1, obj17):t.
-reward:t ~ val(10) <- map(3, 1, obj17):t.
-reward:t ~ val(-1) <- \+((map(1, 1, obj17):t)), \+((map(3, 1, obj17):t)).
+% reward:t ~ val(10) <- type(obj17):t ~= wall.
+% reward:t ~ val(0) <- \+((type(obj17):t ~= wall)).
+
+reward:t ~ val(100) <- map(1, 3, obj17):t.
+reward:t ~ val(100) <- map(3, 3, obj17):t.
+reward:t ~ val(0) <- \+((map(1, 3, obj17):t)), \+((map(3, 3, obj17):t)).
 
 % Run command
 % Plans for one step using the initialization given as an observation. Most of the parameters can be changed I think.
-run :- executedplan_start,executedplan_step(BA,true,[observation(x_pos(obj0))~=0,
+run :- executedplan_start,executedplan_step(BA,True,[observation(x_pos(obj0))~=0,
                                                     observation(y_pos(obj0))~=4,
                                                     observation(type(obj0))~=wall,
                                                     observation(nothing(obj0))~=no,
@@ -203,9 +256,9 @@ run :- executedplan_start,executedplan_step(BA,true,[observation(x_pos(obj0))~=0
                                                     observation(y_pos(obj16))~=0,
                                                     observation(type(obj16))~=wall,
                                                     observation(nothing(obj16))~=no,
-                                                    observation(x_pos(obj17))~=1,
+                                                    observation(x_pos(obj17))~=2,
                                                     observation(y_pos(obj17))~=3,
                                                     observation(type(obj17))~=agent,
                                                     observation(nothing(obj17))~=no,
                                                     observation(nothing(no_object))~=yes],
-                                                    100,5,TotalR,T,5,STOP).
+                                                    2000,2,TotalR,T,2,STOP).

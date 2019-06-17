@@ -68,7 +68,7 @@ def hypermax(model, num_samples, rmax_actions, constraints, gamma, horizon, max=
 
 
 # Learns schemas for a particular object attribute given data X and y using linprog
-def learnSchemas(xYes, xNo, schemas, R=0, L=LIMIT, max_failures=5):
+def learnSchemas(xYes, xNo, schemas, deterministic, R=0, L=LIMIT, max_failures=5):
 
     failures = 0
 
@@ -82,18 +82,23 @@ def learnSchemas(xYes, xNo, schemas, R=0, L=LIMIT, max_failures=5):
     both = [list(item) for item in list(set(yes) & set(no))]
     if len(both) != 0:
         print("{0} contradictory data points detected and removed.".format(len(both)))
+        if deterministic:
+            print("Error: This should never happen in deterministic environments, indicating that data recording is functioning improperly")
+
+    # How the data points are removed depends on whether we are in a deterministic environment or not
     for datum in both:
-        xYes.remove(datum)
         xNo.remove(datum)
+        if deterministic:
+            xYes.remove(datum)
 
     # If there are no more positive cases we do not try learning here
     if len(xYes) == 0:
-        print("No more positive cases after removing contradictory data, schemas not learnt.")
+        print("No more positive cases after removing contradictory and/or duplicate data, schemas not learnt.")
         return [schemas, [], []]
 
     # If all the cases are positive there are no constraints for learning schemas so we do not try
     if len(xNo) == 0:
-        print("No negative cases so no constraints for learning, schemas not learnt.")
+        print("No negative cases after removing contradictory and/or duplicate data so no constraints for learning, schemas not learnt.")
         schemas.append([0 for _ in schemas[0]])
         return [schemas, xYes, []]
 
@@ -215,10 +220,8 @@ def learnSchemas(xYes, xNo, schemas, R=0, L=LIMIT, max_failures=5):
 
         # Shrink schema
         f = np.ones((1, len(w_binary)))
-
         # f = np.divide(f, len(xYes))
         # f = f + (R * oneVector)
-
         A = np.negative(np.array(util.flatten([oneVector - np.array(x) for x in xNo])))
         b = np.negative(np.ones((1, len(xNo))))
         C = np.array(util.flatten([oneVector - np.array(x) for x in (solved + [w_binary])]))
@@ -235,9 +238,7 @@ def learnSchemas(xYes, xNo, schemas, R=0, L=LIMIT, max_failures=5):
         # print("Status: " + result.message)
 
         old_w_binary = w_binary
-
         w = result.x
-
         w_binary = w > TOL
         w_binary = [int(entry) for entry in w_binary]
 
