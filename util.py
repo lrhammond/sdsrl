@@ -337,7 +337,7 @@ def simplify(model, old, head, attribute):
         if s not in toRemove:
             n_s = fromBinarySchema(model, s, head)
 
-            # Restore old
+            # Restore old schema properties
             n_s.name = binary_schema_dict[tuple(s)][0]
             n_s.positive = binary_schema_dict[tuple(s)][1]
             n_s.negative = binary_schema_dict[tuple(s)][2]

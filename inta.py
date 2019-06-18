@@ -225,9 +225,9 @@ getparam(params) :- bb_put(user:spant,0),
                         % Probability to explore in the end (last sample)
                         0.15,
                         % Number of previous samples to use to estimate Q (larger is better but slower)
-                        100,
+                        {0},
                         % Max horizon span
-                        100,
+                        {0},
                         % Lambda init
                         0.9,
                         % Lambda final
@@ -324,19 +324,88 @@ map(X, Y, no_object):t <- """)
     change = {"centre":"", "left":" - 1", "right":" + 1", "below":" - 1", "above":" + 1"}
     f.write("\n% Attribute Schemas\n")
     for i in range(len(model.schemas) - 1):
-        numSchemas = 0
+
+        n_s = 0
         att = attributes[i]
+
+        if not deterministic:
+            string_info = {}
+
         for j in model.schemas[i].keys():
             for k in range(len(model.schemas[i][j])):
+
                 s = model.schemas[i][j][k]
-                numSchemas += 1
-                if i == X_POS or i == Y_POS:
-                    f.write("schema_" + att + "(Obj, New):t <- " + s.display(no_head=True) + ", " + att + "(Obj):t ~= Curr, New is Curr" + change[s.head] + ".\n")
+                n_s += 1
+
+                # For deterministic models
+                if model.deterministic:
+                    if i == X_POS or i == Y_POS:
+                        f.write("schema_" + att + "(Obj, New):t <- " + s.display(no_head=True) + ", " + att + "(Obj):t ~= Curr, New is Curr" + change[s.head] + ".\n")
+                    else:
+                        f.write("schema_" + att + "(Obj, New):t <- " + s.display() + " = New.\n")
+
+                # For non-deterministic models
                 else:
-                    f.write("schema_" + att + "(Obj, New):t <- " + s.display() + " = New.\n")
-        if numSchemas != 0:
-            f.write(att + "(Obj):t+1 ~ val(New) <- schema_" + att + "(Obj, New):t.\n")
-        f.write(att + "(Obj):t+1 ~ val(Curr) <- " + att + "(Obj):t ~= Curr.\n")
+
+                    prob = float(s.positive) / (s.positive + s.negative)
+                    pred = att + "_" + str(j) + "_" + str(k)
+
+                    if j not in string_info.keys():
+                        string_info[j] = []
+                    string_info[j].append(pred)
+
+                    f.write("{0}(Obj):t ~ val({2}) <- {3}.\n".format(pred, prob, s.display(no_head=True)))
+                    f.write("{0}(Obj):t ~ val(0) <- true.\n".format(pred))
+
+
+        if model.deterministic:
+            if n_s != 0:
+                f.write(att + "(Obj):t+1 ~ val(New) <- schema_" + att + "(Obj, New):t.\n")
+            f.write(att + "(Obj):t+1 ~ val(Curr) <- " + att + "(Obj):t ~= Curr.\n")
+
+        else:
+
+            if n_s != 0:
+
+                pred_list = util.flatten([string_info(val) for val in string_info.keys()])
+
+                zeros_list = [pred + "(Obj):t ~= 0" for pred in pred_list]
+                zeros = ", ".join(zeros_list)
+
+                f.write(att + "(Obj):t+1 ~ val(Curr) <- " + att + "(Obj):t ~= Curr, " + zeros + ".\n")
+
+                vars_list =  [pred + "(Obj):t ~= " + pred.capitalize() for pred in pred_list]
+                vars = ", ".join(vars_list)
+
+                p_curr_calc_list = ["(1 - " + pred.capitalize() + ")" for pred in pred_list]
+                p_curr_calc = " * ".join(p_curr_calc_list)
+
+                probs_list = []
+                denominator = "(" + " + ".join([pred.capitalize() for pred in pred_list]) + ")"
+                for j in string_info.keys():
+                    numerator = "(" + " + ".join([pred.capitalize() for pred in string_info[j]]) + ")"
+                    probs_list.append("P_" + str(j) + " is " + numerator + " * (1 - P_curr) / " + denominator)
+                probs =  ", ".join(probs_list)
+
+                if i == X_POS or i == Y_POS:
+
+                    dist_list = ["P_{0} : {1}".format(val, val.capitalize()) for val in string_info.keys()] + ["P_curr : Curr"]
+                    dist = "[" + ", ".join(dist_list) + "]"
+
+                    pos_list = [val.capitalize() + " is Curr" + change[val] for val in string_info.keys()]
+                    pos = ", ".join(pos_list)
+
+                    f.write("{0}(Obj):t+1 ~ finite({1}) <- {0}(Obj):t ~= Curr, {2}, {3}, P_curr is {4}, {5}.".format(att, dist, pos, vars, p_curr_calc, probs)
+
+                else:
+
+                    dist_list = ["P_{0} : {0}".format(val) for val in string_info.keys()] + ["P_curr : Curr"]
+                    dist = "[" + ", ".join(dist_list) + "]"
+
+                    f.write("{0}(Obj):t+1 ~ finite({1}) <- {0}(Obj):t ~= Curr, {2}, P_curr is {3}, {4}.".format(att, dist, vars, p_curr_calc, probs)
+
+            else:
+                f.write(att + "(Obj):t+1 ~ val(Curr) <- " + att + "(Obj):t ~= Curr.\n")
 
     # Write reward schemas to file
     f.write("\n% Reward Schemas\n")

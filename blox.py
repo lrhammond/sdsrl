@@ -27,7 +27,7 @@ class Model:
 
         self.name = name
         self.deterministic = deterministic
-
+        self.error_made = False
         self.num_objects = 0
         self.num_schemas = 0
 
@@ -109,6 +109,7 @@ class Model:
 
         # Reset/rename variables
         self.name = name
+        self.error_made = False
         self.pi = {}
         self.Q = {}
         self.R = {}
@@ -522,6 +523,7 @@ class Model:
                             # s.failures = 0
                         else:
                             # s.failures += 1
+                            s.negative += 1
                             schema_updates[s.name]["neg"] += 1
                             # s.failures += 1
 
@@ -561,7 +563,8 @@ class Model:
 
                     if att == REWARD:
                         # s.failures += self.schema_updates[transition][s.name]["neg"]
-                        failures = self.schema_updates[transition][s.name]["neg"]
+                        s.negative += self.schema_updates[transition][s.name]["neg"]
+
                     else:
                         for k in self.schema_updates[transition][s.name].keys():
                             if k != "pos":
@@ -597,6 +600,7 @@ class Model:
                         if not header_printed:
                             print("Removed schema(s) with success rate less than {0}:".format(threshold))
                             header_printed = True
+                            self.error_made = True
                         print(attributes[att] + " = " + str(val) + " <- " + s.display(no_head=True))
                         self.schemas[att][val].remove(s)
 
@@ -698,6 +702,7 @@ class Model:
             if errorMade:
                 self.data[index][key] += self.evidence[index][key]
                 self.evidence[index][key] = []
+                self.error_made = True
 
         if consistency_check:
             return predicted
@@ -716,9 +721,6 @@ class Model:
                 # Remove duplicate data and schemas
                 self.data[att][val] = util.deDupe(self.data[att][val])
                 self.evidence[att][val] = util.deDupe(self.evidence[att][val])
-
-                # Simplify schemas
-                # self.schemas[att][val] = util.simplify(self, self.schemas[att][val], val, attributes[att])
 
         return
 
@@ -996,12 +998,14 @@ class Schema:
     # Updates intial success rate counts of a newly created schema
     def get_initial_counts(self, model, att):
 
-        # Initialise recorded counts
-        for t in model.obsTrans.keys():
-            model.schema_updates[t][self.name] = {"pos": 0}
-
         # If we are predicting an object attribute
         if att != REWARD:
+
+            # Initialise recorded counts
+            for t in model.obsTrans.keys():
+                model.schema_updates[t][self.name] = {"pos": 0}
+
+            # For each recorded datum
             for val in model.data[att]:
                 for datum in model.data[att][val]:
 
@@ -1037,10 +1041,14 @@ class Schema:
                                     else:
                                         model.schema_updates[t][self.name][d] = model.transition_data[t][d]
 
-            print("done!")
-
         # If we are predicting reward
         else:
+
+            # Initialise recorded counts
+            for t in model.obsTrans.keys():
+                model.schema_updates[t][self.name] = {"pos": 0, "neg": 0}
+
+            # For each recorded datum
             for val in model.data[att]:
                 for datum in model.data[att][val]:
                     d = util.to_tuple([sorted([(k, datum[k]) for k in datum.keys()]), val, att])
@@ -1053,13 +1061,14 @@ class Schema:
                             # Initialise schema counts and update recorded counts accordingly
                             if val == self.head:
 
+                                # If the schema is correct
                                 positive = True
                                 for t in model.obsTrans.keys():
-                                    model.schema_updates[t][self.name]["neg"] = 0
                                     if d in model.transition_data[t].keys():
                                         model.schema_updates[t][self.name]["pos"] += 1
                                         self.positive += model.obsTrans[t]
                                 break
+
                             # else:
                             #     self.failures += 1
                             #     for t in model.obsTrans:
@@ -1067,10 +1076,13 @@ class Schema:
                             #             model.schema_updates[t][self.name][1] += 1
                             #             break
                             #     break
+
+                    # If the schema is not correct
                     if not positive:
                         for t in model.obsTrans.keys():
                             if d in model.transition_data[t].keys():
-                                model.schema_updates[t][self.name]["neg"] += model.obsTrans[t]
+                                model.schema_updates[t][self.name]["neg"] += 1
+                                self.negative += model.obsTrans[t]
 
         return
 

@@ -1,0 +1,65 @@
+Episode action sequences and rewards for www
+
+Episode 0
+r (from input)
+d (from input)
+r (from input)
+r (from input)
+r (from input)
+r (from input)
+r (from input)
+r (from input)
+u (from input)
+r (from input)
+r (from input)
+r (from input)
+d (from input)
+d (from input)
+r (from input)
+d (from input)
+d (from input)
+r (from input)
+r (from input)
+r (from input)
+u (from input)
+Score: -10
+
+Episode 1
+r (from input)
+r (from input)
+r (from input)
+r (from input)
+d (from input)
+d (from input)
+r (from input)
+d (from input)
+r (from input)
+d (from input)
+r (from input)
+r (from input)
+r (from input)
+u (from input)
+Score: -3
+
+Episode 2
+r (from input)
+r (from input)
+d (from input)
+d (from input)
+d (from input)
+d (from input)
+l (from input)
+Score: -16
+
+Episode 3
+r (from input)
+r (from input)
+d (from input)
+d (from input)
+d (from input)
+d (from input)
+r (from input)
+l (from input)
+r (from input)
+l (from input)
+r (from input)

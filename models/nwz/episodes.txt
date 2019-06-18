@@ -1,3 +1,5 @@
 Episode action sequences and rewards for nwz
 
 Episode 0
+r (from input)
+r (from input)

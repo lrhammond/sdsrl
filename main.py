@@ -179,6 +179,8 @@ def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, determ
                     model.schema_updates[transition], model.transition_data[transition] = model.updateData(ended)
                     if not ended:
                         new_trans = True
+                elif model.error_made and not ended:
+                    new_trans = True
 
                 # Otherwise we update schema probability counts from our recorded observations
                 elif not model.deterministic:
@@ -192,9 +194,12 @@ def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, determ
                 if state not in model.obsState:
                     model.obsState.add(state)
                     new_state = True
+                elif model.error_made:
+                    new_state = True
 
                 # Learn new schemas and update their success probabilities if required
                 model.learn(new_trans, new_state)
+                model.error_made = False
                 if not model.deterministic:
                     model.update_probs()
 
