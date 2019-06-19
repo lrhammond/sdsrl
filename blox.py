@@ -23,10 +23,14 @@ from copy import deepcopy
 class Model:
 
     # Initialise model according to mode
-    def __init__(self, name, mode, initState, deterministic, xMax=0, yMax=0):
+    def __init__(self, name, mode, safe, initState, deterministic, xMax=0, yMax=0):
 
+        # Record important modelling choices
         self.name = name
         self.deterministic = deterministic
+        self.safe = safe
+
+        # Initialise model variables and counts
         self.error_made = False
         self.num_objects = 0
         self.num_schemas = 0
@@ -731,6 +735,7 @@ class Model:
         # Prepare for learning
         self.updateDicts()
         attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
+        model_updated = False
         if transitions and rewards:
             att_list = range(REWARD + 1)
         elif transitions and not rewards:
@@ -844,6 +849,7 @@ class Model:
                         if not new_printed:
                             print("New schemas: ")
                             new_printed = True
+                            model_updated = True
                         if not self.deterministic:
                             s.get_initial_counts(self, i)
                         print(attributes[i] + " = " + str(key) + " <- " + s.display(no_head=True))
@@ -868,7 +874,7 @@ class Model:
             #
             # self.data[i] = remaining
 
-        return
+        return model_updated
 
 
 # Define the object class

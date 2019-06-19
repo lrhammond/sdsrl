@@ -63,7 +63,7 @@ def setup(name, mode):
 
 
 # Reads in model if it already exists, or uses a different model for transfer learning, or creates a new model
-def create_model(name, mode, initState, deterministic):
+def create_model(name, mode, safe, initState, deterministic):
 
     # Create name for pickled model
     file_name = "models/{0}/model.pickle".format(name)
@@ -86,7 +86,7 @@ def create_model(name, mode, initState, deterministic):
 
     # Otherwise, create a new model and get actions
     else:
-        model = blox.Model(name, mode, initState, deterministic)
+        model = blox.Model(name, mode, safe, initState, deterministic)
         print("Creating new model for environment with unknown dynamics")
         model.obsActions = get_actions()
         model.updateDicts()
@@ -310,10 +310,12 @@ map(X, Y, no_object):t <- """)
     f.write("\n% Nothing\n")
     f.write("nothing(no_object):t+1 ~ val(Curr) <- nothing(no_object):t ~= Curr.\n")
 
-    # Write 'is_object' rule to file
+    # Write 'is_object' and 'changed' rules to file
     f.write("\n% Objects\n")
     objects = ["obj{0}".format(i) for i in model.objects.keys()]
     f.write("is_object(Obj) <- member(Obj, [" + ",".join(objects) + "]).\n")
+    changes = ["obj{0}".format(i) for i in model.obsChanges]
+    f.write("changed(Obj) <- member(Obj, [" + ",".join(changes) + "]).\n")
 
     # Write constraints to file
     f.write("\n% Constraints\n")
@@ -325,15 +327,15 @@ map(X, Y, no_object):t <- """)
     f.write("\n% Attribute Schemas\n")
     for i in range(len(model.schemas) - 1):
 
+        # Initialise variables
         n_s = 0
         att = attributes[i]
-
-        if not deterministic:
+        if not model.deterministic:
             string_info = {}
 
+        # For each schema
         for j in model.schemas[i].keys():
             for k in range(len(model.schemas[i][j])):
-
                 s = model.schemas[i][j][k]
                 n_s += 1
 
@@ -347,81 +349,76 @@ map(X, Y, no_object):t <- """)
                 # For non-deterministic models
                 else:
 
+                    # Calculate probability and form/store predicate names
                     prob = float(s.positive) / (s.positive + s.negative)
                     pred = att + "_" + str(j) + "_" + str(k)
-
                     if j not in string_info.keys():
                         string_info[j] = []
                     string_info[j].append(pred)
 
-                    f.write("{0}(Obj):t ~ val({2}) <- {3}.\n".format(pred, prob, s.display(no_head=True)))
+                    # Write schema to file
+                    f.write("{0}(Obj):t ~ val({1}) <- {2}.\n".format(pred, prob, s.display(no_head=True)))
                     f.write("{0}(Obj):t ~ val(0) <- true.\n".format(pred))
 
-
+        # Write overall determistic attribute schema to file
         if model.deterministic:
             if n_s != 0:
                 f.write(att + "(Obj):t+1 ~ val(New) <- schema_" + att + "(Obj, New):t.\n")
             f.write(att + "(Obj):t+1 ~ val(Curr) <- " + att + "(Obj):t ~= Curr.\n")
 
+        # Otherwise create the various strings needed for writing the overall non-determistic attribute schema to file
         else:
-
             if n_s != 0:
-
-                pred_list = util.flatten([string_info(val) for val in string_info.keys()])
-
+                pred_list = util.flatten([string_info[val] for val in string_info.keys()])
                 zeros_list = [pred + "(Obj):t ~= 0" for pred in pred_list]
                 zeros = ", ".join(zeros_list)
-
                 f.write(att + "(Obj):t+1 ~ val(Curr) <- " + att + "(Obj):t ~= Curr, " + zeros + ".\n")
-
                 vars_list =  [pred + "(Obj):t ~= " + pred.capitalize() for pred in pred_list]
                 vars = ", ".join(vars_list)
-
                 p_curr_calc_list = ["(1 - " + pred.capitalize() + ")" for pred in pred_list]
                 p_curr_calc = " * ".join(p_curr_calc_list)
-
                 probs_list = []
                 denominator = "(" + " + ".join([pred.capitalize() for pred in pred_list]) + ")"
-                for j in string_info.keys():
-                    numerator = "(" + " + ".join([pred.capitalize() for pred in string_info[j]]) + ")"
-                    probs_list.append("P_" + str(j) + " is " + numerator + " * (1 - P_curr) / " + denominator)
+                for val in string_info.keys():
+                    numerator = "(" + " + ".join([pred.capitalize() for pred in string_info[val]]) + ")"
+                    probs_list.append("P_" + str(val) + " is " + numerator + " * (1 - P_curr) / " + denominator)
                 probs =  ", ".join(probs_list)
 
+                # Write overall non-determistic non-position attribute schema to file
                 if i == X_POS or i == Y_POS:
-
                     dist_list = ["P_{0} : {1}".format(val, val.capitalize()) for val in string_info.keys()] + ["P_curr : Curr"]
                     dist = "[" + ", ".join(dist_list) + "]"
-
                     pos_list = [val.capitalize() + " is Curr" + change[val] for val in string_info.keys()]
                     pos = ", ".join(pos_list)
+                    f.write("{0}(Obj):t+1 ~ finite({1}) <- {0}(Obj):t ~= Curr, {2}, {3}, P_curr is {4}, {5}.\n".format(att, dist, pos, vars, p_curr_calc, probs))
 
-                    f.write("{0}(Obj):t+1 ~ finite({1}) <- {0}(Obj):t ~= Curr, {2}, {3}, P_curr is {4}, {5}.".format(att, dist, pos, vars, p_curr_calc, probs)
-
+                # Write overall non-determistic non-position attribute schema to file
                 else:
-
                     dist_list = ["P_{0} : {0}".format(val) for val in string_info.keys()] + ["P_curr : Curr"]
                     dist = "[" + ", ".join(dist_list) + "]"
+                    f.write("{0}(Obj):t+1 ~ finite({1}) <- {0}(Obj):t ~= Curr, {2}, P_curr is {3}, {4}.\n".format(att, dist, vars, p_curr_calc, probs))
 
-                    f.write("{0}(Obj):t+1 ~ finite({1}) <- {0}(Obj):t ~= Curr, {2}, P_curr is {3}, {4}.".format(att, dist, vars, p_curr_calc, probs)
-
+            # Write default rule to file
             else:
                 f.write(att + "(Obj):t+1 ~ val(Curr) <- " + att + "(Obj):t ~= Curr.\n")
 
     # Write reward schemas to file
     f.write("\n% Reward Schemas\n")
+
+    # First include any RMAX schemas
     if len(rmax_actions) != 0:
         f.write("reward:t ~ val({0}) <- constraints:t, action(A), member(A, [{1}]), \+action_performed:t.\n".format(model.RMAX, ",".join(rmax_actions)))
-    num_r_schemas = 0
-    for r in model.schemas[REWARD].keys():
-        for s in model.schemas[REWARD][r]:
-            f.write("reward:t ~ val({0}) <- constraints:t, is_object(Obj), ".format(r) + s.display(no_head=True) + ".\n")
-            num_r_schemas += 1
-    if num_r_schemas == 0:
-        f.write("reward:t ~ val(0) <- true.\n")
+
+    # Then add learnt schemas in order of how recently they were learnt (in case multiple schemas are active)
+    reward_schemas = util.flatten(model.schemas.items())
+    reward_schemas.sort(key=lambda x: x.name, reverse=True)
+    for s in reward_schemas:
+        f.write("reward:t ~ val({0}) <- constraints:t, changed(Obj), ".format(r) + s.display(no_head=True) + ".\n")
+    f.write("reward:t ~ val(0) <- true.\n")
 
     # Write run command to file
     f.write("\n% Run command\n")
-    f.write("run :- executedplan_start,executedplan_step(BA,true," + observations + ",{0},{1},TotalR,T,{1},STOP),print(BA).".format(num_samples, horizon))
+    f.write("run :- executedplan_start,executedplan_step(BA,false," + observations + ",{0},{1},TotalR,T,{1},STOP),print(BA).".format(num_samples, horizon))
     f.close()
 
     return

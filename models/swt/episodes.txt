@@ -1,0 +1,10 @@
+Episode action sequences and rewards for swt
+
+Episode 0
+l (from HYPE)
+u (from HYPE)
+r (from HYPE)
+l (from HYPE)
+r (from HYPE)
+u (from HYPE)
+r (from HYPE)

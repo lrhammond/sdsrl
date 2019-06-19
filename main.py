@@ -26,7 +26,7 @@ from random import choice, seed, random
 
 
 # Run the main algorithm
-def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, deterministic=True, manual_episodes=0):
+def run(name, mode, safe, numEpisodes, numSteps, numSamples, discount, horizon, deterministic=True, manual_episodes=0):
 
     seed()
     RMAX = 100
@@ -47,7 +47,7 @@ def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, determ
     constraints = ", ".join(all_constraints.splitlines())
 
     # Create and save model
-    model = inta.create_model(name, mode, initState, deterministic)
+    model = inta.create_model(name, mode, safe, initState, deterministic)
     with open("models/{0}/model.pickle".format(name), 'wb') as f:
         pickle.dump(model, f)
 
@@ -101,6 +101,7 @@ def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, determ
                 state = util.to_tuple(sorted([(key, model.curr[key]) for key in model.curr.keys()]))
                 if state not in model.R.keys():
                     model.R[state] = dict(zip(model.obsActions[0], [RMAX for _ in model.obsActions]))
+                    model.pi[state] = [None, False]
                 rmax_actions = [a for a in model.R[state] if model.R[state][a] == RMAX]
 
                 # If using manual control for episode, input action
@@ -110,37 +111,53 @@ def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, determ
                         action = raw_input("Enter action: ")
                     method = "input"
 
+                # If not, use RMAX to explore if possible
+                elif len(rmax_actions) != 0:
+                    if self.safe:
+                        action, expected_value = lern.hypermax(model, numSamples, rmax_actions, constraints, discount, horizon)
+                    else:
+                        action = choice(rmax_actions)
+                    method = "RMAX"
+
+                    # If HYPE fails to return an actions we move randomly or take an input from the user
+                    if action == "N/A":
+                        if self.safe:
+                            while action not in model.obsActions[0]:
+                                action = raw_input("Enter action: ")
+                            method = "input"
+                        else:
+                            action = choice(model.obsActions[0])
+                            method = "random"
+
+                # If the policy from this state has been updated since the last change in model we use that
+                elif model.pi[state][1]:
+                    action = pi[state][0]
+                    method = "policy"
+
+                # Otherwise we plan using the model
+                else:
+                    action, expected_value = lern.hypermax(model, numSamples, [], constraints, discount, horizon)
+                    method = "HYPE"
+
+                    # If HYPE fails to return an actions we move randomly or take an input from the user
+                    if action == "N/A":
+                        if self.safe:
+                            while action not in model.obsActions[0]:
+                                action = raw_input("Enter action: ")
+                            method = "input"
+                        else:
+                            action = choice(model.obsActions[0])
+                            method = "random"
+
+                    # If the action was chosen non-randomly and not by RMAX we update the policy
+                    if method != "random":
+                        pi[state] = [action, True]
 
                     # if random() < 0.5:
                     #     action2 = choice(model.obsActions[0])
                     #     method = "noise"
                     # else:
                     #     action2 = action
-
-
-                # Otherwise find the best action using HYPE
-                # else:
-                #     action, expected_value = lern.hypermax(model, numSamples, rmax_actions, constraints, discount, horizon)
-                #     method = "HYPE"
-
-                # action = "N/A"
-
-                # If HYPE fails to select an action then we use RMAX, the policy (if available) or make a random choice
-                if action == "N/A":
-                    if len(rmax_actions) != 0:
-                        action = choice(rmax_actions)
-                        method = "RMAX"
-                    elif state in model.pi.keys():
-                        action = model.pi[state]
-                        method = "policy"
-                    else:
-                        action = choice(model.obsActions[0])
-                        method = "random"
-
-                # Otherwise we perform the action selected by HYPE and update the policy
-                else:
-                    model.pi[state] = action
-
 
                 # Output action information
                 with open("models/" + model.name + "/episodes.txt", 'a') as f:
@@ -198,13 +215,15 @@ def run(name, mode, numEpisodes, numSteps, numSamples, discount, horizon, determ
                     new_state = True
 
                 # Learn new schemas and update their success probabilities if required
-                model.learn(new_trans, new_state)
+                model_updated = model.learn(new_trans, new_state)
                 model.error_made = False
                 if not model.deterministic:
                     model.update_probs()
 
-
-
+                # Record that the policy has not been updated since the last model change
+                if model_updated:
+                    for s in model.policy.keys():
+                        model.policy[state][1] = False
 
                 attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
                 print("======================================")

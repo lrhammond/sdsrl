@@ -1,0 +1,258 @@
+executedplan_start
+weight(1.0)
+nothing(no_object):t~=yes
+nothing(obj19):t~=no
+shape(obj19):t~=square
+colour(obj19):t~=agent
+y_size(obj19):t~=1
+x_size(obj19):t~=1
+y_pos(obj19):t~=3
+x_pos(obj19):t~=3
+nothing(obj18):t~=no
+shape(obj18):t~=square
+colour(obj18):t~=goal
+y_size(obj18):t~=1
+x_size(obj18):t~=1
+y_pos(obj18):t~=1
+x_pos(obj18):t~=3
+nothing(obj17):t~=no
+shape(obj17):t~=square
+colour(obj17):t~=hole
+y_size(obj17):t~=1
+x_size(obj17):t~=1
+y_pos(obj17):t~=1
+x_pos(obj17):t~=1
+nothing(obj16):t~=no
+shape(obj16):t~=square
+colour(obj16):t~=wall
+y_size(obj16):t~=1
+x_size(obj16):t~=1
+y_pos(obj16):t~=0
+x_pos(obj16):t~=4
+nothing(obj15):t~=no
+shape(obj15):t~=square
+colour(obj15):t~=wall
+y_size(obj15):t~=1
+x_size(obj15):t~=1
+y_pos(obj15):t~=0
+x_pos(obj15):t~=3
+nothing(obj14):t~=no
+shape(obj14):t~=square
+colour(obj14):t~=wall
+y_size(obj14):t~=1
+x_size(obj14):t~=1
+y_pos(obj14):t~=0
+x_pos(obj14):t~=2
+nothing(obj13):t~=no
+shape(obj13):t~=square
+colour(obj13):t~=wall
+y_size(obj13):t~=1
+x_size(obj13):t~=1
+y_pos(obj13):t~=0
+x_pos(obj13):t~=1
+nothing(obj12):t~=no
+shape(obj12):t~=square
+colour(obj12):t~=wall
+y_size(obj12):t~=1
+x_size(obj12):t~=1
+y_pos(obj12):t~=0
+x_pos(obj12):t~=0
+nothing(obj11):t~=no
+shape(obj11):t~=square
+colour(obj11):t~=wall
+y_size(obj11):t~=1
+x_size(obj11):t~=1
+y_pos(obj11):t~=1
+x_pos(obj11):t~=4
+nothing(obj10):t~=no
+shape(obj10):t~=square
+colour(obj10):t~=wall
+y_size(obj10):t~=1
+x_size(obj10):t~=1
+y_pos(obj10):t~=1
+x_pos(obj10):t~=0
+nothing(obj9):t~=no
+shape(obj9):t~=square
+colour(obj9):t~=wall
+y_size(obj9):t~=1
+x_size(obj9):t~=1
+y_pos(obj9):t~=2
+x_pos(obj9):t~=4
+nothing(obj8):t~=no
+shape(obj8):t~=square
+colour(obj8):t~=wall
+y_size(obj8):t~=1
+x_size(obj8):t~=1
+y_pos(obj8):t~=2
+x_pos(obj8):t~=3
+nothing(obj7):t~=no
+shape(obj7):t~=square
+colour(obj7):t~=wall
+y_size(obj7):t~=1
+x_size(obj7):t~=1
+y_pos(obj7):t~=2
+x_pos(obj7):t~=0
+nothing(obj6):t~=no
+shape(obj6):t~=square
+colour(obj6):t~=wall
+y_size(obj6):t~=1
+x_size(obj6):t~=1
+y_pos(obj6):t~=3
+x_pos(obj6):t~=4
+nothing(obj5):t~=no
+shape(obj5):t~=square
+colour(obj5):t~=wall
+y_size(obj5):t~=1
+x_size(obj5):t~=1
+y_pos(obj5):t~=3
+x_pos(obj5):t~=0
+nothing(obj4):t~=no
+shape(obj4):t~=square
+colour(obj4):t~=wall
+y_size(obj4):t~=1
+x_size(obj4):t~=1
+y_pos(obj4):t~=4
+x_pos(obj4):t~=4
+nothing(obj3):t~=no
+shape(obj3):t~=square
+colour(obj3):t~=wall
+y_size(obj3):t~=1
+x_size(obj3):t~=1
+y_pos(obj3):t~=4
+x_pos(obj3):t~=3
+nothing(obj2):t~=no
+shape(obj2):t~=square
+colour(obj2):t~=wall
+y_size(obj2):t~=1
+x_size(obj2):t~=1
+y_pos(obj2):t~=4
+x_pos(obj2):t~=2
+nothing(obj1):t~=no
+shape(obj1):t~=square
+colour(obj1):t~=wall
+y_size(obj1):t~=1
+x_size(obj1):t~=1
+y_pos(obj1):t~=4
+x_pos(obj1):t~=1
+nothing(obj0):t~=no
+shape(obj0):t~=square
+colour(obj0):t~=wall
+y_size(obj0):t~=1
+x_size(obj0):t~=1
+y_pos(obj0):t~=4
+x_pos(obj0):t~=0
+ep(10,0)
+plan(1,0,false,realplan,[],10,5,_132625,_132626,_132627)
+
+
+--------------------------------------------------------------------------------------
+d 5 avg 46.500  bound 46.5     ub inf         n 0 action(r)
+d 5 avg 46.500  bound 46.5     ub inf         n 0 action(d)
+d 5 avg 46.500  bound 46.5     ub inf         n 0 action(l)
+d 5 avg 46.500  bound 46.5     ub inf         n 0 action(u)
+p(5,1),action(r)
+p(4,1),action(d)
+p(3,1),action(l)
+p(2,1),action(u)
+p(1,1),action(r)
+reward(-4.52438125,0,false,0.9,11.507045105625,46.5)
+movingavg(-0.6786571875)
+1,5,0.159090909090909,-0.1,-4.52438125
+--------------------------------------------------------------------------------------
+d 5 avg 7.619   bound 7.619    ub 0           n 1 action(r)
+d 5 avg 7.619   bound 7.619    ub 0           n 1 action(d)
+d 5 avg 1.750   bound 1.75     ub 0           n 1 action(l)
+d 5 avg 7.619   bound 7.619    ub 0           n 1 action(u)
+p(5,2),action(l)
+p(4,2),action(r)
+p(3,2),action(d)
+p(2,2),action(d)
+p(1,2),action(u)
+reward(-4.52438125,0,false,0.9,8.75098320782656,7.61893900625)
+movingavg(-1.255515796875)
+2,5,0.168181818181818,-0.1,-9.0487625
+--------------------------------------------------------------------------------------
+d 5 avg 7.447   bound 7.447    ub 0           n 11.83 action(r)
+d 5 avg 7.447   bound 7.447    ub 0           n 11.83 action(d)
+d 5 avg 2.602   bound 2.602    ub 0           n 21.84 action(l)
+d 5 avg 7.447   bound 7.447    ub 0           n 11.83 action(u)
+p(5,3),action(u)
+p(4,3),action(d)
+p(3,3),action(l)
+p(2,3),action(d)
+p(1,3),action(l)
+reward(-4.52438125,0,false,0.9,7.44674141626772,7.44674141626772)
+movingavg(-1.74584561484375)
+3,5,0.177272727272727,-0.1,-13.57314375
+--------------------------------------------------------------------------------------
+d 5 avg 6.383   bound 6.383    ub 0           n 4.746 action(r)
+d 5 avg 6.383   bound 6.383    ub 0           n 4.746 action(d)
+d 5 avg 3.243   bound 3.243    ub 0           n 24.45 action(l)
+d 5 avg 6.383   bound 6.383    ub 0           n 4.746 action(u)
+p(5,4),action(u)
+p(4,4),action(u)
+p(3,4),action(r)
+p(2,4),action(u)
+p(1,4),action(d)
+reward(-4.52438125,0,false,0.9,6.38305359065647,6.38305359065647)
+movingavg(-2.16262596011719)
+4,5,0.186363636363636,-0.1,-18.097525
+--------------------------------------------------------------------------------------
+d 5 avg 5.452   bound 5.452    ub 0           n 5.311 action(r)
+d 5 avg 5.452   bound 5.452    ub 0           n 5.311 action(d)
+d 5 avg 3.243   bound 3.243    ub 0           n 35.55 action(l)
+d 5 avg 5.452   bound 5.452    ub 0           n 5.311 action(u)
+p(5,5),action(d)
+p(4,5),action(d)
+p(3,5),action(u)
+p(2,5),action(u)
+p(1,5),action(l)
+reward(-4.52438125,0,false,0.9,5.45182965789982,5.45182965789982)
+movingavg(-2.51688925359961)
+5,5,0.195454545454545,-0.1,-22.62190625
+--------------------------------------------------------------------------------------
+d 5 avg 5.163   bound 5.163    ub 0           n 6.109 action(r)
+d 5 avg 5.163   bound 5.163    ub 0           n 6.109 action(d)
+d 5 avg 3.243   bound 3.243    ub 0           n 46.31 action(l)
+d 5 avg 5.163   bound 5.163    ub 0           n 6.109 action(u)
+p(5,6),action(r)
+p(4,6),action(u)
+p(3,6),action(d)
+p(2,6),action(l)
+p(1,6),action(r)
+reward(-4.52438125,0,false,0.9,5.16262550739662,5.16262550739662)
+movingavg(-2.81801305305967)
+6,5,0.204545454545455,-0.1,-27.1462875
+--------------------------------------------------------------------------------------
+d 5 avg 4.653   bound 4.653    ub 0           n 6.959 action(r)
+d 5 avg 4.653   bound 4.653    ub 0           n 6.959 action(d)
+d 5 avg 6.342   bound 6.342    ub 0           n 61.37 action(l)
+d 5 avg 4.653   bound 4.653    ub 0           n 6.959 action(u)
+p(5,7),action(r)
+p(4,7),action(d)
+p(3,7),action(r)
+p(2,7),action(l)
+p(1,7),action(d)
+reward(-4.52438125,0,false,0.9,6.34181695920496,6.34181695920496)
+movingavg(-3.07396828260072)
+7,5,0.213636363636364,-0.1,-31.67066875
+--------------------------------------------------------------------------------------
+d 5 avg 4.196   bound 4.196    ub 0           n 7.823 action(r)
+d 5 avg 4.196   bound 4.196    ub 0           n 7.823 action(d)
+d 5 avg 6.585   bound 6.585    ub 0           n 72.61 action(l)
+d 5 avg 4.196   bound 4.196    ub 0           n 7.823 action(u)
+p(5,8),action(u)
+p(4,8),action(u)
+p(3,8),action(l)
+p(2,8),action(u)
+p(1,8),action(d)
+reward(-4.52438125,0,false,0.9,6.5845597901179,6.5845597901179)
+movingavg(-3.29153022771061)
+8,5,0.222727272727273,-0.1,-36.19505
+--------------------------------------------------------------------------------------
+d 5 avg 3.935   bound 3.935    ub 0           n 8.687 action(r)
+d 5 avg 3.935   bound 3.935    ub 0           n 8.687 action(d)
+d 5 avg 7.054   bound 7.054    ub 0           n 78.88 action(l)
+d 5 avg 3.935   bound 3.935    ub 0           n 8.687 action(u)
+p(5,9),action(d)
+p(4,9),action(l)
