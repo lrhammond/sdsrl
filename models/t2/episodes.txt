@@ -1,0 +1,32 @@
+Episode action sequences and rewards for t2
+
+Episode 0
+none (from RMAX)
+r (from RMAX)
+none (from RMAX)
+r (from RMAX)
+none (from RMAX)
+r (from RMAX)
+d (from RMAX)
+l (from RMAX)
+d (from RMAX)
+none (from RMAX)
+r (from RMAX)
+d (from RMAX)
+none (from RMAX)
+r (from RMAX)
+Score: -3
+
+Episode 1
+d (from RMAX)
+none (from RMAX)
+r (from RMAX)
+l (from RMAX)
+d (from RMAX)
+Score: -14
+
+Episode 2
+l (from RMAX)
+u (from RMAX)
+r (from input)
+l (from RMAX)

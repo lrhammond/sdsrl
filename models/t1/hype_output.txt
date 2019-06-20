@@ -1,0 +1,1336 @@
+executedplan_start
+weight(1.0)
+nothing(no_object):t~=yes
+nothing(obj19):t~=no
+shape(obj19):t~=square
+colour(obj19):t~=agent
+y_size(obj19):t~=1
+x_size(obj19):t~=1
+y_pos(obj19):t~=3
+x_pos(obj19):t~=1
+nothing(obj18):t~=no
+shape(obj18):t~=square
+colour(obj18):t~=goal
+y_size(obj18):t~=1
+x_size(obj18):t~=1
+y_pos(obj18):t~=1
+x_pos(obj18):t~=3
+nothing(obj17):t~=no
+shape(obj17):t~=square
+colour(obj17):t~=hole
+y_size(obj17):t~=1
+x_size(obj17):t~=1
+y_pos(obj17):t~=1
+x_pos(obj17):t~=1
+nothing(obj16):t~=no
+shape(obj16):t~=square
+colour(obj16):t~=wall
+y_size(obj16):t~=1
+x_size(obj16):t~=1
+y_pos(obj16):t~=0
+x_pos(obj16):t~=4
+nothing(obj15):t~=no
+shape(obj15):t~=square
+colour(obj15):t~=wall
+y_size(obj15):t~=1
+x_size(obj15):t~=1
+y_pos(obj15):t~=0
+x_pos(obj15):t~=3
+nothing(obj14):t~=no
+shape(obj14):t~=square
+colour(obj14):t~=wall
+y_size(obj14):t~=1
+x_size(obj14):t~=1
+y_pos(obj14):t~=0
+x_pos(obj14):t~=2
+nothing(obj13):t~=no
+shape(obj13):t~=square
+colour(obj13):t~=wall
+y_size(obj13):t~=1
+x_size(obj13):t~=1
+y_pos(obj13):t~=0
+x_pos(obj13):t~=1
+nothing(obj12):t~=no
+shape(obj12):t~=square
+colour(obj12):t~=wall
+y_size(obj12):t~=1
+x_size(obj12):t~=1
+y_pos(obj12):t~=0
+x_pos(obj12):t~=0
+nothing(obj11):t~=no
+shape(obj11):t~=square
+colour(obj11):t~=wall
+y_size(obj11):t~=1
+x_size(obj11):t~=1
+y_pos(obj11):t~=1
+x_pos(obj11):t~=4
+nothing(obj10):t~=no
+shape(obj10):t~=square
+colour(obj10):t~=wall
+y_size(obj10):t~=1
+x_size(obj10):t~=1
+y_pos(obj10):t~=1
+x_pos(obj10):t~=0
+nothing(obj9):t~=no
+shape(obj9):t~=square
+colour(obj9):t~=wall
+y_size(obj9):t~=1
+x_size(obj9):t~=1
+y_pos(obj9):t~=2
+x_pos(obj9):t~=4
+nothing(obj8):t~=no
+shape(obj8):t~=square
+colour(obj8):t~=wall
+y_size(obj8):t~=1
+x_size(obj8):t~=1
+y_pos(obj8):t~=2
+x_pos(obj8):t~=3
+nothing(obj7):t~=no
+shape(obj7):t~=square
+colour(obj7):t~=wall
+y_size(obj7):t~=1
+x_size(obj7):t~=1
+y_pos(obj7):t~=2
+x_pos(obj7):t~=0
+nothing(obj6):t~=no
+shape(obj6):t~=square
+colour(obj6):t~=wall
+y_size(obj6):t~=1
+x_size(obj6):t~=1
+y_pos(obj6):t~=3
+x_pos(obj6):t~=4
+nothing(obj5):t~=no
+shape(obj5):t~=square
+colour(obj5):t~=wall
+y_size(obj5):t~=1
+x_size(obj5):t~=1
+y_pos(obj5):t~=3
+x_pos(obj5):t~=0
+nothing(obj4):t~=no
+shape(obj4):t~=square
+colour(obj4):t~=wall
+y_size(obj4):t~=1
+x_size(obj4):t~=1
+y_pos(obj4):t~=4
+x_pos(obj4):t~=4
+nothing(obj3):t~=no
+shape(obj3):t~=square
+colour(obj3):t~=wall
+y_size(obj3):t~=1
+x_size(obj3):t~=1
+y_pos(obj3):t~=4
+x_pos(obj3):t~=3
+nothing(obj2):t~=no
+shape(obj2):t~=square
+colour(obj2):t~=wall
+y_size(obj2):t~=1
+x_size(obj2):t~=1
+y_pos(obj2):t~=4
+x_pos(obj2):t~=2
+nothing(obj1):t~=no
+shape(obj1):t~=square
+colour(obj1):t~=wall
+y_size(obj1):t~=1
+x_size(obj1):t~=1
+y_pos(obj1):t~=4
+x_pos(obj1):t~=1
+nothing(obj0):t~=no
+shape(obj0):t~=square
+colour(obj0):t~=wall
+y_size(obj0):t~=1
+x_size(obj0):t~=1
+y_pos(obj0):t~=4
+x_pos(obj0):t~=0
+ep(20,0)
+plan(1,0,true,realplan,[],20,5,_132625,_132626,_132627)
+
+
+--------------------------------------------------------------------------------------
+d 5 avg 94.000  bound 94       ub inf         n 0 action(none)
+d 5 avg 94.000  bound 94       ub inf         n 0 action(r)
+d 5 avg 94.000  bound 94       ub inf         n 0 action(d)
+d 5 avg 94.000  bound 94       ub inf         n 0 action(l)
+d 5 avg 94.000  bound 94       ub inf         n 0 action(u)
+p(5,1),action(none)
+p(4,1),action(l)
+p(3,1),action(u)
+p(2,1),action(d)
+p(1,1),action(l)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,1),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(u)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(3,1),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(l)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,1),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,1),true)
+
+reward(-3.709875,0,true,0.9,27.2939366875,94.0)
+movingavg(-0.55648125)
+1,5,0.154761904761905,-0.1,-3.709875
+--------------------------------------------------------------------------------------
+d 5 avg 19.882  bound 19.88    ub 0           n 1 action(none)
+d 5 avg 19.882  bound 19.88    ub 0           n 1 action(r)
+d 5 avg 19.882  bound 19.88    ub 0           n 1 action(d)
+d 5 avg 19.882  bound 19.88    ub 0           n 1 action(l)
+d 5 avg 19.882  bound 19.88    ub 0           n 1 action(u)
+p(5,2),action(none)
+p(4,2),action(d)
+p(3,2),action(u)
+p(2,2),action(none)
+p(1,2),action(d)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,2),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(u)
+initialfacts(true,current(reward)~=0)
+regressionproof3(p(3,2),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,2),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,2),true)
+
+reward(-10.9524375,0,true,0.9,19.882151875,19.882151875)
+movingavg(-2.1158746875)
+2,5,0.15952380952381,-0.1,-14.6623125
+--------------------------------------------------------------------------------------
+d 5 avg 15.340  bound 15.34    ub 0           n 1.985 action(none)
+d 5 avg 15.340  bound 15.34    ub 0           n 1.985 action(r)
+d 5 avg 15.340  bound 15.34    ub 0           n 1.985 action(d)
+d 5 avg 15.340  bound 15.34    ub 0           n 1.985 action(l)
+d 5 avg 15.340  bound 15.34    ub 0           n 1.985 action(u)
+p(5,3),action(u)
+p(4,3),action(none)
+p(3,3),action(r)
+p(2,3),action(d)
+p(1,3),action(l)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,3),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(r)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(3,3),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,3),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(u)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,3),true)
+
+reward(-4.52438125,0,true,0.9,15.3402799506985,15.3402799506985)
+movingavg(-2.477150671875)
+3,5,0.164285714285714,-0.1,-19.18669375
+--------------------------------------------------------------------------------------
+d 5 avg 13.972  bound 13.97    ub 0           n 2.955 action(none)
+d 5 avg 13.972  bound 13.97    ub 0           n 2.955 action(r)
+d 5 avg 13.972  bound 13.97    ub 0           n 2.955 action(d)
+d 5 avg 13.972  bound 13.97    ub 0           n 2.955 action(l)
+d 5 avg 13.972  bound 13.97    ub 0           n 2.955 action(u)
+p(5,4),action(d)
+p(4,4),action(l)
+p(3,4),action(l)
+p(2,4),action(d)
+p(1,4),action(u)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -10)
+regressionproof3(p(2,4),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(l)
+initialfacts(true,current(reward)~=0)
+regressionproof3(p(3,4),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(l)
+initialfacts(true,current(reward)~=0)
+regressionproof3(p(4,4),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,4),true)
+
+reward(-9.57375,0,true,0.9,13.9720364696282,13.9720364696282)
+movingavg(-3.54164057109375)
+4,5,0.169047619047619,-0.1,-28.76044375
+--------------------------------------------------------------------------------------
+d 5 avg 13.302  bound 13.3     ub 0           n 3.911 action(none)
+d 5 avg 13.302  bound 13.3     ub 0           n 3.911 action(r)
+d 5 avg 13.302  bound 13.3     ub 0           n 3.911 action(d)
+d 5 avg 13.302  bound 13.3     ub 0           n 3.911 action(l)
+d 5 avg 13.302  bound 13.3     ub 0           n 3.911 action(u)
+p(5,5),action(r)
+p(4,5),action(d)
+p(3,5),action(r)
+p(2,5),action(d)
+p(1,5),action(l)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,5),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(r)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(3,5),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,5),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(r)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,5),true)
+
+reward(-3.709875,0,true,0.9,13.3017056207357,13.3017056207357)
+movingavg(-3.56687573542969)
+5,5,0.173809523809524,-0.1,-32.47031875
+--------------------------------------------------------------------------------------
+d 5 avg 12.828  bound 12.83    ub 0           n 4.852 action(none)
+d 5 avg 12.828  bound 12.83    ub 0           n 4.852 action(r)
+d 5 avg 12.828  bound 12.83    ub 0           n 4.852 action(d)
+d 5 avg 12.828  bound 12.83    ub 0           n 4.852 action(l)
+d 5 avg 12.828  bound 12.83    ub 0           n 4.852 action(u)
+p(5,6),action(u)
+p(4,6),action(d)
+p(3,6),action(r)
+p(2,6),action(u)
+p(1,6),action(u)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(u)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,6),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(r)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(3,6),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,6),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(u)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,6),true)
+
+reward(-4.52438125,0,true,0.9,12.8276989489842,12.8276989489842)
+movingavg(-3.71050156261523)
+6,5,0.178571428571429,-0.1,-36.9947
+--------------------------------------------------------------------------------------
+d 5 avg 12.452  bound 12.45    ub 0           n 5.779 action(none)
+d 5 avg 12.452  bound 12.45    ub 0           n 5.779 action(r)
+d 5 avg 12.452  bound 12.45    ub 0           n 5.779 action(d)
+d 5 avg 12.452  bound 12.45    ub 0           n 5.779 action(l)
+d 5 avg 12.452  bound 12.45    ub 0           n 5.779 action(u)
+p(5,7),action(d)
+p(4,7),action(u)
+p(3,7),action(l)
+p(2,7),action(r)
+p(1,7),action(l)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(r)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,7),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(l)
+initialfacts(true,current(reward)~=0)
+regressionproof3(p(3,7),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(u)
+initialfacts(true,current(reward)~=0)
+regressionproof3(p(4,7),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,7),true)
+
+reward(-2.67188125,0,true,0.9,12.4515943290094,12.4515943290094)
+movingavg(-3.55470851572295)
+7,5,0.183333333333333,-0.1,-39.66658125
+--------------------------------------------------------------------------------------
+d 5 avg 12.150  bound 12.15    ub 0           n 6.693 action(none)
+d 5 avg 12.150  bound 12.15    ub 0           n 6.693 action(r)
+d 5 avg 12.150  bound 12.15    ub 0           n 6.693 action(d)
+d 5 avg 12.150  bound 12.15    ub 0           n 6.693 action(l)
+d 5 avg 12.150  bound 12.15    ub 0           n 6.693 action(u)
+p(5,8),action(none)
+p(4,8),action(l)
+p(3,8),action(none)
+p(2,8),action(u)
+p(1,8),action(r)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(u)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,8),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(3,8),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(l)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,8),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,8),true)
+
+reward(-4.52438125,0,true,0.9,12.1498186610354,12.1498186610354)
+movingavg(-3.70015942586451)
+8,5,0.188095238095238,-0.1,-44.1909625
+--------------------------------------------------------------------------------------
+d 5 avg 11.896  bound 11.9     ub 0           n 7.592 action(none)
+d 5 avg 11.896  bound 11.9     ub 0           n 7.592 action(r)
+d 5 avg 11.896  bound 11.9     ub 0           n 7.592 action(d)
+d 5 avg 11.896  bound 11.9     ub 0           n 7.592 action(l)
+d 5 avg 11.896  bound 11.9     ub 0           n 7.592 action(u)
+p(5,9),action(u)
+p(4,9),action(r)
+p(3,9),action(u)
+p(2,9),action(u)
+p(1,9),action(l)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(u)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,9),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(u)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(3,9),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(r)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,9),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(u)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,9),true)
+
+reward(-4.52438125,0,true,0.9,11.8959953287258,11.8959953287258)
+movingavg(-3.82379269948483)
+9,5,0.192857142857143,-0.1,-48.71534375
+--------------------------------------------------------------------------------------
+d 5 avg 11.672  bound 11.67    ub 0           n 8.478 action(none)
+d 5 avg 11.672  bound 11.67    ub 0           n 8.478 action(r)
+d 5 avg 11.672  bound 11.67    ub 0           n 8.478 action(d)
+d 5 avg 11.672  bound 11.67    ub 0           n 8.478 action(l)
+d 5 avg 11.672  bound 11.67    ub 0           n 8.478 action(u)
+p(5,10),action(d)
+p(4,10),action(none)
+p(3,10),action(r)
+p(2,10),action(none)
+p(1,10),action(l)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,10),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(r)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(3,10),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,10),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,10),true)
+
+reward(-4.52438125,0,true,0.9,11.6719013802903,11.6719013802903)
+movingavg(-3.92888098206211)
+10,5,0.197619047619048,-0.1,-53.239725
+--------------------------------------------------------------------------------------
+d 5 avg 11.773  bound 11.77    ub 0           n 8.478 action(none)
+d 5 avg 11.773  bound 11.77    ub 0           n 8.478 action(r)
+d 5 avg 11.773  bound 11.77    ub 0           n 8.478 action(d)
+d 5 avg 11.773  bound 11.77    ub 0           n 8.478 action(l)
+d 5 avg 11.773  bound 11.77    ub 0           n 8.478 action(u)
+p(5,11),action(d)
+p(4,11),action(l)
+p(3,11),action(d)
+p(2,11),action(u)
+p(1,11),action(none)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(u)
+initialfacts(true,current(reward)~=0)
+regressionproof3(p(2,11),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -10)
+regressionproof3(p(3,11),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(l)
+initialfacts(true,current(reward)~=0)
+regressionproof3(p(4,11),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,11),true)
+
+reward(-10.83950625,0,true,0.9,11.7725190372123,11.7725190372123)
+movingavg(-4.96547477225279)
+11,5,0.202380952380952,-0.1,-64.07923125
+--------------------------------------------------------------------------------------
+d 5 avg 10.155  bound 10.16    ub 0           n 8.478 action(none)
+d 5 avg 10.155  bound 10.16    ub 0           n 8.478 action(r)
+d 5 avg 10.155  bound 10.16    ub 0           n 8.478 action(d)
+d 5 avg 10.155  bound 10.16    ub 0           n 8.478 action(l)
+d 5 avg 10.155  bound 10.16    ub 0           n 8.478 action(u)
+p(5,12),action(r)
+p(4,12),action(r)
+p(3,12),action(d)
+p(2,12),action(d)
+p(1,12),action(u)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,12),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(3,12),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(r)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,12),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(r)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,12),true)
+
+reward(-4.52438125,0,true,0.9,10.155133501951,10.155133501951)
+movingavg(-4.89931074391487)
+12,5,0.207142857142857,-0.1,-68.6036125
+--------------------------------------------------------------------------------------
+d 5 avg 9.888   bound 9.888    ub 0           n 8.478 action(none)
+d 5 avg 9.888   bound 9.888    ub 0           n 8.478 action(r)
+d 5 avg 9.888   bound 9.888    ub 0           n 8.478 action(d)
+d 5 avg 9.888   bound 9.888    ub 0           n 8.478 action(l)
+d 5 avg 9.888   bound 9.888    ub 0           n 8.478 action(u)
+p(5,13),action(none)
+p(4,13),action(none)
+p(3,13),action(d)
+p(2,13),action(none)
+p(1,13),action(d)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,13),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(3,13),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,13),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,13),true)
+
+reward(-11.8549375,0,true,0.9,9.88787454608026,9.88787454608026)
+movingavg(-5.94265475732764)
+13,5,0.211904761904762,-0.1,-80.45855
+--------------------------------------------------------------------------------------
+d 5 avg 9.509   bound 9.509    ub 0           n 8.478 action(none)
+d 5 avg 9.509   bound 9.509    ub 0           n 8.478 action(r)
+d 5 avg 9.509   bound 9.509    ub 0           n 8.478 action(d)
+d 5 avg 9.509   bound 9.509    ub 0           n 8.478 action(l)
+d 5 avg 9.509   bound 9.509    ub 0           n 8.478 action(u)
+p(5,14),action(none)
+p(4,14),action(l)
+p(3,14),action(none)
+p(2,14),action(none)
+p(1,14),action(d)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,14),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(3,14),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(l)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,14),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,14),true)
+
+reward(-4.52438125,0,true,0.9,9.50853222724197,9.50853222724197)
+movingavg(-5.72991373122849)
+14,5,0.216666666666667,-0.1,-84.98293125
+--------------------------------------------------------------------------------------
+d 5 avg 8.561   bound 8.561    ub 0           n 8.478 action(none)
+d 5 avg 8.561   bound 8.561    ub 0           n 8.478 action(r)
+d 5 avg 8.561   bound 8.561    ub 0           n 8.478 action(d)
+d 5 avg 8.561   bound 8.561    ub 0           n 8.478 action(l)
+d 5 avg 8.561   bound 8.561    ub 0           n 8.478 action(u)
+p(5,15),action(l)
+p(4,15),action(none)
+p(3,15),action(l)
+p(2,15),action(none)
+p(1,15),action(l)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,15),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(l)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(3,15),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,15),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(l)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,15),true)
+
+reward(-4.52438125,0,true,0.9,8.56090465685702,8.56090465685702)
+movingavg(-5.54908385904422)
+15,5,0.221428571428571,-0.1,-89.5073125
+--------------------------------------------------------------------------------------
+d 5 avg 8.356   bound 8.356    ub 0           n 8.478 action(none)
+d 5 avg 8.356   bound 8.356    ub 0           n 8.478 action(r)
+d 5 avg 8.356   bound 8.356    ub 0           n 8.478 action(d)
+d 5 avg 8.356   bound 8.356    ub 0           n 8.478 action(l)
+d 5 avg 8.356   bound 8.356    ub 0           n 8.478 action(u)
+p(5,16),action(l)
+p(4,16),action(d)
+p(3,16),action(l)
+p(2,16),action(none)
+p(1,16),action(d)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,16),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(l)
+initialfacts(true,current(reward)~=0)
+regressionproof3(p(3,16),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,16),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(l)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,16),true)
+
+reward(-10.9524375,0,true,0.9,8.3557569129889,8.3557569129889)
+movingavg(-6.35958690518759)
+16,5,0.226190476190476,-0.1,-100.45975
+--------------------------------------------------------------------------------------
+d 5 avg 7.931   bound 7.931    ub 0           n 8.478 action(none)
+d 5 avg 7.931   bound 7.931    ub 0           n 8.478 action(r)
+d 5 avg 7.931   bound 7.931    ub 0           n 8.478 action(d)
+d 5 avg 7.931   bound 7.931    ub 0           n 8.478 action(l)
+d 5 avg 7.931   bound 7.931    ub 0           n 8.478 action(u)
+p(5,17),action(none)
+p(4,17),action(l)
+p(3,17),action(r)
+p(2,17),action(l)
+p(1,17),action(u)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(l)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,17),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(r)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(3,17),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(l)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,17),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,17),true)
+
+reward(-4.52438125,0,true,0.9,7.93074029862542,7.93074029862542)
+movingavg(-6.08430605690945)
+17,5,0.230952380952381,-0.1,-104.98413125
+--------------------------------------------------------------------------------------
+d 5 avg 7.782   bound 7.782    ub 0           n 8.478 action(none)
+d 5 avg 7.782   bound 7.782    ub 0           n 8.478 action(r)
+d 5 avg 7.782   bound 7.782    ub 0           n 8.478 action(d)
+d 5 avg 7.782   bound 7.782    ub 0           n 8.478 action(l)
+d 5 avg 7.782   bound 7.782    ub 0           n 8.478 action(u)
+p(5,18),action(none)
+p(4,18),action(u)
+p(3,18),action(l)
+p(2,18),action(u)
+p(1,18),action(l)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(u)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,18),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(l)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(3,18),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(u)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,18),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,18),true)
+
+reward(-4.52438125,0,true,0.9,7.78217694585167,7.78217694585167)
+movingavg(-5.85031733587303)
+18,5,0.235714285714286,-0.1,-109.5085125
+--------------------------------------------------------------------------------------
+d 5 avg 7.617   bound 7.617    ub 0           n 8.478 action(none)
+d 5 avg 7.617   bound 7.617    ub 0           n 8.478 action(r)
+d 5 avg 7.617   bound 7.617    ub 0           n 8.478 action(d)
+d 5 avg 7.617   bound 7.617    ub 0           n 8.478 action(l)
+d 5 avg 7.617   bound 7.617    ub 0           n 8.478 action(u)
+p(5,19),action(none)
+p(4,19),action(r)
+p(3,19),action(d)
+p(2,19),action(u)
+p(1,19),action(r)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(u)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,19),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(3,19),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(r)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,19),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(none)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,19),true)
+
+reward(-4.52438125,0,true,0.9,7.61709569358448,7.61709569358448)
+movingavg(-5.65142692299208)
+19,5,0.24047619047619,-0.1,-114.03289375
+--------------------------------------------------------------------------------------
+d 5 avg 7.158   bound 7.158    ub 0           n 8.478 action(none)
+d 5 avg 7.158   bound 7.158    ub 0           n 8.478 action(r)
+d 5 avg 7.158   bound 7.158    ub 0           n 8.478 action(d)
+d 5 avg 7.158   bound 7.158    ub 0           n 8.478 action(l)
+d 5 avg 7.158   bound 7.158    ub 0           n 8.478 action(u)
+p(5,20),action(u)
+p(4,20),action(d)
+p(3,20),action(u)
+p(2,20),action(r)
+p(1,20),action(d)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(r)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,20),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(u)
+initialfacts(true,current(reward)~=0)
+regressionproof3(p(3,20),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(d)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,20),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(u)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,20),true)
+
+reward(-3.62188125,0,true,0.9,7.15845039327214,7.15845039327214)
+movingavg(-5.34699507204327)
+20,5,0.245238095238095,-0.1,-117.654775
+--------------------------------------------------------------------------------------
+d 5 avg 6.240   bound 6.24     ub 0           n 8.478 action(none)
+d 5 avg 6.240   bound 6.24     ub 0           n 8.478 action(r)
+d 5 avg 6.240   bound 6.24     ub 0           n 8.478 action(d)
+d 5 avg 6.240   bound 6.24     ub 0           n 8.478 action(l)
+d 5 avg 6.240   bound 6.24     ub 0           n 8.478 action(u)
+p(5,21),action(r)
+p(4,21),action(l)
+p(3,21),action(r)
+p(2,21),action(l)
+p(1,21),action(none)
+partialproof_true_before(true)
+partialproof_true_after([true])
+partialproof3(true)
+
+partialproof3(true)
+
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(l)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(2,21),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(r)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(3,21),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(l)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(4,21),true)
+
+proof(next,true)
+partialproof_true_before(true)
+partialproof_true_after(true)
+action(r)
+initialfacts(true,current(reward)~= -1)
+regressionproof3(p(5,21),true)
+
+reward(-4.52438125,0,true,0.9,6.23980718088602,6.23980718088602)
+movingavg(-5.22360299873678)
+21,5,0.25,-0.1,-122.17915625
+avgR(-5.81805505952381)
+terminated(0,[21:action(none)],most(action(none)),best(action(none)))
+--------------------------------------------------------------------------------------
+plan(1,0,true,realplan,[],20,5,-5.81805505952381,_132699,action(none))
+
+
+execute(action(none))
+nb2(obj19,obj1):t
+map(1,4,obj1):t
+nb8(obj19,obj5):t
+map(0,3,obj5):t
+nb6(obj19,no_object):t
+map(1,2,no_object):t
+constraints:t
+reward:t~= -1
+x_pos(obj0):t~=0
+y_pos(obj0):t~=4
+x_size(obj0):t~=1
+y_size(obj0):t~=1
+colour(obj0):t~=wall
+shape(obj0):t~=square
+nothing(obj0):t~=no
+x_pos(obj1):t~=1
+y_pos(obj1):t~=4
+x_size(obj1):t~=1
+y_size(obj1):t~=1
+colour(obj1):t~=wall
+shape(obj1):t~=square
+nothing(obj1):t~=no
+x_pos(obj2):t~=2
+y_pos(obj2):t~=4
+x_size(obj2):t~=1
+y_size(obj2):t~=1
+colour(obj2):t~=wall
+shape(obj2):t~=square
+nothing(obj2):t~=no
+x_pos(obj3):t~=3
+y_pos(obj3):t~=4
+x_size(obj3):t~=1
+y_size(obj3):t~=1
+colour(obj3):t~=wall
+shape(obj3):t~=square
+nothing(obj3):t~=no
+x_pos(obj4):t~=4
+y_pos(obj4):t~=4
+x_size(obj4):t~=1
+y_size(obj4):t~=1
+colour(obj4):t~=wall
+shape(obj4):t~=square
+nothing(obj4):t~=no
+x_pos(obj5):t~=0
+y_pos(obj5):t~=3
+x_size(obj5):t~=1
+y_size(obj5):t~=1
+colour(obj5):t~=wall
+shape(obj5):t~=square
+nothing(obj5):t~=no
+x_pos(obj6):t~=4
+y_pos(obj6):t~=3
+x_size(obj6):t~=1
+y_size(obj6):t~=1
+colour(obj6):t~=wall
+shape(obj6):t~=square
+nothing(obj6):t~=no
+x_pos(obj7):t~=0
+y_pos(obj7):t~=2
+x_size(obj7):t~=1
+y_size(obj7):t~=1
+colour(obj7):t~=wall
+shape(obj7):t~=square
+nothing(obj7):t~=no
+x_pos(obj8):t~=3
+y_pos(obj8):t~=2
+x_size(obj8):t~=1
+y_size(obj8):t~=1
+colour(obj8):t~=wall
+shape(obj8):t~=square
+nothing(obj8):t~=no
+x_pos(obj9):t~=4
+y_pos(obj9):t~=2
+x_size(obj9):t~=1
+y_size(obj9):t~=1
+colour(obj9):t~=wall
+shape(obj9):t~=square
+nothing(obj9):t~=no
+x_pos(obj10):t~=0
+y_pos(obj10):t~=1
+x_size(obj10):t~=1
+y_size(obj10):t~=1
+colour(obj10):t~=wall
+shape(obj10):t~=square
+nothing(obj10):t~=no
+x_pos(obj11):t~=4
+y_pos(obj11):t~=1
+x_size(obj11):t~=1
+y_size(obj11):t~=1
+colour(obj11):t~=wall
+shape(obj11):t~=square
+nothing(obj11):t~=no
+x_pos(obj12):t~=0
+y_pos(obj12):t~=0
+x_size(obj12):t~=1
+y_size(obj12):t~=1
+colour(obj12):t~=wall
+shape(obj12):t~=square
+nothing(obj12):t~=no
+x_pos(obj13):t~=1
+y_pos(obj13):t~=0
+x_size(obj13):t~=1
+y_size(obj13):t~=1
+colour(obj13):t~=wall
+shape(obj13):t~=square
+nothing(obj13):t~=no
+x_pos(obj14):t~=2
+y_pos(obj14):t~=0
+x_size(obj14):t~=1
+y_size(obj14):t~=1
+colour(obj14):t~=wall
+shape(obj14):t~=square
+nothing(obj14):t~=no
+x_pos(obj15):t~=3
+y_pos(obj15):t~=0
+x_size(obj15):t~=1
+y_size(obj15):t~=1
+colour(obj15):t~=wall
+shape(obj15):t~=square
+nothing(obj15):t~=no
+x_pos(obj16):t~=4
+y_pos(obj16):t~=0
+x_size(obj16):t~=1
+y_size(obj16):t~=1
+colour(obj16):t~=wall
+shape(obj16):t~=square
+nothing(obj16):t~=no
+x_pos(obj17):t~=1
+y_pos(obj17):t~=1
+x_size(obj17):t~=1
+y_size(obj17):t~=1
+colour(obj17):t~=hole
+shape(obj17):t~=square
+nothing(obj17):t~=no
+x_pos(obj18):t~=3
+y_pos(obj18):t~=1
+x_size(obj18):t~=1
+y_size(obj18):t~=1
+colour(obj18):t~=goal
+shape(obj18):t~=square
+nothing(obj18):t~=no
+x_pos(obj19):t~=1
+y_pos(obj19):t~=3
+x_size(obj19):t~=1
+y_size(obj19):t~=1
+colour(obj19):t~=agent
+shape(obj19):t~=square
+nothing(obj19):t~=no
+nothing(no_object):t~=yes
+changed(obj19)
+action(none)
+rewardstate(-1)
+action(none)

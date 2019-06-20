@@ -176,7 +176,7 @@ def performAction(model, mode, environment, action):
         return
 
 
-def createPrologFile(model, num_samples, rmax_actions, constraints, discount, horizon):
+def createPrologFile(model, num_samples, rmax_actions, constraints, discount, horizon, rmax):
 
     # Form list of observations describing the current/initial state
     obs_list = [model.objects[key].observe() for key in model.objects.keys()] + ["observation(nothing(no_object))~=yes"]
@@ -283,21 +283,21 @@ attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos
 
     # Write action rules to file
     f.write("\n% Actions\n")
-    actions = ",".join(model.obsActions[0][:-1])
+    actions = ",".join(model.obsActions[0])
     f.write("""adm(action(A)):t <- member(A, [{0}]).
 \+(action_performed:0) <- true.
 action_performed:t+1 <- action(A), member(A, [{0}]).\n""".format(actions))
 
     # Write neighbour relations to file
     f.write("""\n% Neighbours
-nb1(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X - 1, NbY is Y + 1, map(NbX, NbY, Nb):t.
-nb2(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X,     NbY is Y + 1, map(NbX, NbY, Nb):t.
-nb3(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X + 1, NbY is Y + 1, map(NbX, NbY, Nb):t.
-nb4(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X + 1, NbY is Y    , map(NbX, NbY, Nb):t.
-nb5(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X + 1, NbY is Y - 1, map(NbX, NbY, Nb):t.
-nb6(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X,     NbY is Y - 1, map(NbX, NbY, Nb):t.
-nb7(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X - 1, NbY is Y - 1, map(NbX, NbY, Nb):t.
-nb8(Obj,Nb):t <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X - 1, NbY is Y    , map(NbX, NbY, Nb):t.\n""")
+nb1(Obj):t ~ val(Nb1) <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X - 1, NbY is Y + 1, map(NbX, NbY, Nb1):t.
+nb2(Obj):t ~ val(Nb2) <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X,     NbY is Y + 1, map(NbX, NbY, Nb2):t.
+nb3(Obj):t ~ val(Nb3) <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X + 1, NbY is Y + 1, map(NbX, NbY, Nb3):t.
+nb4(Obj):t ~ val(Nb4) <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X + 1, NbY is Y    , map(NbX, NbY, Nb4):t.
+nb5(Obj):t ~ val(Nb5) <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X + 1, NbY is Y - 1, map(NbX, NbY, Nb5):t.
+nb6(Obj):t ~ val(Nb6) <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X,     NbY is Y - 1, map(NbX, NbY, Nb6):t.
+nb7(Obj):t ~ val(Nb7) <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X - 1, NbY is Y - 1, map(NbX, NbY, Nb7):t.
+nb8(Obj):t ~ val(Nb8) <- x_pos(Obj):t ~= X, y_pos(Obj):t ~= Y, NbX is X - 1, NbY is Y    , map(NbX, NbY, Nb8):t.\n""")
 
     # Write map rules to file
     f.write("""\n% Map
@@ -405,20 +405,27 @@ map(X, Y, no_object):t <- """)
     # Write reward schemas to file
     f.write("\n% Reward Schemas\n")
 
-    # First include any RMAX schemas
+    # First include any RMAX schemas and a back-up reward rule
     if len(rmax_actions) != 0:
-        f.write("reward:t ~ val({0}) <- constraints:t, action(A), member(A, [{1}]), \+action_performed:t.\n".format(model.RMAX, ",".join(rmax_actions)))
+        f.write("reward:t ~ val({0}) <- constraints:t, action(A), member(A, [{1}]), \+action_performed:t.\n".format(rmax, ",".join(rmax_actions)))
 
     # Then add learnt schemas in order of how recently they were learnt (in case multiple schemas are active)
-    reward_schemas = util.flatten(model.schemas.items())
+    reward_schemas = util.flatten([model.schemas[REWARD][val] for val in model.schemas[REWARD].keys()])
     reward_schemas.sort(key=lambda x: x.name, reverse=True)
+    n_r_s = 0
     for s in reward_schemas:
-        f.write("reward:t ~ val({0}) <- constraints:t, changed(Obj), ".format(r) + s.display(no_head=True) + ".\n")
-    f.write("reward:t ~ val(0) <- true.\n")
+        n_r_s += 1
+        f.write("reward:t ~ val({0}) <- constraints:t, changed(Obj), ".format(s.head) + s.display(no_head=True) + ".\n")
+
+    # Include a default reward rule so that all cases are covered
+    if n_r_s == 0:
+        f.write("reward:t ~ val(0) <- true.\n")
+    else:
+        f.write("reward:t ~ val(0) <- changed(Obj).\n")
 
     # Write run command to file
     f.write("\n% Run command\n")
-    f.write("run :- executedplan_start,executedplan_step(BA,false," + observations + ",{0},{1},TotalR,T,{1},STOP),print(BA).".format(num_samples, horizon))
+    f.write("run :- executedplan_start,executedplan_step(BA,true," + observations + ",{0},{1},TotalR,T,{1},STOP),print(BA).".format(num_samples, horizon))
     f.close()
 
     return

@@ -3,7 +3,6 @@
 
 LIMIT = 10
 TOL = 1e-3
-RMAX = 1e6
 
 import sys
 import util
@@ -21,10 +20,10 @@ import gc
 # import pyscipopt
 
 # Updates Q function using abstracted trajectory samples from M
-def hypermax(model, num_samples, rmax_actions, constraints, gamma, horizon, max=3):
+def hypermax(model, num_samples, rmax_actions, constraints, gamma, horizon, rmax, max=3):
 
     # Create Prolog file and initialise model
-    inta.createPrologFile(model, num_samples, rmax_actions, constraints, gamma, horizon)
+    inta.createPrologFile(model, num_samples, rmax_actions, constraints, gamma, horizon, rmax)
 
     action = "N/A"
     counter = 0
@@ -61,8 +60,6 @@ def hypermax(model, num_samples, rmax_actions, constraints, gamma, horizon, max=
     if counter == max:
         action = "N/A"
         print("HYPE failed to compute an action {0} times, skipping on this step".format(max))
-    else:
-        print("HYPE selected: " + action)
 
     return action, expected_value
 

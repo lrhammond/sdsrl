@@ -21,15 +21,12 @@ import util
 import blox
 import pickle
 import os
-from random import choice, seed, random
+import random
 
 
 
 # Run the main algorithm
-def run(name, mode, safe, numEpisodes, numSteps, numSamples, discount, horizon, deterministic=True, manual_episodes=0):
-
-    seed()
-    RMAX = 100
+def run(name, mode, safe, numEpisodes, numSteps, numSamples, discount, horizon, deterministic=True, manual_episodes=0, epsilon=0.25):
 
     print("+++++++++++++++++++++++")
     print("New experiment: " + name)
@@ -40,6 +37,8 @@ def run(name, mode, safe, numEpisodes, numSteps, numSamples, discount, horizon, 
         os.makedirs("models/" + name)
 
     # Set up game according to mode and return description of initial state
+    random.seed()
+    rmax = sum([100 * (discount ** h) for h in range(horizon)]) + 1
     environment, dims = inta.setup(name, mode)
     initState = inta.observeState(mode, environment, dims)
     rewards = [0 for _ in range(numEpisodes)]
@@ -50,10 +49,6 @@ def run(name, mode, safe, numEpisodes, numSteps, numSamples, discount, horizon, 
     model = inta.create_model(name, mode, safe, initState, deterministic)
     with open("models/{0}/model.pickle".format(name), 'wb') as f:
         pickle.dump(model, f)
-
-
-    model.RMAX = RMAX
-
 
     # Learn model and policy
     with open("models/" + model.name + "/episodes.txt", 'w+') as f:
@@ -70,6 +65,7 @@ def run(name, mode, safe, numEpisodes, numSteps, numSamples, discount, horizon, 
         model.initialise(mode, initState)
         ended = False
         current_reward = 0
+        state = None
         for j in range(numSteps):
 
             # Check if the game has ended
@@ -88,21 +84,24 @@ def run(name, mode, safe, numEpisodes, numSteps, numSamples, discount, horizon, 
                 model.clean()
                 with open("models/{0}/model.pickle".format(name), 'wb') as f:
                     pickle.dump(model, f)
-
                 break
+
+            # Otherise
             else:
                 print("-------")
                 print("Step " + str(j))
 
-                # Clean up data, evidence, and learnt schemas
+                # Clean up data, evidence, and learnt schemas, and reset the aciotn_taken indicator variable
                 model.clean()
 
                 # If the current state is new we initialise it to have maximum reward
+                prev_state = state
                 state = util.to_tuple(sorted([(key, model.curr[key]) for key in model.curr.keys()]))
                 if state not in model.R.keys():
-                    model.R[state] = dict(zip(model.obsActions[0], [RMAX for _ in model.obsActions]))
+                    model.R[state] = dict(zip(model.obsActions[0], [rmax for _ in model.obsActions[0]]))
+                    # model.R[state]["none"] = -1
                     model.pi[state] = [None, False]
-                rmax_actions = [a for a in model.R[state] if model.R[state][a] == RMAX]
+                rmax_actions = [a for a in model.R[state] if model.R[state][a] == rmax]
 
                 # If using manual control for episode, input action
                 if i in range(manual_episodes):
@@ -113,127 +112,129 @@ def run(name, mode, safe, numEpisodes, numSteps, numSamples, discount, horizon, 
 
                 # If not, use RMAX to explore if possible
                 elif len(rmax_actions) != 0:
-                    if self.safe:
-                        action, expected_value = lern.hypermax(model, numSamples, rmax_actions, constraints, discount, horizon)
+                    if model.safe:
+                        action, expected_value = lern.hypermax(model, numSamples, rmax_actions, constraints, discount, horizon, rmax)
+                        method = "HYPERMAX"
                     else:
-                        action = choice(rmax_actions)
-                    method = "RMAX"
+                        action = random.choice(rmax_actions)
+                        method = "RMAX"
 
                     # If HYPE fails to return an actions we move randomly or take an input from the user
                     if action == "N/A":
-                        if self.safe:
+                        if model.safe:
                             while action not in model.obsActions[0]:
                                 action = raw_input("Enter action: ")
                             method = "input"
                         else:
-                            action = choice(model.obsActions[0])
+                            action = random.choice(model.obsActions[0])
                             method = "random"
 
-                # If the policy from this state has been updated since the last change in model we use that
-                elif model.pi[state][1]:
-                    action = pi[state][0]
+                # If the policy from this state has been updated since the last change in model we use that (unless the state hasn't changed since the last action)
+                elif model.pi[state][1] and state != prev_state and random.random() < (1 - epsilon):
+                    action = model.pi[state][0]
                     method = "policy"
 
                 # Otherwise we plan using the model
                 else:
-                    action, expected_value = lern.hypermax(model, numSamples, [], constraints, discount, horizon)
+                    action, expected_value = lern.hypermax(model, numSamples, [], constraints, discount, horizon, rmax)
                     method = "HYPE"
 
                     # If HYPE fails to return an actions we move randomly or take an input from the user
                     if action == "N/A":
-                        if self.safe:
+                        if model.safe:
                             while action not in model.obsActions[0]:
                                 action = raw_input("Enter action: ")
                             method = "input"
                         else:
-                            action = choice(model.obsActions[0])
+                            action = random.choice(model.obsActions[0])
                             method = "random"
 
                     # If the action was chosen non-randomly and not by RMAX we update the policy
                     if method != "random":
-                        pi[state] = [action, True]
+                        model.pi[state] = [action, True]
 
-                    # if random() < 0.5:
-                    #     action2 = choice(model.obsActions[0])
-                    #     method = "noise"
-                    # else:
-                    #     action2 = action
+                if random.random() < 0.15:
+                    action2 = random.choice(model.obsActions[0])
+                    method = "noise"
+                else:
+                    action2 = action
 
                 # Output action information
                 with open("models/" + model.name + "/episodes.txt", 'a') as f:
-                    f.write(action + " (from {0})\n".format(method))
+                    spaces = " " * (max([len(a) for a in model.obsActions[0]]) - len(action))
+                    f.write(action + spaces + " (from {0})\n".format(method))
                 print("Action taken: " + action)
 
-                # If there is an action to be taken, perform it and update the reward
+                # Take an action, updated the stored reward function, and check if the game has ended
+                [reward, ended] = inta.performAction(model, mode, environment, action2)
+                current_reward += reward
+                model.R[state][action] = reward
                 if action != "none":
-                    [reward, ended] = inta.performAction(model, mode, environment, action)
-                    current_reward += reward
-                    model.R[state][action] = reward
 
-                # If the game has ended we only update the action and reward, as the state doesn't matter
-                if not ended:
-                    observation = [inta.observeState(mode, environment, dims), action, reward]
-                else:
-                    observation = [None, action, reward]
-
-                # Update model
-                model.prev = model.getModelState()
-                model.oldMap = deepcopy(model.objMap)
-                model.updateModel(mode, observation)
-                model.curr = model.getModelState()
-                model.obsChanges.update(set(util.changes(model)))
-
-                # Save transition so we don't have to update our data or do learning next time
-                new_state = util.to_tuple(sorted([(key, model.curr[key]) for key in model.curr.keys()]))
-                transition = util.to_tuple([state, action, new_state, reward])
-                state = transition[:2]
-
-                # If the transition has not previously been observed then we update the data and learn transitions
-                update_schema_counts = False
-                new_trans = False
-                if transition not in model.obsTrans.keys():
-                    model.obsTrans[transition] = 1
-                    model.schema_updates[transition], model.transition_data[transition] = model.updateData(ended)
+                    # If the game has ended we only update the action and reward, as the state doesn't matter
                     if not ended:
+                        observation = [inta.observeState(mode, environment, dims), action, reward]
+                    else:
+                        observation = [None, action, reward]
+
+                    # Update model
+                    model.prev = model.getModelState()
+                    model.oldMap = deepcopy(model.objMap)
+                    model.updateModel(mode, observation)
+                    model.curr = model.getModelState()
+                    model.obsChanges.update(set(util.changes(model)))
+
+                    # Save transition so we don't have to update our data or do learning next time
+                    new_state = util.to_tuple(sorted([(key, model.curr[key]) for key in model.curr.keys()]))
+                    transition = util.to_tuple([state, action, new_state, reward])
+                    state = transition[:2]
+
+                    # If the transition has not previously been observed then we update the data and learn transitions
+                    update_schema_counts = False
+                    new_trans = False
+                    if transition not in model.obsTrans.keys():
+                        model.obsTrans[transition] = 1
+                        model.schema_updates[transition], model.transition_data[transition] = model.updateData(ended)
+                        if not ended:
+                            new_trans = True
+                    elif model.error_made and not ended:
                         new_trans = True
-                elif model.error_made and not ended:
-                    new_trans = True
 
-                # Otherwise we update schema probability counts from our recorded observations
-                elif not model.deterministic:
-                    model.obsTrans[transition] += 1
-                    model.update_schemas(transition, ended)
-                else:
-                    model.obsTrans[transition] += 1
+                    # Otherwise we update schema probability counts from our recorded observations
+                    elif not model.deterministic:
+                        model.obsTrans[transition] += 1
+                        model.update_schemas(transition, ended)
+                    else:
+                        model.obsTrans[transition] += 1
 
-                # If the state is also new then record it separately and learn rewards
-                new_state = False
-                if state not in model.obsState:
-                    model.obsState.add(state)
-                    new_state = True
-                elif model.error_made:
-                    new_state = True
+                    # If the state is also new then record it separately and learn rewards
+                    new_state = False
+                    if state not in model.obsState:
+                        model.obsState.add(state)
+                        new_state = True
+                    elif model.error_made:
+                        new_state = True
 
-                # Learn new schemas and update their success probabilities if required
-                model_updated = model.learn(new_trans, new_state)
-                model.error_made = False
-                if not model.deterministic:
-                    model.update_probs()
+                    # Learn new schemas and update their success probabilities if required
+                    model_updated = model.learn(new_trans, new_state)
+                    model.error_made = False
+                    if not model.deterministic:
+                        model.update_probs()
 
-                # Record that the policy has not been updated since the last model change
-                if model_updated:
-                    for s in model.policy.keys():
-                        model.policy[state][1] = False
+                    # Record that the policy has not been updated since the last model change
+                    if model_updated:
+                        for s in model.pi.keys():
+                            model.pi[s][1] = False
 
-                attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
-                print("======================================")
-                print("Schemas at the end of step " + str(j) + ":")
-                for att in range(REWARD + 1):
-                    for val in model.schemas[att].keys():
-                        for s in model.schemas[att][val]:
-                            print(str(s.name) + " : " + str(s.positive) + "/" + str(s.negative) + " : " + attributes[
-                                att] + " = " + str(val) + " <- " + s.display(no_head=True))
-                print("======================================")
+                    attributes = ["X_pos", "Y_pos", "X_size", "Y_size", "Colour", "Shape", "Nothing", "Reward"]
+                    print("======================================")
+                    print("Schemas at the end of step " + str(j) + ":")
+                    for att in range(REWARD + 1):
+                        for val in model.schemas[att].keys():
+                            for s in model.schemas[att][val]:
+                                print(str(s.name) + " : " + str(s.positive) + "/" + str(s.negative) + " : " + attributes[
+                                    att] + " = " + str(val) + " <- " + s.display(no_head=True))
+                    print("======================================")
 
 
 

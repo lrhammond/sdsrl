@@ -86,13 +86,6 @@ class Model:
         self.action = None
         self.reward = None
 
-
-
-        self.RMAX = 100
-
-
-
-
         # Initialise map and object dictionaries
         self.objects = {}
         self.oldMap = {}
@@ -748,6 +741,11 @@ class Model:
         # For each object attribute or reward
         for i in att_list:
 
+            # print("**************************")
+            # print("Learning schemas for " + attributes[i])
+            # print("**************************")
+
+
             remaining = dict(zip(self.data[i].keys(),[[] for key in self.data[i].keys()]))
 
             # For each attribute/reward value to be predicted
@@ -982,7 +980,7 @@ class Schema:
 
             # Assert neighbour relation if needed
             if not added[i]:
-                addNeighbour = objects[i] + "(Obj," + objNames[i] + "):t"
+                addNeighbour = objects[i] + "(Obj):t ~= " + objNames[i]
                 schemaBody = schemaBody + addNeighbour + ", "
                 added[i] = True
 
