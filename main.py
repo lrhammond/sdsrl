@@ -42,13 +42,14 @@ def run(name, mode, safe, numEpisodes, numSteps, numSamples, discount, horizon, 
     environment, dims = inta.setup(name, mode)
     initState = inta.observeState(mode, environment, dims)
     rewards = [0 for _ in range(numEpisodes)]
-    all_constraints = inta.get_file(name, "constraints")
-    constraints = ", ".join(all_constraints.splitlines())
 
     # Create and save model
     model = inta.create_model(name, mode, safe, initState, deterministic)
     with open("models/{0}/model.pickle".format(name), 'wb') as f:
         pickle.dump(model, f)
+
+    # Get constraints
+    constraints = util.form_constraints(inta.get_file(name, "constraints"), model.obsActions[0])
 
     # Learn model and policy
     with open("models/" + model.name + "/episodes.txt", 'w+') as f:
@@ -149,15 +150,21 @@ def run(name, mode, safe, numEpisodes, numSteps, numSamples, discount, horizon, 
                             action = random.choice(model.obsActions[0])
                             method = "random"
 
-                    # If the action was chosen non-randomly and not by RMAX we update the policy
-                    if method != "random":
-                        model.pi[state] = [action, True]
+                # If the action was chosen non-randomly and not by (HYPE)RMAX we update the policy
+                if method not in ["random", "HYPERMAX", "RMAX"]:
+                    model.pi[state] = [action, True]
 
-                if random.random() < 0.15:
-                    action2 = random.choice(model.obsActions[0])
-                    method = "noise"
-                else:
-                    action2 = action
+
+
+
+                # if random.random() < 0.15:
+                #     action2 = random.choice(model.obsActions[0])
+                #     method = "noise"
+                # else:
+                #     action2 = action
+
+
+
 
                 # Output action information
                 with open("models/" + model.name + "/episodes.txt", 'a') as f:
@@ -166,7 +173,7 @@ def run(name, mode, safe, numEpisodes, numSteps, numSamples, discount, horizon, 
                 print("Action taken: " + action)
 
                 # Take an action, updated the stored reward function, and check if the game has ended
-                [reward, ended] = inta.performAction(model, mode, environment, action2)
+                [reward, ended] = inta.performAction(model, mode, environment, action)
                 current_reward += reward
                 model.R[state][action] = reward
                 if action != "none":

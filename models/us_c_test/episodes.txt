@@ -1,0 +1,70 @@
+Episode action sequences and rewards for us_c_test
+
+Episode 0
+none (from HYPERMAX)
+u    (from HYPERMAX)
+r    (from HYPERMAX)
+none (from HYPERMAX)
+d    (from HYPERMAX)
+none (from HYPERMAX)
+l    (from HYPERMAX)
+none (from HYPERMAX)
+u    (from HYPERMAX)
+l    (from HYPERMAX)
+r    (from HYPERMAX)
+l    (from HYPERMAX)
+none (from HYPERMAX)
+none (from HYPERMAX)
+r    (from HYPERMAX)
+r    (from HYPERMAX)
+l    (from input)
+u    (from HYPERMAX)
+d    (from HYPE)
+u    (from HYPERMAX)
+l    (from HYPE)
+none (from HYPERMAX)
+none (from HYPERMAX)
+r    (from HYPERMAX)
+Score: -240
+
+Episode 1
+none (from HYPERMAX)
+r    (from HYPERMAX)
+l    (from policy)
+none (from HYPERMAX)
+r    (from HYPERMAX)
+l    (from HYPE)
+r    (from HYPERMAX)
+none (from HYPE)
+d    (from HYPE)
+d    (from HYPERMAX)
+none (from HYPERMAX)
+r    (from HYPERMAX)
+Score: -10
+
+Episode 2
+r    (from HYPERMAX)
+d    (from HYPE)
+r    (from HYPERMAX)
+d    (from HYPE)
+l    (from HYPERMAX)
+Score: -140
+
+Episode 3
+none (from HYPERMAX)
+r    (from HYPERMAX)
+d    (from HYPE)
+d    (from HYPE)
+u    (from HYPERMAX)
+d    (from HYPE)
+d    (from HYPERMAX)
+r    (from HYPE)
+Score: 30
+
+Episode 4
+r    (from HYPERMAX)
+d    (from HYPE)
+d    (from HYPE)
+r    (from policy)
+Score: 70
+

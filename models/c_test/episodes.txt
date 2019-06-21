@@ -1,0 +1,59 @@
+Episode action sequences and rewards for c_test
+
+Episode 0
+r    (from input)
+d    (from input)
+l    (from input)
+l    (from input)
+r    (from input)
+d    (from input)
+l    (from input)
+Score: -160
+
+Episode 1
+none (from HYPE)
+none (from HYPE)
+none (from HYPE)
+none (from HYPE)
+none (from HYPE)
+none (from HYPE)
+none (from HYPE)
+none (from HYPE)
+none (from HYPE)
+r    (from HYPE)
+none (from HYPE)
+l    (from HYPE)
+r    (from HYPE)
+l    (from HYPE)
+none (from HYPE)
+r    (from HYPE)
+none (from HYPE)
+d    (from HYPE)
+none (from HYPERMAX)
+r    (from HYPERMAX)
+d    (from HYPE)
+none (from HYPERMAX)
+r    (from HYPE)
+Score: -120
+
+Episode 2
+r    (from HYPE)
+d    (from HYPE)
+d    (from policy)
+r    (from policy)
+Score: 70
+
+Episode 3
+r    (from policy)
+d    (from policy)
+d    (from policy)
+r    (from policy)
+Score: 70
+
+Episode 4
+r    (from policy)
+d    (from HYPE)
+d    (from policy)
+r    (from policy)
+Score: 70
+

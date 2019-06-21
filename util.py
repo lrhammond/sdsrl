@@ -363,6 +363,39 @@ def to_tuple(x):
         return tuple([to_tuple(y) for y in x])
 
 
+# Form a dictionary of constraints from a file
+def form_constraints(constraint_list, action_list):
+
+    # Initialise dictionary to return
+    constraint_dict = dict(zip(action_list, [[] for _ in action_list]))
+    constraint_dict["penalty"] = []
+
+    # Form dictionary entries for each action and penalty constraint
+    for line in constraint_list.splitlines():
+        if len(line) == 0:
+            continue
+        elif line[0] == "#":
+            continue
+        elif line ==  "\n":
+            continue
+        elif line in constraint_dict.keys():
+            curr = line
+        else:
+            constraint_dict[curr].append(line)
+
+    # Form appropriately formatted strings to return
+    for k in constraint_dict.keys():
+        if len(constraint_dict[k]) == 0:
+            if k == "penalty":
+                constraint_dict[k] = "false"
+            else:
+                constraint_dict[k] = "true"
+        elif k != "penalty":
+            constraint_dict[k] = ", ".join(constraint_dict[k])
+
+    return constraint_dict
+
+
 # def to_problog_rule(att, key, schema):
 #
 #     # Initialise template variables and lists

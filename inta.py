@@ -27,6 +27,7 @@ import os
 import shutil
 import blox
 import pickle
+import random
 
 
 # Setup game according to mode chosen
@@ -159,11 +160,11 @@ def performAction(model, mode, environment, action):
         (ended, won) = environment._isDone()
         if ended:
             if won:
-                reward = 10
+                reward = 100
             else:
-                reward = -10
+                reward = -100
         else:
-            reward = -1
+            reward = -10
 
         # Return reward and whether game has ended
         return [reward, ended]
@@ -281,11 +282,15 @@ attributes(Obj, X_pos, Y_pos, X_size, Y_size, Colour, Shape, Nothing):t <- x_pos
                                                                            shape(Obj):t ~= Shape,
                                                                            nothing(Obj):t ~= Nothing.\n""")
 
-    # Write action rules to file
-    f.write("\n% Actions\n")
-    actions = ",".join(model.obsActions[0])
-    f.write("""adm(action(A)):t <- member(A, [{0}]).
-\+(action_performed:0) <- true.
+    # Write action rules and constraints to file
+    f.write("\n% Action Constraints\n")
+    action_list = [a for a in model.obsActions[0] if a != "none"]
+    random.shuffle(action_list)
+    for a in action_list:
+        f.write("adm(action({0})):t <- {1}.\n".format(a, constraints[a]))
+    f.write("adm(action({0})):t <- {1}.\n".format("none", constraints["none"]))
+    actions = ",".join(["none"] + action_list)
+    f.write("""\+(action_performed:0) <- true.
 action_performed:t+1 <- action(A), member(A, [{0}]).\n""".format(actions))
 
     # Write neighbour relations to file
@@ -317,9 +322,10 @@ map(X, Y, no_object):t <- """)
     changes = ["obj{0}".format(i) for i in model.obsChanges]
     f.write("changed(Obj) <- member(Obj, [" + ",".join(changes) + "]).\n")
 
-    # Write constraints to file
-    f.write("\n% Constraints\n")
-    f.write("constraints:t <- " + constraints + ".\n")
+    # Write penalty constraints to file
+    f.write("\n% Penalty Constraints\n")
+    for c in constraints["penalty"]:
+        f.write("constraints:t <- " + c + ".\n")
 
     # Write attribute schemas to file
     attributes = ["x_pos", "y_pos", "x_size", "y_size", "colour", "shape", "nothing"]
@@ -405,9 +411,11 @@ map(X, Y, no_object):t <- """)
     # Write reward schemas to file
     f.write("\n% Reward Schemas\n")
 
-    # First include any RMAX schemas and a back-up reward rule
+    # First include any RMAX schemas and a check of whether any constraints are violated
+    penalty = -(2 * rmax)
+    f.write("reward:t ~ val({}) <- constraints:t.\n".format(penalty))
     if len(rmax_actions) != 0:
-        f.write("reward:t ~ val({0}) <- constraints:t, action(A), member(A, [{1}]), \+action_performed:t.\n".format(rmax, ",".join(rmax_actions)))
+        f.write("reward:t ~ val({0}) <- action(A), member(A, [{1}]), \+action_performed:t.\n".format(rmax, ",".join(rmax_actions)))
 
     # Then add learnt schemas in order of how recently they were learnt (in case multiple schemas are active)
     reward_schemas = util.flatten([model.schemas[REWARD][val] for val in model.schemas[REWARD].keys()])
@@ -415,7 +423,7 @@ map(X, Y, no_object):t <- """)
     n_r_s = 0
     for s in reward_schemas:
         n_r_s += 1
-        f.write("reward:t ~ val({0}) <- constraints:t, changed(Obj), ".format(s.head) + s.display(no_head=True) + ".\n")
+        f.write("reward:t ~ val({0}) <- changed(Obj), ".format(s.head) + s.display(no_head=True) + ".\n")
 
     # Include a default reward rule so that all cases are covered
     if n_r_s == 0:
