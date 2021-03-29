@@ -47,7 +47,7 @@ ptyprocess==0.6.0
 PyBrain==0.3.3
 pycparser==2.19
 pygame==1.9.4
-Pygments==2.3.1
+Pygments==2.7.4
 pyOpenSSL==18.0.0
 python-dateutil==2.7.5
 PyYAML==4.2b4
